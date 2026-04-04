@@ -55,7 +55,7 @@
   subtitulo: "Aviso importante",
   desc: "Ese día no habrá servicio. Disculpe las molestias. Volvemos el 19 con toda la energía.",
   color: "#D62828",
-  img: "img/aviso-cierre.jpg",
+  img: "img/aviso-cierre.webp",
   wapp: "Hola, vi el aviso de cierre del 18 de marzo, ¿cuándo retoman el servicio?"
 },
 {
@@ -64,7 +64,7 @@
   subtitulo: "Reservá tu mesa ahora",
   desc: "Esta temporada tenemos un menú exclusivo con sabores especiales. Plazas limitadas — contactanos y asegurá tu lugar.",
   color: "#0a4a1a",
-  img: "img/promo-navidena.jpg",
+  img: "img/promo-navidena.webp",
   wapp: "Hola, me interesa el menú especial navideño 🎄"
 },
   ];
