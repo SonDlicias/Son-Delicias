@@ -48,7 +48,25 @@
       desc: "Reservá el local para tu evento especial. Menú personalizado, decoración incluida. Contactanos para armar tu paquete.",
       color: "#0a4a3a",
       wapp: "Hola, me interesa reservar para un evento 🎉"
-    }
+    },
+ {
+  emoji: "⚠️",
+  titulo: "Cerramos el 18 de marzo",
+  subtitulo: "Aviso importante",
+  desc: "Ese día no habrá servicio. Disculpe las molestias. Volvemos el 19 con toda la energía.",
+  color: "#D62828",
+  img: "img/aviso-cierre.jpg",
+  wapp: "Hola, vi el aviso de cierre del 18 de marzo, ¿cuándo retoman el servicio?"
+},
+{
+  emoji: "🎄",
+  titulo: "Menú Especial Navideño",
+  subtitulo: "Reservá tu mesa ahora",
+  desc: "Esta temporada tenemos un menú exclusivo con sabores especiales. Plazas limitadas — contactanos y asegurá tu lugar.",
+  color: "#0a4a1a",
+  img: "img/promo-navidena.jpg",
+  wapp: "Hola, me interesa el menú especial navideño 🎄"
+},
   ];
 
   const WA_NUMBER = '5355207586'; // ← Cambiar por el número real
@@ -75,7 +93,13 @@
         transition:transform .15s;
         active:transform:scale(.98)
       " onclick="window.open('https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(n.wapp)}','_blank')">
-        <div style="font-size:32px;margin-bottom:10px">${n.emoji}</div>
+       ${n.img
+  ? `<img src="${n.img}" alt="${n.titulo}"
+       loading="lazy"
+       style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block"
+       onerror="this.style.display='none'">`
+  : `<div style="font-size:32px;margin-bottom:10px">${n.emoji}</div>`
+}
         <div style="font-size:16px;font-weight:900;margin-bottom:4px;color:#fff">${n.titulo}</div>
         <div style="font-size:11px;color:#E8A020;font-weight:800;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">${n.subtitulo}</div>
         <div style="font-size:13px;color:#ccc;line-height:1.7;margin-bottom:14px">${n.desc}</div>
