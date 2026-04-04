@@ -93,12 +93,9 @@
         transition:transform .15s;
         active:transform:scale(.98)
       " onclick="window.open('https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(n.wapp)}','_blank')">
-       ${n.img
-  ? `<img src="${n.img}" alt="${n.titulo}"
-       loading="lazy"
-       style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block"
-       onerror="this.style.display='none'">`
-  : `<div style="font-size:32px;margin-bottom:10px">${n.emoji}</div>`
+      ${n.img
+  ? '<img src="' + n.img + '" alt="Aviso" loading="lazy" style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block" onerror="this.style.display=\'none\'">'
+  : '<div style="font-size:32px;margin-bottom:10px">' + n.emoji + '</div>'
 }
         <div style="font-size:16px;font-weight:900;margin-bottom:4px;color:#fff">${n.titulo}</div>
         <div style="font-size:11px;color:#E8A020;font-weight:800;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">${n.subtitulo}</div>
