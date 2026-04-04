@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0f0a08;color:#fff;font-family:'Inter','Segoe UI',system-ui,sans-serif;min-height:100vh}
+body{background:#0f0a08;color:#fff;font-family:'Inter','Segoe UI',system-ui,sans-serif;min-height:100vh;background-image:radial-gradient(ellipse 120% 60% at 50% 0%,rgba(255,80,20,.06) 0%,transparent 70%),radial-gradient(ellipse 80% 40% at 50% 100%,rgba(255,122,0,.04) 0%,transparent 60%)}
 
 /* ── HEADER ── */
 header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 14px 12px;position:sticky;top:0;z-index:99;border-bottom:1px solid rgba(255,255,255,.06);box-shadow:0 1px 0 rgba(255,255,255,.04)}
@@ -100,8 +100,8 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .cbtns{display:flex;gap:5px;padding-bottom:8px}
 .bped{flex:1;background:#D62828;border:none;border-radius:7px;padding:7px 3px;color:#fff;font-size:10px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
 .bped:active,.bped.tap{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
-.bcom{flex:1;background:#E8A020;border:none;border-radius:7px;padding:7px 3px;color:#fff;font-size:10px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
-.bcom:active,.bcom.tap{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
+.bcom{flex:1;background:transparent;border:1.5px solid rgba(232,160,32,.6);border-radius:7px;padding:7px 3px;color:#E8A020;font-size:10px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,border-color .15s,background .15s}
+.bcom:active,.bcom.tap{transform:scale(.94);background:rgba(232,160,32,.1)}
 .empty{grid-column:1/-1;text-align:center;padding:50px 20px;color:#444}
 .empty p{font-size:15px;margin-top:10px}
 
@@ -128,8 +128,8 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .con-btns{display:flex;gap:8px}
 .cbped{flex:1;background:#D62828;border:none;border-radius:10px;padding:10px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
 .cbped:active{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
-.cbcom{flex:1;background:#E8A020;border:none;border-radius:10px;padding:10px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
-.cbcom:active{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
+.cbcom{flex:1;background:transparent;border:1.5px solid rgba(232,160,32,.6);border-radius:10px;padding:10px;color:#E8A020;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s}
+.cbcom:active{transform:scale(.94);background:rgba(232,160,32,.1)}
 .con-loading{text-align:center;padding:40px;color:#555;font-size:14px}
 
 /* ── VISTA BEBIDAS ── */
@@ -227,6 +227,110 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 /* ── MISC ── */
 footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8px}
 @media(min-width:768px){.body{max-width:100%;padding:16px 30px}.swrap{max-width:100%}.hrow{max-width:100%}}
+
+/* ══════════════════════════════════════════════
+   HERO SECTION
+══════════════════════════════════════════════ */
+.hero{margin:-13px -11px 0;width:calc(100% + 22px);position:relative;height:74vh;min-height:360px;max-height:600px;overflow:hidden;background:#0f0a08}
+.hero-track{display:flex;height:100%;will-change:transform}
+.hero-slide{min-width:100%;height:100%;position:relative;flex-shrink:0;transition:opacity .05s}
+.hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.hero-slide-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:80px}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(15,10,8,.15) 0%,rgba(15,10,8,.45) 45%,rgba(15,10,8,.95) 100%)}
+.hero-content{position:absolute;bottom:0;left:0;right:0;padding:22px 20px 30px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(214,40,40,.9);backdrop-filter:blur(6px);color:#fff;font-size:9px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 11px;border-radius:20px;margin-bottom:10px}
+.hero-title{font-size:clamp(22px,6vw,32px);font-weight:900;line-height:1.13;margin-bottom:7px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:20px;line-height:1.5}
+.hero-actions{display:flex;align-items:center;gap:12px}
+.hero-btn{display:inline-flex;align-items:center;gap:7px;background:#D62828;color:#fff;font-size:13px;font-weight:900;border:none;border-radius:50px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 22px rgba(214,40,40,.55);transition:transform .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.hero-btn:active{transform:scale(.95);box-shadow:0 2px 10px rgba(214,40,40,.4)}
+.hero-dots{display:flex;gap:5px;align-items:center}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.3);transition:background .3s,width .3s,border-radius .3s}
+.hero-dot.on{background:#fff;width:16px;border-radius:3px}
+@keyframes heroKenBurns{0%{transform:scale(1)}100%{transform:scale(1.06)}}
+.hero-slide.active img{animation:heroKenBurns 6s ease forwards}
+
+/* ══════════════════════════════════════════════
+   CATEGORY CAROUSEL ROWS
+══════════════════════════════════════════════ */
+.carousel-section{margin-top:22px}
+.cat-row{margin-bottom:28px}
+.cat-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding:0 2px}
+.cat-row-title{font-size:16px;font-weight:900;color:#fff;display:flex;align-items:center;gap:7px}
+.cat-row-title-dot{width:7px;height:7px;border-radius:50%;background:#D62828;flex-shrink:0}
+.cat-row-link{font-size:11px;font-weight:700;color:#D62828;display:flex;align-items:center;gap:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:.9}
+.cat-scroll{display:flex;gap:11px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:6px}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-scroll.is-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}
+
+/* ── EFECTO CALOR EN CARDS ── */
+.cc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(255,90,0,.13) 0%,transparent 100%);pointer-events:none;border-radius:0 0 16px 16px;z-index:1}
+.cc-body{position:relative;z-index:2}
+.cc-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(255,70,0,.22) 0%,transparent 100%);pointer-events:none;z-index:2}
+.card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(255,80,0,.1) 0%,transparent 100%);pointer-events:none;z-index:1;border-radius:0 0 14px 14px}
+.card{position:relative}
+
+/* ── BADGE FUEGO ── */
+.fire-badge{position:absolute;top:8px;left:8px;font-size:13px;z-index:6;filter:drop-shadow(0 0 4px rgba(255,120,0,.8));animation:firePulse 2s ease-in-out infinite}
+@keyframes firePulse{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.15) rotate(3deg)}}
+
+/* ── ANIMACIÓN AGREGAR AL CARRITO ── */
+@keyframes cartPop{0%{transform:scale(1)}30%{transform:scale(1.18)}60%{transform:scale(.93)}80%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes addFlash{0%,100%{box-shadow:0 2px 6px rgba(37,211,102,.3)}50%{box-shadow:0 0 20px rgba(37,211,102,.7),0 0 40px rgba(37,211,102,.3)}}
+.cart-add-pop{animation:cartPop .35s cubic-bezier(.36,.07,.19,.97)}
+.cart-add-flash{animation:addFlash .6s ease}
+
+/* ── CAROUSEL CARDS ── */
+.cc{flex-shrink:0;border-radius:16px;overflow:hidden;cursor:pointer;background:linear-gradient(145deg,#1e1508,#140e04);border:1px solid var(--cc-border,rgba(255,255,255,.08));box-shadow:0 4px 22px rgba(0,0,0,.65),0 0 12px var(--cc-glow,transparent);transition:transform .18s ease,box-shadow .18s ease;-webkit-tap-highlight-color:transparent;scroll-snap-align:start;animation:fadeInUp .22s ease both;position:relative}
+.cc:hover{transform:translateY(-4px) scale(1.025);box-shadow:0 10px 32px rgba(0,0,0,.75),0 0 16px var(--cc-glow,transparent)}
+.cc:active{transform:scale(.97)}
+.cc.feat{width:195px}
+.cc.std{width:148px}
+.cc-img{position:relative;overflow:hidden}
+.cc.feat .cc-img{height:216px}
+.cc.std .cc-img{height:155px}
+.cc-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .32s ease}
+.cc:hover .cc-img img{transform:scale(1.07) brightness(1.05)}
+.cc-img-fall{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:46px}
+.cc-ribbon-wrap{position:absolute;top:0;left:0;width:66px;height:66px;overflow:hidden;z-index:5;pointer-events:none}
+.cc-ribbon{position:absolute;top:13px;left:-20px;width:88px;padding:4px 0;text-align:center;transform:rotate(-45deg);font-size:7.5px;font-weight:900;color:#fff;letter-spacing:.8px;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.cc-ribbon.estreno{background:linear-gradient(135deg,#7b2ff7,#f107a3)}
+.cc-ribbon.oferta{background:linear-gradient(135deg,#ff6a00,#ee0979)}
+.cc-ribbon.nuevo{background:linear-gradient(135deg,#00b09b,#96c93d)}
+.cc-price-badge{position:absolute;top:9px;right:9px;background:#D62828;padding:3px 9px;border-radius:18px;font-size:10px;font-weight:900;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.cc-cat-badge{position:absolute;bottom:9px;left:9px;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);padding:3px 9px;border-radius:14px;font-size:9px;font-weight:700;color:#fff}
+.cc-body{padding:9px 11px 10px}
+.cc-name{font-weight:800;line-height:1.25;margin-bottom:3px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc.feat .cc-name{font-size:14px}
+.cc.std .cc-name{font-size:12px}
+.cc-sizes{font-size:10px;color:#9CA3AF;margin-bottom:8px;line-height:1.4}
+.cc-foot{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cc-add{flex:1;background:#D62828;border:none;border-radius:8px;padding:7px 4px;color:#fff;font-size:10px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .18s;white-space:nowrap}
+.cc-add:active{transform:scale(.92)}
+.cc-add.added{background:#25D366}
+.cc-stars{font-size:9px;color:#FFD700;flex-shrink:0}
+
+/* ── SISTEMA DE PEDIDOS — FORM ── */
+.oform-section{margin-bottom:14px}
+.oform-label{display:block;font-size:10px;font-weight:800;color:#888;letter-spacing:.6px;margin-bottom:5px;text-transform:uppercase}
+.ofield{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:14px;font-weight:600;outline:none;margin-bottom:0;-webkit-appearance:none;transition:border-color .2s,background .2s;display:block}
+.ofield:focus{border-color:rgba(214,40,40,.6);background:rgba(255,255,255,.09)}
+.ofield::placeholder{color:rgba(255,255,255,.28);font-weight:400}
+.ofield-opt::placeholder{font-style:italic}
+.obtn-confirm{width:100%;margin-top:16px;padding:18px;font-weight:900;background:linear-gradient(135deg,#1a8a44,#25D366);border:none;border-radius:12px;color:#fff;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(37,211,102,.35);transition:opacity .2s,transform .15s,box-shadow .2s;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;gap:10px}
+.obtn-confirm:active{transform:scale(.97)}
+.obtn-confirm:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.obtn-confirm.loading{background:linear-gradient(135deg,#333,#444);box-shadow:none}
+.order-num-banner{background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.35);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;animation:fadeInUp .3s ease}
+.order-num-banner .pznum{font-size:26px;font-weight:900;color:#25D366;letter-spacing:1px;margin:6px 0 2px}
+.order-num-banner .pzmsg{font-size:12px;color:#aaa}
+
+/* ── INVENTARIO — ESTADOS ── */
+.card-agotada .cimg img{opacity:.42;filter:grayscale(.5)}
+.card-agotada .cc-img img{opacity:.42;filter:grayscale(.5)}
+.card-agotada .bped,.card-agotada .cc-add{opacity:.38;cursor:not-allowed;background:#555 !important;pointer-events:none;color:#999 !important;border-color:transparent !important}
+.agotada-tag{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.78);border:1px solid rgba(255,100,100,.4);color:#ff8080;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;z-index:7;letter-spacing:.3px;pointer-events:none}
+.inv-loading{font-size:11px;color:#555;text-align:center;padding:8px;letter-spacing:.3px}
 </style>
 </head>
 <body>
@@ -256,7 +360,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
   </div>
   <div class="swrap">
     <div style="position:relative;width:100%">
-      <input id="si" type="text" placeholder="Buscar pizza..." oninput="render();toggleSearchIcon(this.value)"/>
+      <input id="si" type="text" placeholder="¿Qué pizza te provoca hoy?" oninput="render();toggleSearchIcon(this.value)"/>
       <button id="clrbtn" onclick="document.getElementById('si').value='';render();toggleSearchIcon('')" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(214,40,40,.15);border:1px solid rgba(214,40,40,.3);border-radius:50%;width:28px;height:28px;color:#D62828;font-size:14px;cursor:pointer;align-items:center;justify-content:center;line-height:1;transition:all .2s">✕</button>
       <span id="searchicon" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;transition:opacity .2s">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(214,40,40,.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -330,21 +434,23 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     </div>
 
     <!-- Selector tipo de pedido -->
-    <div style="margin-bottom:14px">
-      <div style="font-size:11px;font-weight:800;color:#aaa;letter-spacing:.5px;margin-bottom:8px">TIPO DE PEDIDO</div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:800;color:#777;letter-spacing:.6px;margin-bottom:8px;text-transform:uppercase">Tipo de pedido</div>
       <div style="display:flex;gap:6px">
         <button class="otype-btn on" id="ot-delivery" onclick="setOrderType('delivery')">🛵 Delivery</button>
-        <button class="otype-btn" id="ot-takeaway" onclick="setOrderType('takeaway')">🥡 Llevar</button>
+        <button class="otype-btn" id="ot-recoger" onclick="setOrderType('recoger')">🥡 Recoger</button>
         <button class="otype-btn" id="ot-table" onclick="setOrderType('table')">🍽️ Mesa</button>
       </div>
     </div>
-    <div id="tableNumWrap" style="display:none;margin-bottom:12px">
-      <input id="tableNumInput" type="number" min="1" max="99" placeholder="Número de mesa" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;font-weight:700;outline:none;-webkit-appearance:none"/>
-    </div>
+
+    <!-- Campos dinámicos por tipo -->
+    <div id="order-fields"></div>
 
     <div id="cartItems"></div>
-    <button id="cartWapp" onclick="sendCartWhatsApp()" style="display:none;width:100%;margin-top:16px;padding:18px;font-weight:900;background:#25D366;border:none;border-radius:12px;color:#fff;font-size:15px;cursor:pointer;box-shadow:0 0 10px rgba(37,211,102,.5)">
-      🍕 Confirmar Pedido por WhatsApp
+
+    <button id="cartWapp" onclick="confirmOrder()" style="display:none" class="obtn-confirm">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 7.82 19.79 19.79 0 016.07 3.18 2 2 0 018.07 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L12.09 9a16 16 0 006.29 6.29l1.14-1.14a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+      Confirmar pedido por WhatsApp
     </button>
   </div>
 
@@ -406,10 +512,15 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
   <!-- ── SECCIÓN MENÚ (PIZZAS) ── -->
   <div id="sec-juegos">
-    <div class="gbar" id="gbar"></div>
-    <div class="ts-sec-title" style="padding:0 0 4px;margin-top:8px">Catálogo</div>
 
-    <div class="tbar" style="padding:0 0 4px">
+    <!-- HERO -->
+    <div class="hero" id="hero-section"></div>
+
+    <!-- GENRE BAR -->
+    <div class="gbar" id="gbar"></div>
+
+    <!-- SORT BAR (solo visible en vista grid) -->
+    <div id="filter-tbar" class="tbar" style="padding:0 0 4px;display:none">
       <div style="display:flex;gap:6px">
         <button class="vista-btn on" id="sbtn-az" onclick="setSort('az')">
           <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zm0-10v2h18V8H3zm0 6h12v-2H3v2z"/></svg>
@@ -427,8 +538,11 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       </div>
     </div>
 
-    <div id="featured-banner-wrap"></div>
-    <div class="grid" id="grid"></div>
+    <!-- CAROUSEL VIEW (default: Todos + sin búsqueda) -->
+    <div id="carousel-view" class="carousel-section"></div>
+
+    <!-- GRID VIEW (cuando hay filtro activo o búsqueda) -->
+    <div class="grid" id="grid" style="display:none"></div>
   </div>
 
   <footer>
@@ -443,8 +557,9 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 <script>
 
 // ── CONFIGURACIÓN ─────────────────────────────────────────────
-const WA = '5355207586'; // ← Cambiar por número real (solo dígitos)
+const WA = '5355207586';         // ← Tu número de WhatsApp (solo dígitos)
 const NOMBRE_LOCAL = 'La Pizzería';
+const SCRIPT_URL = '';           // ← URL del Web App de Google Apps Script (ver apps-script.gs)
 
 // ── ESTADO GLOBAL ─────────────────────────────────────────────
 let aG = 'Todos';
@@ -452,28 +567,77 @@ let curTab = 'juegos';
 let aSort = 'az';
 let orderType = 'delivery';
 let cart = JSON.parse(localStorage.getItem('pizzeria_cart') || '[]');
+let inventoryMap = {};           // { "nombre_pizza": "Disponible"|"Agotada"|"Oculta" }
+let lastOrderNum = null;
 
 // ── TIPO DE PEDIDO ────────────────────────────────────────────
+const ORDER_FIELDS = {
+  delivery: `
+    <div class="oform-section">
+      <label class="oform-label">Tu nombre</label>
+      <input class="ofield" id="of-nombre" type="text" placeholder="¿Cómo te llamas?" maxlength="40" autocomplete="name"/>
+    </div>
+    <div class="oform-section">
+      <label class="oform-label">Dirección</label>
+      <input class="ofield" id="of-dir" type="text" placeholder="Calle, número, entre calles…" maxlength="100"/>
+    </div>
+    <div class="oform-section">
+      <label class="oform-label">Referencia <span style="color:#555;font-weight:400;font-size:9px">(opcional)</span></label>
+      <input class="ofield ofield-opt" id="of-ref" type="text" placeholder="Casa de color, portón azul…" maxlength="80"/>
+    </div>
+    <div class="oform-section">
+      <label class="oform-label">Últimos 4 del CI o teléfono</label>
+      <input class="ofield" id="of-ci" type="text" inputmode="numeric" placeholder="Ej: 4521" maxlength="11"/>
+    </div>`,
+  recoger: `
+    <div class="oform-section">
+      <label class="oform-label">Tu nombre</label>
+      <input class="ofield" id="of-nombre" type="text" placeholder="¿Cómo te llamas?" maxlength="40" autocomplete="name"/>
+    </div>
+    <div class="oform-section">
+      <label class="oform-label">Últimos 4 dígitos del CI</label>
+      <input class="ofield" id="of-ci" type="text" inputmode="numeric" placeholder="Ej: 4521" maxlength="4"/>
+    </div>`,
+  table: `
+    <div class="oform-section">
+      <label class="oform-label">Número de mesa</label>
+      <input class="ofield" id="of-mesa" type="number" inputmode="numeric" placeholder="Ej: 4" min="1" max="99"/>
+    </div>
+    <div class="oform-section">
+      <label class="oform-label">Nombre <span style="color:#555;font-weight:400;font-size:9px">(opcional)</span></label>
+      <input class="ofield ofield-opt" id="of-nombre" type="text" placeholder="¿Cómo te llamas?" maxlength="40" autocomplete="name"/>
+    </div>`
+};
+
 function setOrderType(t) {
   orderType = t;
   document.querySelectorAll('.otype-btn').forEach(b => b.classList.remove('on'));
   const btn = document.getElementById('ot-' + t);
   if (btn) btn.classList.add('on');
-  const tw = document.getElementById('tableNumWrap');
-  if (tw) tw.style.display = t === 'table' ? 'block' : 'none';
+  const fieldsEl = document.getElementById('order-fields');
+  if (fieldsEl) {
+    fieldsEl.innerHTML = ORDER_FIELDS[t] || '';
+    // Pequeña animación de entrada
+    fieldsEl.style.opacity = '0';
+    requestAnimationFrame(() => { fieldsEl.style.transition = 'opacity .2s'; fieldsEl.style.opacity = '1'; });
+  }
 }
 
 // ── CARRITO ───────────────────────────────────────────────────
 function toggleCart(game, btn) {
   const idx = cart.findIndex(x => x.t === game.t);
   if (idx === -1) {
-    // Agregar con tamaño mediano por defecto
     const defSize = game.sizes ? (game.sizes[1] || game.sizes[0]) : null;
     const price = defSize ? defSize.price : (game.price || 0);
     const size = defSize ? defSize.label : '';
     cart.push({ t: game.t, type: 'pizza', price: '$' + price.toFixed(2), size });
     btn.textContent = '✅ Agregado';
     btn.style.background = '#25D366';
+    btn.classList.remove('cart-add-pop','cart-add-flash');
+    void btn.offsetWidth;
+    btn.classList.add('cart-add-pop','cart-add-flash');
+    if (navigator.vibrate) navigator.vibrate([40]);
+    setTimeout(() => btn.classList.remove('cart-add-pop','cart-add-flash'), 600);
   } else {
     cart.splice(idx, 1);
     btn.textContent = '🛒 Agregar';
@@ -488,6 +652,11 @@ function addBebidaToCart(nombre, precio, img, btn) {
     cart.push({ t: nombre, type: 'bebida', price: '$' + parseFloat(precio).toFixed(2), img });
     btn.textContent = '✅ Agregado';
     btn.style.background = '#25D366';
+    btn.classList.remove('cart-add-pop','cart-add-flash');
+    void btn.offsetWidth;
+    btn.classList.add('cart-add-pop','cart-add-flash');
+    if (navigator.vibrate) navigator.vibrate([40]);
+    setTimeout(() => btn.classList.remove('cart-add-pop','cart-add-flash'), 600);
   } else {
     cart.splice(idx, 1);
     btn.textContent = '🛒 Agregar';
@@ -535,15 +704,15 @@ function updateCartBtn() {
 }
 
 function openCart() {
-  // Re-aplicar estado del orderType
   setOrderType(orderType);
 
   const container = document.getElementById('cartItems');
   const wappBtn = document.getElementById('cartWapp');
   container.innerHTML = '';
+  lastOrderNum = null;
 
   if (cart.length === 0) {
-    container.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;line-height:2">🍕🍷🥤<br><br>¡Tu pedido está vacío...<br>Explorá el menú y elegí<br>tus pizzas favoritas!</div>`;
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;line-height:2">🍕🍷🥤<br><br>Tu carrito está vacío...<br>Elige tus pizzas favoritas!</div>`;
     wappBtn.style.display = 'none';
   } else {
     let total = 0;
@@ -594,25 +763,111 @@ function removeFromCart(i) {
   openCart();
 }
 
-function sendCartWhatsApp() {
-  const tableNum = document.getElementById('tableNumInput')?.value?.trim();
-  const typeLabel = { delivery: '🛵 Delivery', takeaway: '🥡 Para llevar', table: '🍽️ En mesa' }[orderType];
+// ── GENERAR NÚMERO DE PEDIDO LOCAL ────────────────────────────
+function genOrderNum() {
+  let n = parseInt(localStorage.getItem('pz_order_counter') || '0') + 1;
+  localStorage.setItem('pz_order_counter', n);
+  return 'PZ-' + String(n).padStart(3, '0');
+}
 
-  let msg = `🍕 *Pedido — ${NOMBRE_LOCAL}*\n`;
-  msg += `📋 *${typeLabel}*`;
-  if (orderType === 'table' && tableNum) msg += ` N°${tableNum}`;
-  msg += `\n\n`;
+// ── CONFIRMAR PEDIDO ──────────────────────────────────────────
+async function confirmOrder() {
+  // Validación por tipo
+  const nombre = document.getElementById('of-nombre')?.value?.trim();
+  const ci = document.getElementById('of-ci')?.value?.trim();
+  const dir = document.getElementById('of-dir')?.value?.trim();
+  const mesa = document.getElementById('of-mesa')?.value?.trim();
 
+  if (orderType === 'delivery') {
+    if (!nombre) return alert('Introduce tu nombre para el delivery.');
+    if (!dir) return alert('Introduce la dirección de entrega.');
+  } else if (orderType === 'recoger') {
+    if (!nombre) return alert('Introduce tu nombre para recoger.');
+    if (!ci) return alert('Introduce los últimos 4 dígitos de tu CI.');
+  } else if (orderType === 'table') {
+    if (!mesa) return alert('Introduce el número de mesa.');
+  }
+
+  const btn = document.getElementById('cartWapp');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<span style="font-size:18px;animation:firePulse 1s infinite">⏳</span> Guardando pedido…';
+
+  // Calcular total y lista
   let total = 0;
-  cart.forEach((item, i) => {
-    msg += `${i + 1}. *${item.t}*`;
-    if (item.size) msg += ` (${item.size})`;
-    msg += ` — ${item.price}\n`;
-    total += parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
-  });
+  const productosStr = cart.map((item, i) => {
+    const p = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+    total += p;
+    return `${i + 1}. ${item.t}${item.size ? ' (' + item.size + ')' : ''} — ${item.price}`;
+  }).join('\n');
 
-  msg += `\n💰 *Total aprox: $${total.toFixed(2)}*`;
+  // Intentar guardar en Google Sheets
+  let orderNum = null;
+  if (SCRIPT_URL) {
+    try {
+      const now = new Date();
+      const payload = {
+        tipo: orderType,
+        nombre: nombre || '',
+        ci: ci || '',
+        mesa: mesa || '',
+        direccion: dir || '',
+        referencia: document.getElementById('of-ref')?.value?.trim() || '',
+        productos: cart.map(x => x.t + (x.size ? ' (' + x.size + ')' : '') + ' ' + x.price).join('; '),
+        total: total.toFixed(2),
+        fecha: now.toLocaleDateString('es-CU'),
+        hora: now.toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
+        estado: 'Pendiente'
+      };
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.orderNumber) orderNum = data.orderNumber;
+    } catch (e) {
+      console.warn('Google Sheets no disponible, usando número local:', e);
+    }
+  }
+
+  if (!orderNum) orderNum = genOrderNum();
+  lastOrderNum = orderNum;
+
+  // Construir mensaje WhatsApp
+  const typeLabel = { delivery: '🛵 Delivery', recoger: '🥡 Recoger', table: '🍽️ Mesa' }[orderType];
+  let msg = `🍕 *Pedido — ${NOMBRE_LOCAL}*\n📋 *${typeLabel}*\n\n`;
+  msg += `🆔 *Pedido: ${orderNum}*\n`;
+
+  if (orderType === 'delivery') {
+    msg += `👤 Nombre: ${nombre}\n`;
+    msg += `📍 Dirección: ${dir}\n`;
+    if (document.getElementById('of-ref')?.value?.trim()) msg += `📝 Referencia: ${document.getElementById('of-ref').value.trim()}\n`;
+    if (ci) msg += `🪪 CI: ${ci}\n`;
+  } else if (orderType === 'recoger') {
+    msg += `👤 Nombre: ${nombre}\n`;
+    msg += `🪪 CI: ${ci}\n`;
+  } else if (orderType === 'table') {
+    msg += `🪑 Mesa: ${mesa}\n`;
+    if (nombre) msg += `👤 Nombre: ${nombre}\n`;
+  }
+
+  msg += `\n${productosStr}\n\n💰 *Total aprox: $${total.toFixed(2)}*`;
+
+  // Mostrar número de pedido en el modal
+  const container = document.getElementById('cartItems');
+  container.insertAdjacentHTML('afterbegin', `
+    <div class="order-num-banner">
+      <div style="font-size:11px;color:#888;font-weight:700;letter-spacing:.5px">NÚMERO DE PEDIDO</div>
+      <div class="pznum">${orderNum}</div>
+      <div class="pzmsg">Guarda este número · Te lo pedirán al entregar</div>
+    </div>`);
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013 7.82 19.79 19.79 0 016.07 3.18 2 2 0 018.07 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L12.09 9a16 16 0 006.29 6.29l1.14-1.14a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg> Enviar por WhatsApp`;
+
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
 }
 
 // ── BEBIDAS ───────────────────────────────────────────────────
@@ -895,15 +1150,33 @@ function getCardGlowByRating(r) {
   return { border: 'rgba(255,255,255,.06)', glow: 'transparent' };
 }
 
-// ── RENDER GRID ───────────────────────────────────────────────
+// ── RENDER (carousel o grid según contexto) ───────────────────
 function render() {
+  const q = document.getElementById('si').value.trim();
+  const isDefault = (aG === 'Todos' && q === '');
+  const grid = document.getElementById('grid');
+  const carouselView = document.getElementById('carousel-view');
+  const filterTbar = document.getElementById('filter-tbar');
+
+  if (isDefault) {
+    grid.style.display = 'none';
+    carouselView.style.display = '';
+    if (filterTbar) filterTbar.style.display = 'none';
+    renderCarousels();
+    return;
+  }
+
+  // Grid view for filtered/search
+  carouselView.style.display = 'none';
+  grid.style.display = '';
+  if (filterTbar) filterTbar.style.display = '';
+
   const list = filtered();
   const cntEl = document.getElementById('juegos-cnt');
   if (cntEl) cntEl.textContent = list.length < G.length
     ? list.length + ' de ' + G.length + ' pizzas'
     : G.length + ' pizzas';
 
-  const grid = document.getElementById('grid');
   grid.innerHTML = '';
 
   if (!list.length) {
@@ -920,18 +1193,24 @@ function render() {
   }
 
   list.forEach(game => {
+    const invState = getInventoryState(game.t);
+    if (invState === 'Oculta') return; // no mostrar
+
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card' + (invState === 'Agotada' ? ' card-agotada' : '');
     const glowCfg = getCardGlowByRating(game.r);
     card.style.setProperty('--gcol-border', glowCfg.border);
     card.style.setProperty('--gcol-glow-soft', glowCfg.glow);
 
     const priceDisplay = game.price ? 'Desde $' + game.price.toFixed(2) : '';
     const inCart = cart.some(x => x.t === game.t);
+    const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
 
     card.innerHTML = `
       <div class="cimg" style="background:${game.col}">
         ${game.badge ? `<div class="ribbon-wrap"><div class="ribbon ribbon-${game.badge.toLowerCase()}">${game.badge}</div></div>` : ''}
+        ${game.r >= 4.8 ? `<div class="fire-badge">🔥</div>` : ''}
+        ${agotadaTag}
         ${game.c ? `<img src="${game.c}" alt="${game.t}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` : ''}
         <div class="fall" style="${!game.c ? 'display:flex;' : ''}background:${game.col}">
           <img src="logo.png" alt="" onerror="this.outerHTML='<span style=font-size:38px>🍕</span>'"/>
@@ -963,60 +1242,216 @@ function render() {
   });
 }
 
-// ── BANNER DESTACADO ──────────────────────────────────────────
-function initFeaturedBanner() {
-  const wrap = document.getElementById('featured-banner-wrap');
-  if (!wrap || typeof G === 'undefined') return;
-  const topGames = G.filter(g => g.r >= 4.7).sort((a, b) => b.r - a.r);
-  if (!topGames.length) return;
+// ── HERO PRINCIPAL ────────────────────────────────────────────
+function initHero() {
+  const hero = document.getElementById('hero-section');
+  if (!hero || typeof G === 'undefined') return;
 
-  let currentIndex = 0, isPaused = false;
+  const slides = G.filter(g => g.r >= 4.7).sort((a, b) => b.r - a.r).slice(0, 6);
+  if (!slides.length) { hero.style.display = 'none'; return; }
 
-  const slides = topGames.map((g, i) =>
-    `<div class="fb-slide" style="position:absolute;inset:0;opacity:${i === 0 ? '1' : '0'};transition:opacity .6s ease;pointer-events:${i === 0 ? 'all' : 'none'}">` +
-    `<img src="${g.c || ''}" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;background:#0f0a08" onerror="this.style.display='none'">` +
-    `<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.85))"></div>` +
-    `<div style="position:absolute;bottom:14px;left:14px;right:80px">` +
-    `<div style="font-size:9px;font-weight:800;color:#fff;background:${g.col};display:inline-block;padding:3px 8px;border-radius:10px;margin-bottom:6px">${g.g}</div>` +
-    `<div style="font-size:16px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:4px">${g.t}</div>` +
-    `<div style="font-size:11px;color:rgba(255,255,255,.6)">${g.s ? g.s + ' &nbsp;·&nbsp; ' : ''} ${g.r}/5 ⭐</div>` +
-    `</div></div>`
-  ).join('');
+  let cur = 0, paused = false, autoTimer = null;
 
-  wrap.style.cssText = 'border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:190px;margin-bottom:12px;border:1px solid rgba(255,255,255,.10);box-shadow:0 4px 20px rgba(0,0,0,.65)';
-  wrap.innerHTML = slides + `
-    <div class="fb-arrows">
-      <div class="fb-arrow" onclick="event.stopPropagation();fbPrev()">‹</div>
-      <div class="fb-arrow" onclick="event.stopPropagation();fbNext()">›</div>
-    </div>
-    <div class="fb-dots-viewport">
-      <div class="fb-dots-track" id="fbDotsTrack">
-        <div class="fb-dot"></div><div class="fb-dot"></div>
-        <div class="fb-dot center"></div>
-        <div class="fb-dot"></div><div class="fb-dot"></div>
-      </div>
-    </div>`;
+  const track = document.createElement('div');
+  track.className = 'hero-track';
 
-  wrap.onclick = function () { openGameSheet(topGames[currentIndex]); };
+  slides.forEach((g, i) => {
+    const sl = document.createElement('div');
+    sl.className = 'hero-slide' + (i === 0 ? ' active' : '');
+    sl.style.cssText = `position:absolute;inset:0;opacity:${i===0?1:0};transition:opacity .65s ease;pointer-events:${i===0?'all':'none'}`;
+    sl.innerHTML = g.c
+      ? `<img src="${g.c}" alt="${g.t}" loading="${i===0?'eager':'lazy'}" onerror="this.style.display='none'">`
+      : `<div class="hero-slide-fallback" style="background:${g.col}">🍕</div>`;
+    sl.innerHTML += `<div class="hero-overlay"></div>`;
+    sl.innerHTML += `
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>
+          ${g.g} · ${g.r}/5
+        </div>
+        <div class="hero-title">${g.t}</div>
+        <div class="hero-sub">${g.d ? g.d.slice(0,72)+'…' : (g.s || '')}</div>
+        <div class="hero-actions">
+          <button class="hero-btn" onclick="event.stopPropagation();openGameSheet(window.__heroSlides[${i}])">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>
+            Ordenar ahora
+          </button>
+        </div>
+      </div>`;
+    sl.onclick = () => openGameSheet(slides[cur]);
+    track.appendChild(sl);
+  });
 
-  window.fbGoTo = function (n) {
-    const sEls = wrap.querySelectorAll('.fb-slide');
-    sEls[currentIndex].style.opacity = '0';
-    sEls[currentIndex].style.pointerEvents = 'none';
-    currentIndex = (n + topGames.length) % topGames.length;
-    sEls[currentIndex].style.opacity = '1';
-    sEls[currentIndex].style.pointerEvents = 'all';
-  };
-  window.fbPrev = function () { window.fbGoTo(currentIndex - 1); };
-  window.fbNext = function () { window.fbGoTo(currentIndex + 1); };
+  hero.appendChild(track);
+  window.__heroSlides = slides;
 
-  wrap.addEventListener('touchstart', () => { isPaused = true; }, { passive: true });
-  wrap.addEventListener('touchend', () => { setTimeout(() => { isPaused = false; }, 2500); }, { passive: true });
-  setInterval(() => { if (!isPaused) window.fbGoTo(currentIndex + 1); }, 4500);
+  // Dots — single container appended directly to hero
+  const dotsWrap = document.createElement('div');
+  dotsWrap.style.cssText = 'position:absolute;bottom:16px;right:20px;display:flex;gap:5px;align-items:center;z-index:10';
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'hero-dot' + (i === 0 ? ' on' : '');
+    dotsWrap.appendChild(d);
+  });
+  hero.appendChild(dotsWrap);
+
+  function goTo(n) {
+    const sEls = track.children;
+    sEls[cur].style.opacity = '0';
+    sEls[cur].style.pointerEvents = 'none';
+    sEls[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    sEls[cur].style.opacity = '1';
+    sEls[cur].style.pointerEvents = 'all';
+    sEls[cur].classList.add('active');
+    hero.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+  }
+
+  function startAuto() {
+    autoTimer = setInterval(() => { if (!paused) goTo(cur + 1); }, 5000);
+  }
+  startAuto();
+
+  // Touch swipe
+  let tsx = 0;
+  hero.addEventListener('touchstart', e => { tsx = e.touches[0].clientX; paused = true; }, { passive: true });
+  hero.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tsx;
+    if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1));
+    setTimeout(() => { paused = false; }, 3000);
+  }, { passive: true });
+
+  // Stop auto on btn tap, resume after
+  hero.querySelectorAll('.hero-btn').forEach(b => {
+    b.addEventListener('click', e => { e.stopPropagation(); paused = true; setTimeout(() => { paused = false; }, 4000); });
+  });
+}
+
+// ── RENDER CAROUSELES POR CATEGORÍA ──────────────────────────
+function renderCarousels() {
+  const container = document.getElementById('carousel-view');
+  container.innerHTML = '';
+
+  const CAT_ORDER = ['Promos', 'Especiales', 'Clásicas', 'Carnes', 'Mariscos', 'Vegetarianas'];
+  const grouped = {};
+  G.forEach(g => { if (!grouped[g.g]) grouped[g.g] = []; grouped[g.g].push(g); });
+
+  const orderedCats = [...CAT_ORDER.filter(c => grouped[c]), ...Object.keys(grouped).filter(c => !CAT_ORDER.includes(c))];
+
+  orderedCats.forEach(cat => {
+    const items = grouped[cat];
+    if (!items || !items.length) return;
+
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+
+    // Header
+    row.innerHTML = `
+      <div class="cat-row-header">
+        <div class="cat-row-title">
+          <div class="cat-row-title-dot"></div>
+          ${cat}
+        </div>
+        <div class="cat-row-link" onclick="filterByCat('${cat}')">
+          Ver todas
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>`;
+
+    const scroll = document.createElement('div');
+    scroll.className = 'cat-scroll';
+
+    // Sort: highest rated first
+    const sorted = [...items].sort((a, b) => b.r - a.r);
+
+    sorted.forEach((g, idx) => {
+      const invState = getInventoryState(g.t);
+      if (invState === 'Oculta') return; // no mostrar
+
+      const isFeat = idx < 2;
+      const glow = getCardGlowByRating(g.r);
+      const priceLabel = g.price ? `$${g.price.toFixed(2)}` : '';
+      const inCart = cart.some(x => x.t === g.t);
+
+      const card = document.createElement('div');
+      card.className = `cc ${isFeat ? 'feat' : 'std'}${invState === 'Agotada' ? ' card-agotada' : ''}`;
+      card.style.setProperty('--cc-border', glow.border);
+      card.style.setProperty('--cc-glow', glow.glow);
+      card.style.animationDelay = `${idx * 40}ms`;
+
+      const ribbonBadge = g.badge ? `<div class="cc-ribbon-wrap"><div class="cc-ribbon ${g.badge.toLowerCase()}">${g.badge}</div></div>` : '';
+      const fireBadge = g.r >= 4.8 ? `<div class="fire-badge">🔥</div>` : '';
+      const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
+      const imgHtml = g.c
+        ? `<img src="${g.c}" alt="${g.t}" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="cc-img-fall" style="background:${g.col}">🍕</div>`;
+
+      card.innerHTML = `
+        <div class="cc-img" style="background:${g.col}">
+          ${ribbonBadge}
+          ${fireBadge}
+          ${agotadaTag}
+          ${imgHtml}
+          ${priceLabel ? `<div class="cc-price-badge">${priceLabel}</div>` : ''}
+          <div class="cc-cat-badge">${g.g}</div>
+        </div>
+        <div class="cc-body">
+          <div class="cc-name">${g.t}</div>
+          <div class="cc-sizes">${g.s || ''}</div>
+          <div class="cc-foot">
+            <button class="cc-add${inCart?' added':''}" onclick="event.stopPropagation();toggleCartCC(${JSON.stringify(g).replace(/"/g,'&quot;')},this)">${inCart?'✅ Agregado':'+ Agregar'}</button>
+            <div class="cc-stars">⭐ ${g.r}</div>
+          </div>
+        </div>`;
+
+      card.onclick = () => openGameSheet(g);
+      scroll.appendChild(card);
+    });
+
+    // Drag-to-scroll (mouse)
+    let isDragging = false, startScrollX = 0, startX = 0;
+    scroll.addEventListener('mousedown', e => {
+      isDragging = true; startX = e.pageX; startScrollX = scroll.scrollLeft;
+      scroll.classList.add('is-dragging');
+    });
+    scroll.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      scroll.scrollLeft = startScrollX - (e.pageX - startX);
+    });
+    scroll.addEventListener('mouseup', () => { isDragging = false; scroll.classList.remove('is-dragging'); });
+    scroll.addEventListener('mouseleave', () => { isDragging = false; scroll.classList.remove('is-dragging'); });
+
+    row.appendChild(scroll);
+    container.appendChild(row);
+  });
+}
+
+// toggleCart wrapper for carousel cards
+function toggleCartCC(game, btn) {
+  const wasInCart = cart.some(x => x.t === game.t);
+  toggleCart(game, btn);
+  const inCart = cart.some(x => x.t === game.t);
+  btn.textContent = inCart ? '✅ Agregado' : '+ Agregar';
+  if (!wasInCart && inCart) {
+    btn.classList.remove('cart-add-pop');
+    void btn.offsetWidth;
+    btn.classList.add('cart-add-pop');
+    setTimeout(() => btn.classList.remove('cart-add-pop'), 400);
+  }
+}
+
+// Filter by category from carousel header link
+function filterByCat(cat) {
+  aG = cat;
+  document.querySelectorAll('.gb').forEach(x => x.classList.remove('on'));
+  const match = [...document.querySelectorAll('.gb')].find(b => b.textContent.trim() === cat);
+  if (match) match.classList.add('on');
+  document.getElementById('gbar').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  render();
 }
 
 // ── GENRE BAR ─────────────────────────────────────────────────
-document.getElementById('hc').textContent = G.length + ' pizzas · Pedidos por WhatsApp';
+document.getElementById('hc').textContent = 'Hechas al momento · Pide rápido por WhatsApp';
 
 const GENRES = ['Todos', ...new Set(G.map(x => x.g))].sort((a, b) =>
   a === 'Todos' ? -1 : b === 'Todos' ? 1 : a.localeCompare(b)
@@ -1110,10 +1545,33 @@ window.addEventListener('popstate', e => {
 });
 history.replaceState({ tab: 'juegos' }, '');
 
+// ── INVENTARIO DINÁMICO (Google Sheets) ───────────────────────
+async function loadInventory() {
+  if (!SCRIPT_URL) return;
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=inventory', { method: 'GET' });
+    const data = await res.json();
+    if (!data || !Array.isArray(data)) return;
+    data.forEach(row => {
+      if (row.nombre && row.estado) {
+        inventoryMap[row.nombre.toLowerCase().trim()] = row.estado;
+      }
+    });
+    render();
+  } catch (e) {
+    console.warn('Inventario no disponible:', e);
+  }
+}
+
+function getInventoryState(nombre) {
+  return inventoryMap[nombre.toLowerCase().trim()] || 'Disponible';
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 updateCartBtn();
+initHero();
 render();
-initFeaturedBanner();
+loadInventory();
 
 </script>
 
