@@ -4,6 +4,38 @@ const G = [
 
   // ── CLÁSICAS ────────────────────────────────────────────────
   {
+  t: 'Pizza Mixta',
+  g: 'Especiales',
+  r: 4.7,
+  d: 'Combinación perfecta de jamón, pepperoni, cebolla y carne. Todos los sabores en un solo bocado.',
+  c: 'img/pizza-mixta.jpg',
+  col: '#1a0c04',
+  price: 7.00,
+  sizes: [
+    { label: 'Personal', cm: 20, price: 7.00 },
+    { label: 'Mediana', cm: 28, price: 11.00 },
+    { label: 'Grande', cm: 35, price: 14.50 }
+  ],
+  s: 'Personal 20cm · Mediana 28cm · Grande 35cm',
+  badge: null
+},
+{
+  t: 'Pizza Mixta Completa',
+  g: 'Especiales',
+  r: 4.9,
+  d: 'Nuestra mixta premium con jamón, pepperoni, cebolla y carne extra. La favorita de la casa.',
+  c: 'img/pizza-mixta-negra.jpg',
+  col: '#140a02',
+  price: 8.00,
+  sizes: [
+    { label: 'Personal', cm: 20, price: 8.00 },
+    { label: 'Mediana', cm: 28, price: 12.50 },
+    { label: 'Grande', cm: 35, price: 16.00 }
+  ],
+  s: 'Personal 20cm · Mediana 28cm · Grande 35cm',
+  badge: 'Oferta'
+},
+  {
     t: "Margherita",
     g: "Clásicas",
     r: 4.9,
@@ -20,23 +52,22 @@ const G = [
       { label: "Grande",   cm: 40, price: 16.50 }
     ]
   },
-  {
-    t: "Pepperoni",
-    g: "Clásicas",
-    r: 4.8,
-    d: "Generosa cantidad de pepperoni sobre salsa de tomate artesanal y mozzarella derretida al horno de leña.",
-    col: "#8B1a0a",
-    c: "img/pepperoni.jpg",
-    s: "Personal · Mediana · Grande",
-    price: 9.00,
-    badge: null,
-    fotos: [],
-    sizes: [
-      { label: "Personal", cm: 25, price: 9.00 },
-      { label: "Mediana",  cm: 32, price: 13.00 },
-      { label: "Grande",   cm: 40, price: 17.50 }
-    ]
-  },
+   {
+  t: 'Pizza Pepperoni',
+  g: 'Clásicas',
+  r: 4.8,
+  d: 'La clásica de siempre. Abundante pepperoni sobre base de tomate y queso mozzarella derretido.',
+  c: 'img/pizza-pepperoni.jpg',
+  col: '#1a0a04',
+  price: 6.00,
+  sizes: [
+    { label: 'Personal', cm: 20, price: 6.00 },
+    { label: 'Mediana', cm: 28, price: 9.50 },
+    { label: 'Grande', cm: 35, price: 13.00 }
+  ],
+  s: 'Personal 20cm · Mediana 28cm · Grande 35cm',
+  badge: null
+},
   {
     t: "Cuatro Quesos",
     g: "Clásicas",
@@ -280,6 +311,69 @@ const G = [
     sizes: [
       { label: "Duo Romántico", cm: 32, price: 26.00 }
     ]
-  }
+  },
+// ── PASTAS ────────────────────────────────────────────────────
+{
+  t: 'Lasaña de Carne',
+  g: 'Pastas',
+  r: 4.6,
+  d: 'Lasaña hecha en casa con carne molida, salsa de tomate casera y queso gratinado en su punto.',
+  c: 'img/lasagna-carne.jpg',
+  col: '#2a1a0e',
+  price: 4.50,
+  sizes: [
+    { label: 'Individual', cm: 0, price: 4.50 },
+    { label: 'Porción doble', cm: 0, price: 8.00 }
+  ],
+  s: 'Individual · Porción doble',
+  badge: null
+},
+{
+  t: 'Espaguetis al Rojo',
+  g: 'Pastas',
+  r: 4.4,
+  d: 'Espaguetis con salsa de tomate artesanal, hierbas frescas y abundante queso parmesano rallado.',
+  c: 'img/espaguetis-rojo.jpg',
+  col: '#2a1208',
+  price: 3.50,
+  sizes: [
+    { label: 'Individual', cm: 0, price: 3.50 },
+    { label: 'Porción doble', cm: 0, price: 6.50 }
+  ],
+  s: 'Individual · Porción doble',
+  badge: null
+},
 
+// ── ENTRANTES ─────────────────────────────────────────────────
+{
+  t: 'Tabla de Embutidos',
+  g: 'Entrantes',
+  r: 4.7,
+  d: 'Selección de jamón, queso curado, queso azul, aceitunas y maní. Ideal para compartir.',
+  c: 'img/tabla-embutidos.jpg',
+  col: '#1a1408',
+  price: 5.50,
+  sizes: [
+    { label: 'Para 2', cm: 0, price: 5.50 },
+    { label: 'Para 4', cm: 0, price: 9.50 }
+  ],
+  s: 'Para 2 · Para 4 personas',
+  badge: 'Nuevo'
+},
+
+// ── POSTRES ───────────────────────────────────────────────────
+{
+  t: 'Postre en Vaso',
+  g: 'Postres',
+  r: 4.5,
+  d: 'Cheesecake cremoso en vaso con dulce de leche, trocitos de almendra y coco rallado.',
+  c: 'img/postre-vaso.jpg',
+  col: '#1e1208',
+  price: 2.50,
+  sizes: [
+    { label: 'Individual', cm: 0, price: 2.50 }
+  ],
+  s: 'Porción individual',
+  badge: null
+},
 ];
