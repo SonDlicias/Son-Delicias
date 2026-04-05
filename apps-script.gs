@@ -1,35 +1,9 @@
-/**
- * ═══════════════════════════════════════════════════════════════
- *  La Pizzería — Google Apps Script
- *  Versión: 2.0 (con Valoraciones)
- * ═══════════════════════════════════════════════════════════════
- *
- *  CÓMO INSTALAR (solo una vez):
- *
- *  1. Ve a https://script.google.com y crea un nuevo proyecto
- *  2. Borra el código que aparece y pega TODO este archivo
- *  3. Cambia SHEET_ID por el ID de tu Google Sheet (está en la URL de la hoja)
- *     Ejemplo URL: docs.google.com/spreadsheets/d/ESTE_ES_EL_ID/edit
- *  4. Clic en "Desplegar" → "Nueva implementación"
- *  5. Tipo: Aplicación web
- *     Ejecutar como: Yo
- *     Quién tiene acceso: Cualquier persona
- *  6. Copia la URL que te da y pégala en index.html en la variable SCRIPT_URL
- *
- *  HOJAS NECESARIAS EN TU GOOGLE SHEET:
- *  - "Pedidos"      → para registrar cada pedido
- *  - "Inventario"   → para controlar disponibilidad del menú
- *  - "Valoraciones" → se crea automáticamente al primera valoración
- *
- * ═══════════════════════════════════════════════════════════════
- */
-
-const SHEET_ID           = 'PEGA_AQUI_EL_ID_DE_TU_GOOGLE_SHEET';
+const SHEET_ID           = '1JWFobYrSnDbrY03KrvyQhkO9A01EZvW4UIBfMKxTbak';
 const PEDIDOS_SHEET      = 'Pedidos';
 const INVENTARIO_SHEET   = 'Inventario';
 const VALORACIONES_SHEET = 'Valoraciones';
 
-// ── GET: devuelve inventario, ratings o número de pedido siguiente ──
+// ── GET: devuelve inventario, valoraciones o número de pedido siguiente ──
 function doGet(e) {
   const action = e.parameter.action || '';
 
@@ -52,10 +26,11 @@ function doPost(e) {
       return saveRating(data);
     }
 
-    // Ruta pedido (comportamiento original)
-    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    // Ruta pedido (comportamiento original tuyo)
+    const ss   = SpreadsheetApp.openById(SHEET_ID);
     const sheet = ss.getSheetByName(PEDIDOS_SHEET) || ss.insertSheet(PEDIDOS_SHEET);
 
+    // Crear cabeceras si la hoja está vacía
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
         'Pedido #', 'Fecha', 'Hora', 'Tipo',
@@ -66,25 +41,28 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
+    // Generar número de pedido
     const orderNum = generateOrderNum(sheet);
 
+    // Agregar fila
     sheet.appendRow([
       orderNum,
-      data.fecha       || new Date().toLocaleDateString('es-CU'),
-      data.hora        || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
-      data.tipo        || '',
-      data.nombre      || '',
-      data.ci          || '',
-      data.mesa        || '',
-      data.direccion   || '',
-      data.referencia  || '',
-      data.productos   || '',
-      data.total       || '0.00',
-      data.estado      || 'Pendiente'
+      data.fecha  || new Date().toLocaleDateString('es-CU'),
+      data.hora   || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
+      data.tipo   || '',
+      data.nombre || '',
+      data.ci     || '',
+      data.mesa   || '',
+      data.direccion  || '',
+      data.referencia || '',
+      data.productos  || '',
+      data.total  || '0.00',
+      data.estado || 'Pendiente'
     ]);
 
+    // Colorear fila nueva según tipo de pedido (tus colores originales)
     const lastRow = sheet.getLastRow();
-    const color = { delivery: '#0d3b2e', recoger: '#2e1a0d', table: '#1a1a2e' }[data.tipo] || '#1a1208';
+    const color = { delivery: '#d4edda', recoger: '#fff3cd', table: '#d1ecf1' }[data.tipo] || '#f8f9fa';
     sheet.getRange(lastRow, 1, 1, 12).setBackground(color);
 
     return ContentService
@@ -98,11 +76,64 @@ function doPost(e) {
   }
 }
 
-// ── Guarda una valoración anónima ──────────────────────────────
+// ── Genera número de pedido consecutivo ───────────────────────
+function generateOrderNum(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return 'PZ-001'; // solo cabecera
+
+  // Buscar el último número en la columna A
+  const col = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat().filter(Boolean);
+  let max = 0;
+  col.forEach(v => {
+    const n = parseInt(String(v).replace(/\D/g, ''));
+    if (!isNaN(n) && n > max) max = n;
+  });
+  return 'PZ-' + String(max + 1).padStart(3, '0');
+}
+
+function getNextOrderNum() {
+  const ss    = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(PEDIDOS_SHEET);
+  if (!sheet) return 'PZ-001';
+  return generateOrderNum(sheet);
+}
+
+// ── Devuelve inventario desde la hoja "Inventario" ────────────
+function getInventory() {
+  try {
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(INVENTARIO_SHEET);
+    if (!sheet) return jsonResponse([]);
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) return jsonResponse([]);
+
+    // Cabecera esperada: ID | Nombre | Categoría | Precio | Estado
+    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    const nombreIdx = headers.indexOf('nombre');
+    const estadoIdx = headers.indexOf('estado');
+    if (nombreIdx < 0 || estadoIdx < 0) return jsonResponse([]);
+
+    const result = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row[nombreIdx]) continue;
+      result.push({
+        nombre: row[nombreIdx].toString().trim(),
+        estado: row[estadoIdx].toString().trim() || 'Disponible'
+      });
+    }
+    return jsonResponse(result);
+  } catch (err) {
+    return jsonResponse([]);
+  }
+}
+
+// ── Guarda una valoración anónima en la hoja "Valoraciones" ───
 function saveRating(data) {
   try {
-    const ss     = SpreadsheetApp.openById(SHEET_ID);
-    const sheet  = ss.getSheetByName(VALORACIONES_SHEET) || ss.insertSheet(VALORACIONES_SHEET);
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(VALORACIONES_SHEET) || ss.insertSheet(VALORACIONES_SHEET);
 
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(['Producto', 'Estrellas', 'Timestamp', 'AnonID']);
@@ -130,8 +161,8 @@ function getRatings() {
     const sheet = ss.getSheetByName(VALORACIONES_SHEET);
     if (!sheet || sheet.getLastRow() < 2) return jsonResponse({});
 
-    const rows = sheet.getDataRange().getValues();
-    const totals = {}; // { producto: { sum, count } }
+    const rows   = sheet.getDataRange().getValues();
+    const totals = {};
 
     for (let i = 1; i < rows.length; i++) {
       const producto  = String(rows[i][0]).trim();
@@ -155,59 +186,44 @@ function getRatings() {
   }
 }
 
-// ── Genera número de pedido consecutivo ───────────────────────
-function generateOrderNum(sheet) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow <= 1) return 'PZ-001';
-
-  const col = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat().filter(Boolean);
-  let max = 0;
-  col.forEach(v => {
-    const n = parseInt(String(v).replace(/\D/g, ''));
-    if (!isNaN(n) && n > max) max = n;
-  });
-  return 'PZ-' + String(max + 1).padStart(3, '0');
-}
-
-function getNextOrderNum() {
-  const ss    = SpreadsheetApp.openById(SHEET_ID);
-  const sheet = ss.getSheetByName(PEDIDOS_SHEET);
-  if (!sheet) return 'PZ-001';
-  return generateOrderNum(sheet);
-}
-
-// ── Devuelve inventario desde la hoja "Inventario" ────────────
-function getInventory() {
-  try {
-    const ss    = SpreadsheetApp.openById(SHEET_ID);
-    const sheet = ss.getSheetByName(INVENTARIO_SHEET);
-    if (!sheet) return jsonResponse([]);
-
-    const data = sheet.getDataRange().getValues();
-    if (data.length < 2) return jsonResponse([]);
-
-    const headers    = data[0].map(h => h.toString().toLowerCase().trim());
-    const nombreIdx  = headers.indexOf('nombre');
-    const estadoIdx  = headers.indexOf('estado');
-    if (nombreIdx < 0 || estadoIdx < 0) return jsonResponse([]);
-
-    const result = [];
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row[nombreIdx]) continue;
-      result.push({
-        nombre: row[nombreIdx].toString().trim(),
-        estado: row[estadoIdx].toString().trim() || 'Disponible'
-      });
-    }
-    return jsonResponse(result);
-  } catch (err) {
-    return jsonResponse([]);
-  }
-}
-
 function jsonResponse(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Función que cambia el color de la fila automáticamente al editar el Estado.
+ * Se activa en la columna L (12) de la hoja "Pedidos".
+ */
+function onEdit(e) {
+  const range = e.range;
+  const sheet = range.getSheet();
+  
+  // 1. Verificamos que sea la hoja "Pedidos" y la columna L (12)
+  if (sheet.getName() === "Pedidos" && range.getColumn() === 12) {
+    const estado = range.getValue().toString().toLowerCase().trim();
+    const row = range.getRow();
+    const numCols = sheet.getLastColumn();
+    
+    // Saltamos la fila 1 (encabezados)
+    if (row <= 1) return;
+
+    let colorFondo = null;
+    let colorTexto = "#000000"; // Negro por defecto para lectura clara
+
+    if (estado === "entregado") {
+      colorFondo = "#28a745"; // Verde fuerte
+      colorTexto = "#ffffff"; // Letra blanca para contraste
+    } else if (estado === "cancelado") {
+      colorFondo = "#dc3545"; // Rojo fuerte
+      colorTexto = "#ffffff"; // Letra blanca
+    }
+
+    // Si el estado coincide, aplicamos el cambio a toda la fila
+    if (colorFondo) {
+      sheet.getRange(row, 1, 1, numCols).setBackground(colorFondo);
+      sheet.getRange(row, 1, 1, numCols).setFontColor(colorTexto);
+    }
+  }
 }
