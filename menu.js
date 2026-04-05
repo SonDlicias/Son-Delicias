@@ -57,7 +57,7 @@ const G = [
   g: 'Clásicas',
   r: 4.8,
   d: 'La clásica de siempre. Abundante pepperoni sobre base de tomate y queso mozzarella derretido.',
-  c: 'img/pizza-pepperoni.jpg',
+  c: 'img/pizza-pepperoni.webp',
   col: '#1a0a04',
   price: 6.00,
   sizes: [
@@ -333,7 +333,7 @@ const G = [
   g: 'Pastas',
   r: 4.4,
   d: 'Espaguetis con salsa de tomate artesanal, hierbas frescas y abundante queso parmesano rallado.',
-  c: 'img/espaguetis-rojo.jpg',
+  c: 'img/espaguetis-rojo.webp',
   col: '#2a1208',
   price: 3.50,
   sizes: [
@@ -350,7 +350,7 @@ const G = [
   g: 'Entrantes',
   r: 4.7,
   d: 'Selección de jamón, queso curado, queso azul, aceitunas y maní. Ideal para compartir.',
-  c: 'img/tabla-embutidos.jpg',
+  c: 'img/tabla-embutidos.webp',
   col: '#1a1408',
   price: 5.50,
   sizes: [
@@ -367,7 +367,7 @@ const G = [
   g: 'Postres',
   r: 4.5,
   d: 'Cheesecake cremoso en vaso con dulce de leche, trocitos de almendra y coco rallado.',
-  c: 'img/postre-vaso.jpg',
+  c: 'img/postre-vaso.webp',
   col: '#1e1208',
   price: 2.50,
   sizes: [

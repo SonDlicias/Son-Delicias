@@ -5,7 +5,7 @@ const BEBIDAS = [
 {
   nombre: 'Cóctel Spritz',
   precio: 2.50,
-  img: 'img/coctel-spritz.jpg',
+  img: 'img/coctel-spritz.webp',
   emoji: '🍊',
   disponible: true,
   specs: 'Naranja · Cava · Hielo · Rodaja deshidratada'
@@ -29,7 +29,7 @@ const BEBIDAS = [
 {
   nombre: 'Cóctel Carambola',
   precio: 3.00,
-  img: 'img/coctel-carambola.jpg',
+  img: 'img/coctel-carambola.webp',
   emoji: '⭐',
   disponible: true,
   specs: 'Carambola · Piña · Base roja tropical · Decoración frutal'
@@ -39,7 +39,7 @@ const BEBIDAS = [
 {
   nombre: 'Servicio de Café',
   precio: 1.25,
-  img: 'img/cafe-dulces.jpg',
+  img: 'img/cafe-dulces.webp',
   emoji: '☕',
   disponible: true,
   specs: 'Espresso + café con leche · Con galleta y dulces de cortesía'
