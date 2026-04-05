@@ -40,8 +40,8 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 @keyframes badgebounce{0%{transform:scale(0.5)}60%{transform:scale(1.35)}80%{transform:scale(0.9)}100%{transform:scale(1)}}
 .hcart-pulse{animation:hcartswing .4s cubic-bezier(.36,.07,.19,.97),hcartflash .4s ease;transform-origin:top center}
 .badge-bounce{animation:badgebounce .35s cubic-bezier(.36,.07,.19,.97)}
-#hcart-btn.empty svg{stroke:rgba(255,255,255,.35)}
-#hcart-btn.has-items svg{stroke:#25D366}
+#hcart-btn.empty svg{stroke:#f5ede4}
+#hcart-btn.has-items svg{stroke:#ff7a00}
 @keyframes cartnum{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
 .cart-num-pop{animation:cartnum .25s ease}
 
@@ -362,10 +362,14 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     </div>
     <button class="btnall btn-lista empty" id="hcart-btn" onclick="openCart()" style="padding:0;width:44px;height:44px;border-radius:50%;background:transparent;-webkit-tap-highlight-color:transparent">
       <div style="position:relative;display:flex;align-items:center;justify-content:center">
-        <svg id="hcart-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 01-8 0"/>
+        <svg id="hcart-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 11-1 9"/>
+          <path d="m19 11-4-7"/>
+          <path d="M2 11h20"/>
+          <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/>
+          <path d="M4.5 15.5h15"/>
+          <path d="m5 11 4-7"/>
+          <path d="m9 11 1 9"/>
         </svg>
         <div id="hcart-badge" style="display:none;position:absolute;top:-8px;right:-10px;background:#FF6B00;color:#fff;font-size:10px;font-weight:900;min-width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;border:2px solid #1a1208"></div>
       </div>
