@@ -1,16 +1,16 @@
 // sw.js — Service Worker
-const CACHE_NAME = 'pizzeria-v3';
+const CACHE_NAME = 'pizzeria-v4';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/menu.js',
-  '/bebidas.js',
-  '/noticias.js',
-  '/logo-app.png',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/apple-touch-icon.png',
-  '/site.webmanifest'
+  './',
+  './index.html',
+  './menu.js',
+  './bebidas.js',
+  './noticias.js',
+  './logo-app.png',
+  './icon-192x192.png',
+  './icon-512x512.png',
+  './apple-touch-icon.png',
+  './site.webmanifest'
 ];
 
 self.addEventListener('install', event => {
@@ -38,13 +38,11 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Solo cachear GET requests
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Clonar y guardar en caché si es válido
         if (response && response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -54,13 +52,11 @@ self.addEventListener('fetch', event => {
         return response;
       })
       .catch(() => {
-        // Fallback a caché cuando está offline
         return caches.match(event.request);
       })
   );
 });
 
-// Forzar actualización cuando el app lo pide
 self.addEventListener('message', event => {
   if (event.data === 'skipWaiting') {
     self.skipWaiting();
