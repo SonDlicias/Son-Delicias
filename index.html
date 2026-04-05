@@ -178,6 +178,17 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .gs-btn-cart{flex:1;background:#D62828;border:none;border-radius:12px;padding:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;transition:background .2s,transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
 .gs-btn-cart:active,.gs-btn-cart.tap{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
 .gs-btn-cart.added{background:#25D366}
+.rating-widget{margin:16px 0 4px;padding:14px 14px 12px;background:rgba(255,255,255,.06);border-radius:14px}
+.rating-widget-label{font-size:10px;font-weight:900;color:#888;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
+.rating-stars-row{display:flex;gap:4px}
+.gs-star-btn{font-size:32px;background:none;border:none;padding:2px 3px;cursor:pointer;color:#3a3a3a;line-height:1;transition:color .12s,transform .1s;-webkit-tap-highlight-color:transparent}
+.gs-star-btn:active{transform:scale(1.25)}
+.gs-star-btn.lit{color:#FFD700}
+.rating-msg{font-size:12px;color:#888;margin-top:8px;min-height:18px;line-height:1.4}
+.rating-avg-row{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.rating-avg-stars{color:#FFD700;font-size:15px;letter-spacing:1px}
+.rating-avg-num{font-size:14px;font-weight:900;color:#fff}
+.rating-avg-count{font-size:11px;color:#888}
 
 /* ── SIZE SELECTOR ── */
 .size-btn{padding:8px 12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#ccc;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s;white-space:nowrap}
@@ -483,6 +494,19 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       </div>
       <div class="game-sheet-price" id="gsPrice"></div>
       <div class="game-sheet-desc" id="gsDesc"></div>
+
+      <!-- ── WIDGET DE VALORACIÓN ── -->
+      <div class="rating-widget" id="gsRatingWidget" style="display:none">
+        <div class="rating-widget-label">¿Qué tal te pareció?</div>
+        <div class="rating-stars-row" id="gsStarBtns"></div>
+        <div class="rating-msg" id="gsRatingMsg"></div>
+        <div class="rating-avg-row" id="gsRatingAvg" style="display:none">
+          <span class="rating-avg-stars" id="gsAvgStars"></span>
+          <span class="rating-avg-num" id="gsAvgNum"></span>
+          <span class="rating-avg-count" id="gsAvgCount"></span>
+        </div>
+      </div>
+
       <div id="gsCapturas" style="display:none;margin-top:16px;padding-bottom:8px"></div>
       <div class="game-sheet-btns">
         <button class="gs-btn-cart" id="gsCartBtn"></button>
@@ -1209,6 +1233,9 @@ function openGameSheet(game) {
     syncCartBtnLabel();
   };
 
+  // Widget de valoración
+  renderRatingWidget(game.t);
+
   overlay.classList.add('on');
   sheet.classList.add('on');
   document.body.style.overflow = 'hidden';
@@ -1700,11 +1727,129 @@ function getInventoryState(nombre) {
   return inventoryMap[nombre.toLowerCase().trim()] || 'Disponible';
 }
 
+// ══════════════════════════════════════════════════════════════
+//  SISTEMA DE VALORACIONES ANÓNIMAS
+// ══════════════════════════════════════════════════════════════
+
+// ID anónimo por dispositivo/navegador — sin datos personales
+function getAnonId() {
+  let id = localStorage.getItem('lapizzeria_aid');
+  if (!id) {
+    id = 'anon_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    localStorage.setItem('lapizzeria_aid', id);
+  }
+  return id;
+}
+
+// Caché local de promedios (se llena desde Google Sheets)
+let ratingsCache = {};
+
+// Carga promedios desde Google Sheets al iniciar
+async function loadRatings() {
+  if (!SCRIPT_URL) return;
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=ratings');
+    const data = await res.json();
+    if (data && typeof data === 'object') ratingsCache = data;
+  } catch (e) {}
+}
+
+// Envía valoración al servidor y actualiza caché local
+async function doSubmitRating(producto, estrellas) {
+  // Guardar localmente para no volver a pedir
+  localStorage.setItem('lapizzeria_rated_' + producto, String(estrellas));
+
+  // Actualización optimista del caché
+  const old = ratingsCache[producto];
+  if (!old) {
+    ratingsCache[producto] = { avg: estrellas, count: 1 };
+  } else {
+    const newSum   = old.avg * old.count + estrellas;
+    const newCount = old.count + 1;
+    ratingsCache[producto] = { avg: Math.round(newSum / newCount * 10) / 10, count: newCount };
+  }
+
+  if (!SCRIPT_URL) return;
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'rating', producto, estrellas, anonId: getAnonId() })
+    });
+  } catch (e) {}
+}
+
+// Convierte número (ej: 4.3) en cadena de estrellas redondeadas (ej: ★★★★☆)
+function ratingToStars(n) {
+  const rounded = Math.round(n);
+  return '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+}
+
+// Renderiza el widget interactivo de valoración
+function renderRatingWidget(producto) {
+  const widget  = document.getElementById('gsRatingWidget');
+  const starRow = document.getElementById('gsStarBtns');
+  const msg     = document.getElementById('gsRatingMsg');
+  const avgWrap = document.getElementById('gsRatingAvg');
+  if (!widget) return;
+
+  widget.style.display = 'block';
+
+  // Promedio del servidor
+  const serverData  = ratingsCache[producto];
+  if (serverData && serverData.count > 0) {
+    avgWrap.style.display = 'flex';
+    document.getElementById('gsAvgStars').textContent = ratingToStars(serverData.avg);
+    document.getElementById('gsAvgNum').textContent   = serverData.avg + '★';
+    const c = serverData.count;
+    document.getElementById('gsAvgCount').textContent = '(' + c + ' valoraci' + (c === 1 ? 'ón' : 'ones') + ')';
+  } else {
+    avgWrap.style.display = 'none';
+  }
+
+  // ¿Ya valoró este usuario desde este navegador?
+  const userRating = parseInt(localStorage.getItem('lapizzeria_rated_' + producto)) || 0;
+
+  if (userRating > 0) {
+    // Mostrar estrellas fijas con su valoración
+    starRow.innerHTML = Array.from({ length: 5 }, (_, i) =>
+      `<span class="gs-star-btn" style="color:${i < userRating ? '#FFD700' : '#3a3a3a'};cursor:default">★</span>`
+    ).join('');
+    msg.textContent = 'Valoraste este plato con ' + userRating + ' estrella' + (userRating === 1 ? '' : 's') + '. ¡Gracias!';
+  } else {
+    // Estrellas interactivas
+    starRow.innerHTML = Array.from({ length: 5 }, (_, i) =>
+      `<button class="gs-star-btn" data-val="${i + 1}" aria-label="${i + 1} estrella${i > 0 ? 's' : ''}">★</button>`
+    ).join('');
+    msg.textContent = 'Toca para dejar tu valoración';
+
+    const btns = starRow.querySelectorAll('.gs-star-btn');
+
+    const highlight = (upTo) => {
+      btns.forEach((b, i) => b.classList.toggle('lit', i < upTo));
+    };
+
+    btns.forEach(btn => {
+      const val = parseInt(btn.dataset.val);
+      btn.addEventListener('mouseover',  () => highlight(val));
+      btn.addEventListener('mouseleave', () => highlight(0));
+      btn.addEventListener('click', async () => {
+        btns.forEach(b => { b.disabled = true; b.style.cursor = 'default'; });
+        msg.textContent = 'Enviando...';
+        await doSubmitRating(producto, val);
+        renderRatingWidget(producto);
+      });
+      // Touch sin hover delay
+      btn.addEventListener('touchstart', () => highlight(val), { passive: true });
+    });
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 updateCartBtn();
 initHero();
 render();
 loadInventory();
+loadRatings();
 
 </script>
 

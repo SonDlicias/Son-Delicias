@@ -1,7 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════════════
  *  La Pizzería — Google Apps Script
- *  Versión: 1.0
+ *  Versión: 2.0 (con Valoraciones)
  * ═══════════════════════════════════════════════════════════════
  *
  *  CÓMO INSTALAR (solo una vez):
@@ -17,23 +17,24 @@
  *  6. Copia la URL que te da y pégala en index.html en la variable SCRIPT_URL
  *
  *  HOJAS NECESARIAS EN TU GOOGLE SHEET:
- *  - "Pedidos"   → para registrar cada pedido
- *  - "Inventario" → para controlar disponibilidad del menú
+ *  - "Pedidos"      → para registrar cada pedido
+ *  - "Inventario"   → para controlar disponibilidad del menú
+ *  - "Valoraciones" → se crea automáticamente al primera valoración
  *
  * ═══════════════════════════════════════════════════════════════
  */
 
-const SHEET_ID = 'PEGA_AQUI_EL_ID_DE_TU_GOOGLE_SHEET';
-const PEDIDOS_SHEET  = 'Pedidos';
-const INVENTARIO_SHEET = 'Inventario';
+const SHEET_ID           = 'PEGA_AQUI_EL_ID_DE_TU_GOOGLE_SHEET';
+const PEDIDOS_SHEET      = 'Pedidos';
+const INVENTARIO_SHEET   = 'Inventario';
+const VALORACIONES_SHEET = 'Valoraciones';
 
-// ── GET: devuelve inventario o número de pedido siguiente ──────
+// ── GET: devuelve inventario, ratings o número de pedido siguiente ──
 function doGet(e) {
   const action = e.parameter.action || '';
 
-  if (action === 'inventory') {
-    return getInventory();
-  }
+  if (action === 'inventory') return getInventory();
+  if (action === 'ratings')   return getRatings();
 
   // Acción por defecto: devuelve el próximo número de pedido
   return ContentService
@@ -41,14 +42,20 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ── POST: guarda un pedido en la hoja "Pedidos" ────────────────
+// ── POST: guarda un pedido o una valoración ────────────────────
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    const ss   = SpreadsheetApp.openById(SHEET_ID);
+
+    // Ruta valoración anónima
+    if (data.action === 'rating') {
+      return saveRating(data);
+    }
+
+    // Ruta pedido (comportamiento original)
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
     const sheet = ss.getSheetByName(PEDIDOS_SHEET) || ss.insertSheet(PEDIDOS_SHEET);
 
-    // Crear cabeceras si la hoja está vacía
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
         'Pedido #', 'Fecha', 'Hora', 'Tipo',
@@ -59,26 +66,23 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
-    // Generar número de pedido
     const orderNum = generateOrderNum(sheet);
 
-    // Agregar fila
     sheet.appendRow([
       orderNum,
-      data.fecha  || new Date().toLocaleDateString('es-CU'),
-      data.hora   || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
-      data.tipo   || '',
-      data.nombre || '',
-      data.ci     || '',
-      data.mesa   || '',
-      data.direccion  || '',
-      data.referencia || '',
-      data.productos  || '',
-      data.total  || '0.00',
-      data.estado || 'Pendiente'
+      data.fecha       || new Date().toLocaleDateString('es-CU'),
+      data.hora        || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
+      data.tipo        || '',
+      data.nombre      || '',
+      data.ci          || '',
+      data.mesa        || '',
+      data.direccion   || '',
+      data.referencia  || '',
+      data.productos   || '',
+      data.total       || '0.00',
+      data.estado      || 'Pendiente'
     ]);
 
-    // Colorear fila nueva según tipo de pedido
     const lastRow = sheet.getLastRow();
     const color = { delivery: '#0d3b2e', recoger: '#2e1a0d', table: '#1a1a2e' }[data.tipo] || '#1a1208';
     sheet.getRange(lastRow, 1, 1, 12).setBackground(color);
@@ -94,12 +98,68 @@ function doPost(e) {
   }
 }
 
+// ── Guarda una valoración anónima ──────────────────────────────
+function saveRating(data) {
+  try {
+    const ss     = SpreadsheetApp.openById(SHEET_ID);
+    const sheet  = ss.getSheetByName(VALORACIONES_SHEET) || ss.insertSheet(VALORACIONES_SHEET);
+
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['Producto', 'Estrellas', 'Timestamp', 'AnonID']);
+      sheet.getRange(1, 1, 1, 4).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
+      sheet.setFrozenRows(1);
+    }
+
+    sheet.appendRow([
+      data.producto  || '',
+      Number(data.estrellas) || 0,
+      new Date().toISOString(),
+      data.anonId    || ''
+    ]);
+
+    return jsonResponse({ success: true });
+  } catch (err) {
+    return jsonResponse({ success: false, error: err.toString() });
+  }
+}
+
+// ── Devuelve promedios de valoraciones por producto ────────────
+function getRatings() {
+  try {
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(VALORACIONES_SHEET);
+    if (!sheet || sheet.getLastRow() < 2) return jsonResponse({});
+
+    const rows = sheet.getDataRange().getValues();
+    const totals = {}; // { producto: { sum, count } }
+
+    for (let i = 1; i < rows.length; i++) {
+      const producto  = String(rows[i][0]).trim();
+      const estrellas = Number(rows[i][1]);
+      if (!producto || !estrellas) continue;
+      if (!totals[producto]) totals[producto] = { sum: 0, count: 0 };
+      totals[producto].sum   += estrellas;
+      totals[producto].count += 1;
+    }
+
+    const out = {};
+    for (const [producto, v] of Object.entries(totals)) {
+      out[producto] = {
+        avg:   Math.round(v.sum / v.count * 10) / 10,
+        count: v.count
+      };
+    }
+    return jsonResponse(out);
+  } catch (err) {
+    return jsonResponse({});
+  }
+}
+
 // ── Genera número de pedido consecutivo ───────────────────────
 function generateOrderNum(sheet) {
   const lastRow = sheet.getLastRow();
-  if (lastRow <= 1) return 'PZ-001'; // solo cabecera
+  if (lastRow <= 1) return 'PZ-001';
 
-  // Buscar el último número en la columna A
   const col = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat().filter(Boolean);
   let max = 0;
   col.forEach(v => {
@@ -126,10 +186,9 @@ function getInventory() {
     const data = sheet.getDataRange().getValues();
     if (data.length < 2) return jsonResponse([]);
 
-    // Cabecera esperada: ID | Nombre | Categoría | Precio | Estado
-    const headers = data[0].map(h => h.toString().toLowerCase().trim());
-    const nombreIdx = headers.indexOf('nombre');
-    const estadoIdx = headers.indexOf('estado');
+    const headers    = data[0].map(h => h.toString().toLowerCase().trim());
+    const nombreIdx  = headers.indexOf('nombre');
+    const estadoIdx  = headers.indexOf('estado');
     if (nombreIdx < 0 || estadoIdx < 0) return jsonResponse([]);
 
     const result = [];
