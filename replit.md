@@ -25,7 +25,7 @@ Esquema acordado con el usuario — no usar números crecientes simples:
 v5 → v5.0 → v5.0.0 → v5.0.1 → v5.0.2 → ... → v5.1 → v5.1.0 → v5.1.1 → ... → v5.2 → ...
 ```
 
-Versión actual: `pizzeria-v5.0`
+Versión actual: `pizzeria-v5.0.0`
 
 ## Hojas de Google Sheets
 - **Pedidos**: columnas Pedido# · Fecha · Hora · Tipo · Nombre · CI · Mesa · Dirección · Referencia · Productos · Total($) · Estado
