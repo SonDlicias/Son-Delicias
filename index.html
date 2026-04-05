@@ -112,51 +112,24 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .ribbon-oferta{background:linear-gradient(135deg,#ff6a00,#ee0979)}
 .ribbon-nuevo{background:linear-gradient(135deg,#00b09b,#96c93d)}
 
-/* ── BEBIDAS SECTION (formerly consolas) ── */
-.con-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:4px}
+/* ── BEBIDAS SECTION ── */
+.con-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-top:4px}
 .con-card{background:#1a1208;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.07);box-shadow:0 4px 18px rgba(0,0,0,.55);transition:transform .18s;-webkit-tap-highlight-color:transparent}
 .con-card:hover{transform:translateY(-3px)}
-.con-img{width:100%;height:180px;object-fit:contain;object-position:center;display:block;background:#0f0a08}
-.con-img-fall{height:180px;display:flex;align-items:center;justify-content:center;background:#0f0807;font-size:56px}
-.con-info{padding:14px}
-.con-name{font-size:15px;font-weight:900;margin-bottom:5px}
-.con-desc{font-size:12px;color:#aaa;margin-bottom:8px;line-height:1.5}
-.con-specs{font-size:11px;color:#ccc;margin-bottom:10px;line-height:1.6;border-left:2px solid #E8A020;padding-left:8px}
-.con-price{font-size:18px;font-weight:900;color:#E8A020;margin-bottom:12px}
-.con-stock-si{display:inline-block;background:#25D366;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;margin-bottom:10px}
-.con-stock-no{display:inline-block;background:#555;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;margin-bottom:10px}
-.con-btns{display:flex;gap:8px}
-.cbped{flex:1;background:#D62828;border:none;border-radius:10px;padding:10px;color:#fff;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,box-shadow .12s}
-.cbped:active{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
-.cbcom{flex:1;background:transparent;border:1.5px solid rgba(232,160,32,.6);border-radius:10px;padding:10px;color:#E8A020;font-size:12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s}
-.cbcom:active{transform:scale(.94);background:rgba(232,160,32,.1)}
+.con-img{width:100%;height:148px;object-fit:cover;object-position:center;display:block;background:#0f0a08}
+.con-img-fall{height:148px;display:flex;align-items:center;justify-content:center;background:#0f0807;font-size:36px}
+.con-info{padding:8px}
+.con-name{font-size:12px;font-weight:900;margin-bottom:3px;line-height:1.3}
+.con-price{font-size:13px;font-weight:900;color:#E8A020;margin-bottom:0}
+.con-desc,.con-specs,.con-btns,.con-stock-si,.con-stock-no{display:none}
 .con-loading{text-align:center;padding:40px;color:#555;font-size:14px}
 
 /* ── WRAPPER DE IMAGEN BEBIDA ── */
 .con-img-wrap{position:relative;display:block}
-.con-bebida-cart-btn{position:absolute;bottom:8px;right:8px;z-index:8;background:#D62828;border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.55);transition:background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
+.con-bebida-cart-btn{position:absolute;bottom:8px;right:8px;z-index:8;background:#D62828;border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.55);transition:background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
 .con-bebida-cart-btn:active{transform:scale(.84)}
 .con-bebida-cart-btn.in-cart{background:#25D366}
 .con-bebida-cart-btn:disabled{background:#444;cursor:not-allowed;opacity:.5}
-/* ── VISTA BEBIDAS ── */
-.con-grid.mosaico{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
-.con-grid.mosaico .con-img{height:148px}
-.con-grid.mosaico .con-img-fall{height:148px;font-size:36px}
-.con-grid.mosaico .con-specs,.con-grid.mosaico .con-btns,.con-grid.mosaico .con-desc{display:none}
-.con-grid.mosaico .con-info{padding:8px}
-.con-grid.mosaico .con-name{font-size:12px;margin-bottom:3px}
-.con-grid.mosaico .con-price{font-size:13px;margin-bottom:4px}
-.con-grid.mosaico .con-stock-si,.con-grid.mosaico .con-stock-no{font-size:9px;padding:2px 7px;margin-bottom:0}
-.con-grid.lista{grid-template-columns:1fr;gap:6px}
-.con-grid.lista .con-card{display:flex;align-items:center}
-.con-grid.lista .con-img{width:72px;height:72px;flex-shrink:0;object-fit:contain}
-.con-grid.lista .con-img-fall{width:72px;height:72px;flex-shrink:0;font-size:28px}
-.con-grid.lista .con-info{padding:10px 12px;flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
-.con-grid.lista .con-name{font-size:13px;margin-bottom:0}
-.con-grid.lista .con-price{font-size:13px;margin-bottom:0}
-.con-grid.lista .con-stock-si,.con-grid.lista .con-stock-no{margin-bottom:0}
-.con-grid.lista .con-specs,.con-grid.lista .con-desc{display:none}
-.con-grid.lista .con-btns .cbped,.con-grid.lista .con-btns .cbcom{padding:7px 10px;font-size:11px}
 
 /* ── FAB CARRITO ── */
 #cart-fab{position:fixed;top:auto;left:auto;bottom:90px;right:20px;width:56px;height:56px;background:#fff;border:3px solid #25D366;border-radius:50%;display:none;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.4);cursor:grab;z-index:200;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;will-change:transform}
@@ -524,20 +497,6 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
   <!-- ── SECCIÓN BEBIDAS ── -->
   <div id="sec-bebidas" style="display:none">
-    <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:flex-end;padding:0 4px">
-      <button class="vista-btn on" id="vbtn-normal" onclick="setVista('normal')">
-        <svg viewBox="0 0 24 24"><path d="M3 13h9V3H3v10zm0 8h9v-6H3v6zm10 0h9V11h-9v10zm0-18v6h9V3h-9z"/></svg>
-        Normal
-      </button>
-      <button class="vista-btn" id="vbtn-mosaico" onclick="setVista('mosaico')">
-        <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8 6h8v-8h-8v8zm2-6h4v4h-4v-4z"/></svg>
-        Mosaico
-      </button>
-      <button class="vista-btn" id="vbtn-lista" onclick="setVista('lista')">
-        <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-        Lista
-      </button>
-    </div>
     <div class="con-loading" id="con-loading">⏳ Cargando bebidas...</div>
     <div id="congrid" class="con-grid"></div>
   </div>
@@ -685,12 +644,12 @@ function _syncCartBtns() {
   document.querySelectorAll('.card-cart-btn[data-t]').forEach(b => {
     const inCart = cart.some(x => x.t === b.dataset.t);
     b.classList.toggle('in-cart', inCart);
-    b.textContent = inCart ? '✅' : '🛒';
+    b.textContent = inCart ? '✓' : '🛒';
   });
   document.querySelectorAll('.cc-cart-btn[data-t]').forEach(b => {
     const inCart = cart.some(x => x.t === b.dataset.t);
     b.classList.toggle('in-cart', inCart);
-    b.textContent = inCart ? '✅' : '🛒';
+    b.textContent = inCart ? '✓' : '🛒';
   });
 }
 
@@ -704,7 +663,7 @@ function quickAddToCart(game, btn) {
     const unitPrice = defSize ? defSize.price : (game.price || 0);
     const size = defSize ? defSize.label : '';
     cart.push({ t: game.t, type: 'pizza', unitPrice, price: '$' + unitPrice.toFixed(2), size, qty: 1 });
-    btn.textContent = '✅'; btn.classList.add('in-cart');
+    btn.textContent = '✓'; btn.classList.add('in-cart');
     btn.classList.remove('cart-add-pop'); void btn.offsetWidth; btn.classList.add('cart-add-pop');
     if (navigator.vibrate) navigator.vibrate([40]);
     setTimeout(() => btn.classList.remove('cart-add-pop'), 400);
@@ -752,7 +711,7 @@ function _bebidaCartToggle(nombre, precio, img, btn) {
   if (idx === -1) {
     const unitPrice = parseFloat(precio);
     cart.push({ t: nombre, type: 'bebida', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
-    btn.textContent = '✅'; btn.classList.add('in-cart');
+    btn.textContent = '✓'; btn.classList.add('in-cart');
     btn.classList.remove('cart-add-pop'); void btn.offsetWidth; btn.classList.add('cart-add-pop');
     if (navigator.vibrate) navigator.vibrate([40]);
     setTimeout(() => btn.classList.remove('cart-add-pop'), 400);
@@ -769,7 +728,7 @@ function _syncBebidaBtns() {
   document.querySelectorAll('.con-bebida-cart-btn[data-bname]').forEach(b => {
     const inCart = cart.some(x => x.t === b.dataset.bname);
     b.classList.toggle('in-cart', inCart);
-    b.textContent = inCart ? '✅' : '🛒';
+    b.textContent = inCart ? '✓' : '🛒';
   });
   document.querySelectorAll('.cbped[data-img]').forEach(b => {
     const nombre = b.closest('.con-card')?.querySelector('.con-name')?.textContent;
@@ -1027,20 +986,12 @@ function loadBebidas() {
         <button class="con-bebida-cart-btn${inCart?' in-cart':''}" data-bname="${b.nombre}"
           ${!disponible ? 'disabled' : ''}
           onclick="event.stopPropagation();_bebidaCartToggle('${safeName}','${b.precio}','${safeImg}',this)">
-          ${inCart ? '✅' : '🛒'}
+          ${inCart ? '✓' : '🛒'}
         </button>
       </div>
       <div class="con-info">
         <div class="con-name">${b.nombre}</div>
-        <div class="${disponible ? 'con-stock-si' : 'con-stock-no'}">${disponible ? '✅ Disponible' : '❌ Agotado'}</div>
-        <div class="con-specs">${b.specs || ''}</div>
         <div class="con-price">$${parseFloat(b.precio).toFixed(2)}</div>
-        <div class="con-btns">
-          <button class="cbped" data-img="${b.img || ''}" ${!disponible ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}
-            onclick="addBebidaToCart('${b.nombre}','${b.precio}','${b.img || ''}',this)">
-            🛒 Agregar
-          </button>
-        </div>
       </div>`;
     cg.appendChild(d);
   });
@@ -1283,11 +1234,9 @@ function closeGameSheet() {
 // ── VISTA BEBIDAS ─────────────────────────────────────────────
 function setVista(v) {
   const cg = document.getElementById('congrid');
+  if (!cg) return;
   cg.classList.remove('mosaico', 'lista');
   if (v !== 'normal') cg.classList.add(v);
-  ['normal', 'mosaico', 'lista'].forEach(x => {
-    document.getElementById('vbtn-' + x).classList.toggle('on', x === v);
-  });
 }
 
 // ── FILTROS / SORT ────────────────────────────────────────────
@@ -1412,7 +1361,7 @@ function render() {
           <div class="ovs">${stars(game.r)}</div>
           <div style="font-size:10px;color:#ccc;margin-top:4px;line-height:1.5">${game.d || ''}</div>
         </div>
-        ${invState !== 'Agotada' ? `<button class="card-cart-btn${inCart?' in-cart':''}" data-t="${game.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gameJson},this)">${inCart?'✅':'🛒'}</button>` : ''}
+        ${invState !== 'Agotada' ? `<button class="card-cart-btn${inCart?' in-cart':''}" data-t="${game.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gameJson},this)">${inCart?'✓':'🛒'}</button>` : ''}
       </div>
       <div class="cfoot">
         <div class="ctit">${game.t}</div>
@@ -1583,7 +1532,7 @@ function renderCarousels() {
           ${imgHtml}
           ${priceLabel ? `<div class="cc-price-badge">${priceLabel}</div>` : ''}
           <div class="cc-cat-badge">${g.g}</div>
-          ${invState !== 'Agotada' ? `<button class="cc-cart-btn${inCart?' in-cart':''}" data-t="${g.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gJson},this)">${inCart?'✅':'🛒'}</button>` : ''}
+          ${invState !== 'Agotada' ? `<button class="cc-cart-btn${inCart?' in-cart':''}" data-t="${g.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gJson},this)">${inCart?'✓':'🛒'}</button>` : ''}
         </div>
         <div class="cc-body">
           <div class="cc-name">${g.t}</div>
