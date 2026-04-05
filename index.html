@@ -521,6 +521,25 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     </div>
   </div>
 
+  <!-- ── MINI MODAL VALORACIÓN BEBIDAS ── -->
+  <div id="bRatingOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;backdrop-filter:blur(4px)" onclick="closeBebidaRating()"></div>
+  <div id="bRatingPanel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1208;border-radius:20px 20px 0 0;z-index:1000;padding:24px 20px 32px;max-width:480px;margin:0 auto;box-shadow:0 -8px 40px rgba(0,0,0,.8)">
+    <div style="width:36px;height:4px;background:#444;border-radius:2px;margin:0 auto 18px"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <span id="bRatingEmoji" style="font-size:26px">🥤</span>
+      <div>
+        <div id="bRatingName" style="font-size:16px;font-weight:900;color:#fff"></div>
+        <div id="bRatingAvgLine" style="font-size:11px;color:#FFD700;margin-top:2px"></div>
+      </div>
+    </div>
+    <div class="rating-widget" style="display:block;background:transparent;padding:0">
+      <div class="rating-stars-row" id="bStarBtns"></div>
+      <textarea class="rating-comment" id="bRatingComment" placeholder="Escribe tu opinión (opcional)..." maxlength="200" rows="2" style="display:none"></textarea>
+      <button class="rating-submit-btn" id="bRatingSubmit" style="display:none">Enviar valoración</button>
+      <div class="rating-msg" id="bRatingMsg"></div>
+    </div>
+  </div>
+
   <!-- ── SECCIÓN NOVEDADES ── -->
   <div id="sec-noticias" style="display:none">
     <div id="contenedor-noticias"></div>
@@ -1022,9 +1041,10 @@ function loadBebidas() {
           ${inCart ? '✓' : CART_SVG}
         </button>
       </div>
-      <div class="con-info">
+      <div class="con-info" style="cursor:pointer" onclick="openBebidaRating('${safeName}','${b.emoji || '🥤'}')">
         <div class="con-name">${b.nombre}</div>
         <div class="con-price">$${parseFloat(b.precio).toFixed(2)}</div>
+        <div style="font-size:10px;color:#FFD700;font-weight:700;margin-top:3px;min-height:14px" data-cardrating="${b.nombre}"></div>
       </div>`;
     cg.appendChild(d);
   });
@@ -1909,6 +1929,93 @@ function refreshRatingsUI() {
     const g = G.find(x => x.t === nombre);
     el.textContent = g ? g.g + (lr && lr.count > 0 ? ' · ' + lr.avg + '/5' : '') : '';
   });
+}
+
+// ── VALORACIÓN BEBIDAS ────────────────────────────────────────
+let _bRatingCurrent = null;
+
+function openBebidaRating(nombre, emoji) {
+  _bRatingCurrent = nombre;
+  document.getElementById('bRatingEmoji').textContent = emoji || '🥤';
+  document.getElementById('bRatingName').textContent  = nombre;
+  document.getElementById('bRatingOverlay').style.display = 'block';
+  document.getElementById('bRatingPanel').style.display   = 'block';
+  renderBebidaRatingWidget(nombre);
+}
+
+function closeBebidaRating() {
+  document.getElementById('bRatingOverlay').style.display = 'none';
+  document.getElementById('bRatingPanel').style.display   = 'none';
+  _bRatingCurrent = null;
+}
+
+function renderBebidaRatingWidget(producto) {
+  const starRow   = document.getElementById('bStarBtns');
+  const commentEl = document.getElementById('bRatingComment');
+  const submitBtn = document.getElementById('bRatingSubmit');
+  const msg       = document.getElementById('bRatingMsg');
+  const avgLine   = document.getElementById('bRatingAvgLine');
+
+  // Promedio actual del caché
+  const sr = ratingsCache[producto];
+  if (sr && sr.count > 0) {
+    avgLine.textContent = ratingToStars(sr.avg) + ' ' + sr.avg + ' (' + sr.count + ' valoraci' + (sr.count === 1 ? 'ón' : 'ones') + ')';
+  } else {
+    avgLine.textContent = 'Sé el primero en valorar';
+  }
+
+  const userRating  = parseInt(localStorage.getItem('lapizzeria_rated_' + producto)) || 0;
+  const userComment = localStorage.getItem('lapizzeria_comment_' + producto) || '';
+
+  if (userRating > 0) {
+    starRow.innerHTML = Array.from({ length: 5 }, (_, i) =>
+      `<span class="gs-star-btn" style="color:${i < userRating ? '#FFD700' : '#3a3a3a'};cursor:default">★</span>`
+    ).join('');
+    commentEl.style.display = 'none';
+    submitBtn.style.display  = 'none';
+    msg.innerHTML = 'Valoraste con ' + userRating + ' estrella' + (userRating === 1 ? '' : 's') + '. ¡Gracias!'
+      + (userComment ? `<br><em style="color:#aaa;font-style:italic">"${userComment}"</em>` : '');
+    return;
+  }
+
+  // Interactivo
+  let selectedVal = 0;
+  starRow.innerHTML = Array.from({ length: 5 }, (_, i) =>
+    `<button class="gs-star-btn" data-val="${i + 1}" aria-label="${i + 1} estrella${i > 0 ? 's' : ''}">★</button>`
+  ).join('');
+  commentEl.style.display = 'none';
+  commentEl.value = '';
+  submitBtn.style.display = 'none';
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Enviar valoración';
+  msg.textContent = 'Toca las estrellas para valorar';
+
+  const btns = starRow.querySelectorAll('.gs-star-btn');
+  const highlight = (n) => btns.forEach((b, i) => b.classList.toggle('lit', i < n));
+
+  btns.forEach(btn => {
+    const val = parseInt(btn.dataset.val);
+    btn.addEventListener('mouseover',  () => !selectedVal && highlight(val));
+    btn.addEventListener('mouseleave', () => !selectedVal && highlight(0));
+    btn.addEventListener('touchstart', () => !selectedVal && highlight(val), { passive: true });
+    btn.addEventListener('click', () => {
+      selectedVal = val;
+      highlight(val);
+      commentEl.style.display = 'block';
+      submitBtn.style.display  = 'block';
+      msg.textContent = val + ' estrella' + (val === 1 ? '' : 's') + ' seleccionada' + (val === 1 ? '' : 's');
+    });
+  });
+
+  submitBtn.onclick = async () => {
+    if (!selectedVal) return;
+    const comentario = commentEl.value.trim();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+    await doSubmitRating(producto, selectedVal, comentario);
+    renderBebidaRatingWidget(producto);
+    refreshRatingsUI();
+  };
 }
 
 // ── INIT ──────────────────────────────────────────────────────
