@@ -178,8 +178,6 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .gs-btn-cart{flex:1;background:#D62828;border:none;border-radius:12px;padding:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;transition:background .2s,transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
 .gs-btn-cart:active,.gs-btn-cart.tap{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
 .gs-btn-cart.added{background:#25D366}
-.gs-btn-share{flex:1;background:#E8A020;border:none;border-radius:12px;padding:14px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;transition:transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
-.gs-btn-share:active,.gs-btn-share.tap{transform:scale(.94);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
 
 /* ── SIZE SELECTOR ── */
 .size-btn{padding:8px 12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#ccc;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s;white-space:nowrap}
@@ -488,7 +486,6 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       <div id="gsCapturas" style="display:none;margin-top:16px;padding-bottom:8px"></div>
       <div class="game-sheet-btns">
         <button class="gs-btn-cart" id="gsCartBtn"></button>
-        <button class="gs-btn-share" id="gsShareBtn">📤 Compartir</button>
       </div>
     </div>
   </div>
@@ -636,7 +633,7 @@ function toggleCart(game, btn) {
     }
   } else {
     cart.splice(idx, 1);
-    if (btn) { btn.textContent = '🛒 Agregar'; btn.style.background = ''; }
+    if (btn) { btn.innerHTML = `${CART_SVG} Agregar`; btn.style.background = ''; }
   }
   updateCartBtn();
   _syncCartBtns();
@@ -704,7 +701,7 @@ function addBebidaToCart(nombre, precio, img, btn) {
     }
   } else {
     cart.splice(idx, 1);
-    if (btn) { btn.textContent = '🛒 Agregar'; btn.style.background = ''; }
+    if (btn) { btn.innerHTML = `${CART_SVG} Agregar`; btn.style.background = ''; }
   }
   updateCartBtn();
   _syncBebidaBtns();
@@ -739,7 +736,7 @@ function _syncBebidaBtns() {
     const nombre = b.closest('.con-card')?.querySelector('.con-name')?.textContent;
     if (!nombre) return;
     const inCart = cart.some(x => x.t === nombre);
-    b.textContent = inCart ? '✅ Agregado' : '🛒 Agregar';
+    b.innerHTML = inCart ? '✅ Agregado' : `${CART_SVG} Agregar`;
     b.style.background = inCart ? '#25D366' : '';
   });
 }
@@ -1148,7 +1145,7 @@ function openGameSheet(game) {
       cartBtn.textContent = `✅ Actualizar (${modalQty})`;
       cartBtn.className = 'gs-btn-cart added';
     } else {
-      cartBtn.textContent = `🛒 Agregar (${modalQty})`;
+      cartBtn.innerHTML = `${CART_SVG} Agregar (${modalQty})`;
       cartBtn.className = 'gs-btn-cart';
     }
   };
@@ -1212,7 +1209,6 @@ function openGameSheet(game) {
     syncCartBtnLabel();
   };
 
-  document.getElementById('gsShareBtn').onclick = () => compartir(game, { stopPropagation: () => {} });
   overlay.classList.add('on');
   sheet.classList.add('on');
   document.body.style.overflow = 'hidden';
