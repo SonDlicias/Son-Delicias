@@ -1,11 +1,16 @@
 // sw.js — Service Worker
-const CACHE_NAME = 'pizzeria-v2';
+const CACHE_NAME = 'pizzeria-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/menu.js',
   '/bebidas.js',
-  '/noticias.js'
+  '/noticias.js',
+  '/logo-app.png',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/apple-touch-icon.png',
+  '/site.webmanifest'
 ];
 
 self.addEventListener('install', event => {
