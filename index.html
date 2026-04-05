@@ -61,7 +61,7 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 #tab-bebidas.off .bebidas-fill{display:none}
 #tab-bebidas.off .bebidas-outline{display:block}
 #tab-noticias.on svg{stroke:#e6392e}
-#tab-noticias.off svg{stroke:#fff8f0}
+#tab-noticias.off svg{stroke:#F5EDE4}
 @keyframes springback{0%{transform:scale(.82)}60%{transform:scale(1.18)}80%{transform:scale(.95)}100%{transform:scale(1)}}
 .navtab-spring svg,.navtab-spring img{animation:springback .35s cubic-bezier(.36,.07,.19,.97) forwards}
 
@@ -1348,15 +1348,13 @@ function render() {
 
     card.innerHTML = `
       <div class="cimg" style="background:${game.col}">
-        ${game.badge ? `<div class="ribbon-wrap"><div class="ribbon ribbon-${game.badge.toLowerCase()}">${game.badge}</div></div>` : ''}
-        ${game.r >= 4.8 ? `<div class="fire-badge">🔥</div>` : ''}
         ${agotadaTag}
         ${game.c ? `<img src="${game.c}" alt="${game.t}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` : ''}
         <div class="fall" style="${!game.c ? 'display:flex;' : ''}background:${game.col}">
           <img src="logo.png" alt="" onerror="this.outerHTML='<span style=font-size:38px>🍕</span>'"/>
           <p>${game.t}</p>
         </div>
-        <div class="bg ${game.badge ? 'con-ribbon' : ''}">${game.g}</div>
+        <div class="bg">${game.g}</div>
         <div class="bp">${priceDisplay}</div>
         <div class="ov">
           <div class="ovt">${game.t}</div>
@@ -1519,8 +1517,6 @@ function renderCarousels() {
       card.style.setProperty('--cc-glow', glow.glow);
       card.style.animationDelay = `${idx * 40}ms`;
 
-      const ribbonBadge = g.badge ? `<div class="cc-ribbon-wrap"><div class="cc-ribbon ${g.badge.toLowerCase()}">${g.badge}</div></div>` : '';
-      const fireBadge = g.r >= 4.8 ? `<div class="fire-badge">🔥</div>` : '';
       const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
       const imgHtml = g.c
         ? `<img src="${g.c}" alt="${g.t}" loading="lazy" onerror="this.style.display='none'">`
@@ -1529,12 +1525,8 @@ function renderCarousels() {
       const gJson = JSON.stringify(g).replace(/"/g,'&quot;');
       card.innerHTML = `
         <div class="cc-img" style="background:${g.col}">
-          ${ribbonBadge}
-          ${fireBadge}
           ${agotadaTag}
           ${imgHtml}
-          ${priceLabel ? `<div class="cc-price-badge">${priceLabel}</div>` : ''}
-          <div class="cc-cat-badge">${g.g}</div>
           ${invState !== 'Agotada' ? `<button class="cc-cart-btn${inCart?' in-cart':''}" data-t="${g.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gJson},this)">${inCart?'✓':'🛒'}</button>` : ''}
         </div>
         <div class="cc-body">
