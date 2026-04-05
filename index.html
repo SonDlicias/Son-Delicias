@@ -132,6 +132,12 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .cbcom:active{transform:scale(.94);background:rgba(232,160,32,.1)}
 .con-loading{text-align:center;padding:40px;color:#555;font-size:14px}
 
+/* ── WRAPPER DE IMAGEN BEBIDA ── */
+.con-img-wrap{position:relative;display:block}
+.con-bebida-cart-btn{position:absolute;bottom:8px;right:8px;z-index:8;background:#D62828;border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.55);transition:background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
+.con-bebida-cart-btn:active{transform:scale(.84)}
+.con-bebida-cart-btn.in-cart{background:#25D366}
+.con-bebida-cart-btn:disabled{background:#444;cursor:not-allowed;opacity:.5}
 /* ── VISTA BEBIDAS ── */
 .con-grid.mosaico{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
 .con-grid.mosaico .con-img{height:148px}
@@ -723,19 +729,55 @@ function addBebidaToCart(nombre, precio, img, btn) {
   if (idx === -1) {
     const unitPrice = parseFloat(precio);
     cart.push({ t: nombre, type: 'bebida', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
-    btn.textContent = '✅ Agregado';
-    btn.style.background = '#25D366';
-    btn.classList.remove('cart-add-pop','cart-add-flash');
-    void btn.offsetWidth;
-    btn.classList.add('cart-add-pop','cart-add-flash');
-    if (navigator.vibrate) navigator.vibrate([40]);
-    setTimeout(() => btn.classList.remove('cart-add-pop','cart-add-flash'), 600);
+    if (btn) {
+      btn.textContent = '✅ Agregado';
+      btn.style.background = '#25D366';
+      btn.classList.remove('cart-add-pop','cart-add-flash');
+      void btn.offsetWidth;
+      btn.classList.add('cart-add-pop','cart-add-flash');
+      if (navigator.vibrate) navigator.vibrate([40]);
+      setTimeout(() => btn.classList.remove('cart-add-pop','cart-add-flash'), 600);
+    }
   } else {
     cart.splice(idx, 1);
-    btn.textContent = '🛒 Agregar';
-    btn.style.background = '';
+    if (btn) { btn.textContent = '🛒 Agregar'; btn.style.background = ''; }
   }
   updateCartBtn();
+  _syncBebidaBtns();
+}
+
+// Botón circular de bebida (ícono 🛒/✅ en la imagen)
+function _bebidaCartToggle(nombre, precio, img, btn) {
+  const idx = cart.findIndex(x => x.t === nombre);
+  if (idx === -1) {
+    const unitPrice = parseFloat(precio);
+    cart.push({ t: nombre, type: 'bebida', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
+    btn.textContent = '✅'; btn.classList.add('in-cart');
+    btn.classList.remove('cart-add-pop'); void btn.offsetWidth; btn.classList.add('cart-add-pop');
+    if (navigator.vibrate) navigator.vibrate([40]);
+    setTimeout(() => btn.classList.remove('cart-add-pop'), 400);
+  } else {
+    cart.splice(idx, 1);
+    btn.textContent = '🛒'; btn.classList.remove('in-cart');
+  }
+  updateCartBtn();
+  _syncBebidaBtns();
+}
+
+// Sincronizar todos los botones de bebidas con el estado del carrito
+function _syncBebidaBtns() {
+  document.querySelectorAll('.con-bebida-cart-btn[data-bname]').forEach(b => {
+    const inCart = cart.some(x => x.t === b.dataset.bname);
+    b.classList.toggle('in-cart', inCart);
+    b.textContent = inCart ? '✅' : '🛒';
+  });
+  document.querySelectorAll('.cbped[data-img]').forEach(b => {
+    const nombre = b.closest('.con-card')?.querySelector('.con-name')?.textContent;
+    if (!nombre) return;
+    const inCart = cart.some(x => x.t === nombre);
+    b.textContent = inCart ? '✅ Agregado' : '🛒 Agregar';
+    b.style.background = inCart ? '#25D366' : '';
+  });
 }
 
 function updateCartBtn() {
@@ -972,12 +1014,22 @@ function loadBebidas() {
     const d = document.createElement('div');
     d.className = 'con-card';
     const disponible = b.disponible !== false;
+    const inCart = cart.some(x => x.t === b.nombre);
+    const safeName = b.nombre.replace(/'/g, "\\'");
+    const safeImg  = (b.img || '').replace(/'/g, "\\'");
     d.innerHTML = `
-      ${b.img
-        ? `<img class="con-img" src="${b.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${b.nombre}"/>
-           <div class="con-img-fall" style="display:none">${b.emoji || '🥤'}</div>`
-        : `<div class="con-img-fall">${b.emoji || '🥤'}</div>`
-      }
+      <div class="con-img-wrap">
+        ${b.img
+          ? `<img class="con-img" src="${b.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${b.nombre}"/>
+             <div class="con-img-fall" style="display:none">${b.emoji || '🥤'}</div>`
+          : `<div class="con-img-fall">${b.emoji || '🥤'}</div>`
+        }
+        <button class="con-bebida-cart-btn${inCart?' in-cart':''}" data-bname="${b.nombre}"
+          ${!disponible ? 'disabled' : ''}
+          onclick="event.stopPropagation();_bebidaCartToggle('${safeName}','${b.precio}','${safeImg}',this)">
+          ${inCart ? '✅' : '🛒'}
+        </button>
+      </div>
       <div class="con-info">
         <div class="con-name">${b.nombre}</div>
         <div class="${disponible ? 'con-stock-si' : 'con-stock-no'}">${disponible ? '✅ Disponible' : '❌ Agotado'}</div>
@@ -988,7 +1040,6 @@ function loadBebidas() {
             onclick="addBebidaToCart('${b.nombre}','${b.precio}','${b.img || ''}',this)">
             🛒 Agregar
           </button>
-          <button class="cbcom" onclick="compartirBebida('${b.nombre}','${b.precio}',event)">📤 Compartir</button>
         </div>
       </div>`;
     cg.appendChild(d);
