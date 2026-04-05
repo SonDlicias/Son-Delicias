@@ -189,6 +189,11 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .rating-avg-stars{color:#FFD700;font-size:15px;letter-spacing:1px}
 .rating-avg-num{font-size:14px;font-weight:900;color:#fff}
 .rating-avg-count{font-size:11px;color:#888}
+.rating-comment{width:100%;margin-top:12px;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:13px;font-family:inherit;resize:none;outline:none;transition:border-color .2s}
+.rating-comment::placeholder{color:#666}
+.rating-comment:focus{border-color:rgba(255,107,0,.5)}
+.rating-submit-btn{margin-top:10px;width:100%;padding:11px;background:#D62828;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:background .2s;-webkit-tap-highlight-color:transparent}
+.rating-submit-btn:active{background:#b01f1f}
 
 /* ── SIZE SELECTOR ── */
 .size-btn{padding:8px 12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#ccc;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s;white-space:nowrap}
@@ -499,6 +504,8 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       <div class="rating-widget" id="gsRatingWidget" style="display:none">
         <div class="rating-widget-label">¿Qué tal te pareció?</div>
         <div class="rating-stars-row" id="gsStarBtns"></div>
+        <textarea class="rating-comment" id="gsRatingComment" placeholder="Escribe tu opinión (opcional)..." maxlength="200" rows="2" style="display:none"></textarea>
+        <button class="rating-submit-btn" id="gsRatingSubmit" style="display:none">Enviar valoración</button>
         <div class="rating-msg" id="gsRatingMsg"></div>
         <div class="rating-avg-row" id="gsRatingAvg" style="display:none">
           <span class="rating-avg-stars" id="gsAvgStars"></span>
@@ -1089,8 +1096,14 @@ function openGameSheet(game) {
 
   document.getElementById('gsTitle').textContent = game.t;
   document.getElementById('gsGenre').textContent = game.g;
-  document.getElementById('gsStars').textContent = stars(game.r);
-  document.getElementById('gsRating').textContent = '⭐ ' + game.r + '/5';
+  const _lr = ratingsCache[game.t];
+  if (_lr && _lr.count > 0) {
+    document.getElementById('gsStars').textContent = stars(_lr.avg);
+    document.getElementById('gsRating').textContent = '⭐ ' + _lr.avg + '/5 (' + _lr.count + ')';
+  } else {
+    document.getElementById('gsStars').textContent = '';
+    document.getElementById('gsRating').textContent = 'Sin valoraciones aún';
+  }
   document.getElementById('gsDesc').textContent = game.d || '';
 
   // Imagen principal
@@ -1277,8 +1290,13 @@ function setSort(v) {
 }
 
 function stars(n) {
+  if (!n || n <= 0) return '';
   const f = Math.floor(n), h = n % 1 >= .5;
   return '★'.repeat(f) + (h ? '½' : '') + '☆'.repeat(5 - f - (h ? 1 : 0));
+}
+
+function liveRating(nombre) {
+  return ratingsCache[nombre] || null;
 }
 
 function filtered() {
@@ -1383,8 +1401,8 @@ function render() {
         <div class="bp">${priceDisplay}</div>
         <div class="ov">
           <div class="ovt">${game.t}</div>
-          <div class="ovd">⭐ ${game.r}/5 · ${game.g}</div>
-          <div class="ovs">${stars(game.r)}</div>
+          <div class="ovd"><span data-cardrating="${game.t}"></span> ${game.g}</div>
+          <div class="ovs"><span data-cardstars="${game.t}"></span></div>
           <div style="font-size:10px;color:#ccc;margin-top:4px;line-height:1.5">${game.d || ''}</div>
         </div>
         ${invState !== 'Agotada' ? `<button class="card-cart-btn${inCart?' in-cart':''}" data-t="${game.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gameJson},this)">${inCart?'✓':CART_SVG}</button>` : ''}
@@ -1393,7 +1411,7 @@ function render() {
         <div class="ctit">${game.t}</div>
         ${game.s ? `<div class="csize">${game.s}</div>` : ''}
         <div class="ccard-meta">
-          <span class="ccard-rating">⭐ ${game.r}</span>
+          <span class="ccard-rating" data-cardrating="${game.t}"></span>
         </div>
       </div>`;
 
@@ -1410,7 +1428,7 @@ function initHero() {
   const hero = document.getElementById('hero-section');
   if (!hero || typeof G === 'undefined') return;
 
-  const slides = G.filter(g => g.r >= 4.7).sort((a, b) => b.r - a.r).slice(0, 6);
+  const slides = G.filter(g => g.featured).slice(0, 6);
   if (!slides.length) { hero.style.display = 'none'; return; }
 
   let cur = 0, paused = false, autoTimer = null;
@@ -1430,7 +1448,7 @@ function initHero() {
       <div class="hero-content">
         <div class="hero-eyebrow">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>
-          ${g.g} · ${g.r}/5
+          <span data-herorating="${g.t}">${g.g}</span>
         </div>
         <div class="hero-title">${g.t}</div>
         <div class="hero-sub">${g.d ? g.d.slice(0,72)+'…' : (g.s || '')}</div>
@@ -1558,7 +1576,7 @@ function renderCarousels() {
         <div class="cc-body">
           <div class="cc-name">${g.t}</div>
           <div class="cc-sizes">${g.s || ''}</div>
-          <div style="font-size:9px;color:#FFD700;font-weight:700;margin-top:3px">⭐ ${g.r}</div>
+          <div style="font-size:9px;color:#FFD700;font-weight:700;margin-top:3px" data-cardrating="${g.t}"></div>
         </div>`;
 
       if (invState !== 'Agotada') {
@@ -1754,10 +1772,10 @@ async function loadRatings() {
   } catch (e) {}
 }
 
-// Envía valoración al servidor y actualiza caché local
-async function doSubmitRating(producto, estrellas) {
-  // Guardar localmente para no volver a pedir
+// Envía valoración (con comentario opcional) al servidor y actualiza caché local
+async function doSubmitRating(producto, estrellas, comentario) {
   localStorage.setItem('lapizzeria_rated_' + producto, String(estrellas));
+  if (comentario) localStorage.setItem('lapizzeria_comment_' + producto, comentario);
 
   // Actualización optimista del caché
   const old = ratingsCache[producto];
@@ -1773,7 +1791,7 @@ async function doSubmitRating(producto, estrellas) {
   try {
     await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'rating', producto, estrellas, anonId: getAnonId() })
+      body: JSON.stringify({ action: 'rating', producto, estrellas, comentario: comentario || '', anonId: getAnonId() })
     });
   } catch (e) {}
 }
@@ -1786,16 +1804,18 @@ function ratingToStars(n) {
 
 // Renderiza el widget interactivo de valoración
 function renderRatingWidget(producto) {
-  const widget  = document.getElementById('gsRatingWidget');
-  const starRow = document.getElementById('gsStarBtns');
-  const msg     = document.getElementById('gsRatingMsg');
-  const avgWrap = document.getElementById('gsRatingAvg');
+  const widget     = document.getElementById('gsRatingWidget');
+  const starRow    = document.getElementById('gsStarBtns');
+  const commentEl  = document.getElementById('gsRatingComment');
+  const submitBtn  = document.getElementById('gsRatingSubmit');
+  const msg        = document.getElementById('gsRatingMsg');
+  const avgWrap    = document.getElementById('gsRatingAvg');
   if (!widget) return;
 
   widget.style.display = 'block';
 
-  // Promedio del servidor
-  const serverData  = ratingsCache[producto];
+  // Promedio real del servidor
+  const serverData = ratingsCache[producto];
   if (serverData && serverData.count > 0) {
     avgWrap.style.display = 'flex';
     document.getElementById('gsAvgStars').textContent = ratingToStars(serverData.avg);
@@ -1806,21 +1826,30 @@ function renderRatingWidget(producto) {
     avgWrap.style.display = 'none';
   }
 
-  // ¿Ya valoró este usuario desde este navegador?
-  const userRating = parseInt(localStorage.getItem('lapizzeria_rated_' + producto)) || 0;
+  const userRating  = parseInt(localStorage.getItem('lapizzeria_rated_' + producto)) || 0;
+  const userComment = localStorage.getItem('lapizzeria_comment_' + producto) || '';
 
   if (userRating > 0) {
-    // Mostrar estrellas fijas con su valoración
+    // Ya valoró — mostrar estrellas bloqueadas y su comentario
     starRow.innerHTML = Array.from({ length: 5 }, (_, i) =>
       `<span class="gs-star-btn" style="color:${i < userRating ? '#FFD700' : '#3a3a3a'};cursor:default">★</span>`
     ).join('');
-    msg.textContent = 'Valoraste este plato con ' + userRating + ' estrella' + (userRating === 1 ? '' : 's') + '. ¡Gracias!';
+    commentEl.style.display = 'none';
+    submitBtn.style.display  = 'none';
+    msg.innerHTML = 'Valoraste con ' + userRating + ' estrella' + (userRating === 1 ? '' : 's') + '. ¡Gracias!'
+      + (userComment ? `<br><em style="color:#aaa;font-style:italic">"${userComment}"</em>` : '');
   } else {
     // Estrellas interactivas
+    let selectedVal = 0;
+
     starRow.innerHTML = Array.from({ length: 5 }, (_, i) =>
       `<button class="gs-star-btn" data-val="${i + 1}" aria-label="${i + 1} estrella${i > 0 ? 's' : ''}">★</button>`
     ).join('');
-    msg.textContent = 'Toca para dejar tu valoración';
+
+    commentEl.style.display = 'none';
+    commentEl.value = '';
+    submitBtn.style.display = 'none';
+    msg.textContent = 'Toca las estrellas para valorar';
 
     const btns = starRow.querySelectorAll('.gs-star-btn');
 
@@ -1830,18 +1859,56 @@ function renderRatingWidget(producto) {
 
     btns.forEach(btn => {
       const val = parseInt(btn.dataset.val);
-      btn.addEventListener('mouseover',  () => highlight(val));
-      btn.addEventListener('mouseleave', () => highlight(0));
-      btn.addEventListener('click', async () => {
-        btns.forEach(b => { b.disabled = true; b.style.cursor = 'default'; });
-        msg.textContent = 'Enviando...';
-        await doSubmitRating(producto, val);
-        renderRatingWidget(producto);
+      btn.addEventListener('mouseover',  () => !selectedVal && highlight(val));
+      btn.addEventListener('mouseleave', () => !selectedVal && highlight(0));
+      btn.addEventListener('touchstart', () => !selectedVal && highlight(val), { passive: true });
+      btn.addEventListener('click', () => {
+        selectedVal = val;
+        highlight(val);
+        commentEl.style.display = 'block';
+        submitBtn.style.display  = 'block';
+        msg.textContent = val + ' estrella' + (val === 1 ? '' : 's') + ' seleccionada' + (val === 1 ? '' : 's');
       });
-      // Touch sin hover delay
-      btn.addEventListener('touchstart', () => highlight(val), { passive: true });
     });
+
+    submitBtn.onclick = async () => {
+      if (!selectedVal) return;
+      const comentario = commentEl.value.trim();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      await doSubmitRating(producto, selectedVal, comentario);
+      renderRatingWidget(producto);
+      // Actualizar gsStars/gsRating del sheet
+      const lr = ratingsCache[producto];
+      if (lr) {
+        document.getElementById('gsStars').textContent  = stars(lr.avg);
+        document.getElementById('gsRating').textContent = '⭐ ' + lr.avg + '/5 (' + lr.count + ')';
+      }
+      refreshRatingsUI();
+    };
   }
+}
+
+// Actualiza todos los elementos de rating en el DOM con datos reales del caché
+function refreshRatingsUI() {
+  // Actualizar tarjetas grandes (data-cardrating y data-cardstars)
+  document.querySelectorAll('[data-cardrating]').forEach(el => {
+    const nombre = el.dataset.cardrating;
+    const lr = ratingsCache[nombre];
+    el.textContent = lr && lr.count > 0 ? '⭐ ' + lr.avg : '';
+  });
+  document.querySelectorAll('[data-cardstars]').forEach(el => {
+    const nombre = el.dataset.cardstars;
+    const lr = ratingsCache[nombre];
+    el.textContent = lr && lr.count > 0 ? stars(lr.avg) : '';
+  });
+  // Actualizar hero eyebrow
+  document.querySelectorAll('[data-herorating]').forEach(el => {
+    const nombre = el.dataset.herorating;
+    const lr = ratingsCache[nombre];
+    const g = G.find(x => x.t === nombre);
+    el.textContent = g ? g.g + (lr && lr.count > 0 ? ' · ' + lr.avg + '/5' : '') : '';
+  });
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -1849,7 +1916,7 @@ updateCartBtn();
 initHero();
 render();
 loadInventory();
-loadRatings();
+loadRatings().then(() => refreshRatingsUI());
 
 </script>
 

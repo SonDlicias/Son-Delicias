@@ -136,16 +136,17 @@ function saveRating(data) {
     const sheet = ss.getSheetByName(VALORACIONES_SHEET) || ss.insertSheet(VALORACIONES_SHEET);
 
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(['Producto', 'Estrellas', 'Timestamp', 'AnonID']);
-      sheet.getRange(1, 1, 1, 4).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
+      sheet.appendRow(['Producto', 'Estrellas', 'Timestamp', 'AnonID', 'Comentario']);
+      sheet.getRange(1, 1, 1, 5).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
       sheet.setFrozenRows(1);
     }
 
     sheet.appendRow([
-      data.producto  || '',
+      data.producto   || '',
       Number(data.estrellas) || 0,
       new Date().toISOString(),
-      data.anonId    || ''
+      data.anonId     || '',
+      data.comentario || ''
     ]);
 
     return jsonResponse({ success: true });
