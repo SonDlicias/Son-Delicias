@@ -56,6 +56,10 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 #tab-juegos.on .pizza-outline{display:none}
 #tab-juegos.off .pizza-fill{display:none}
 #tab-juegos.off .pizza-outline{display:block}
+#tab-bebidas.on .bebidas-fill{display:block}
+#tab-bebidas.on .bebidas-outline{display:none}
+#tab-bebidas.off .bebidas-fill{display:none}
+#tab-bebidas.off .bebidas-outline{display:block}
 @keyframes springback{0%{transform:scale(.82)}60%{transform:scale(1.18)}80%{transform:scale(.95)}100%{transform:scale(1)}}
 .navtab-spring svg,.navtab-spring img{animation:springback .35s cubic-bezier(.36,.07,.19,.97) forwards}
 
@@ -407,12 +411,8 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
   <!-- TAB: BEBIDAS (cup icon) -->
   <button class="navtab off" id="tab-bebidas" onclick="setTab('bebidas')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M5 3h14l-2 14H7L5 3z"/>
-      <path d="M3 3h18"/>
-      <path d="M10 7 Q12 5 14 7" stroke-width="1.2"/>
-      <path d="M7 17 Q12 21 17 17" stroke-width="1.2"/>
-    </svg>
+    <img src="bebidas.svg" class="bebidas-fill" width="26" height="26" alt="Bebidas" style="object-fit:contain">
+    <img src="bebidas-outline.svg" class="bebidas-outline" width="26" height="26" alt="Bebidas" style="object-fit:contain">
     <span>Bebidas</span>
   </button>
 
