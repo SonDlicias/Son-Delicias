@@ -150,7 +150,7 @@ const BEBIDAS = [
     specs: "150ml · Chardonnay · +18",
     emoji: "🥂",
     img: "img/vino-blanco.jpg",
-    disponible: false
+    disponible: true
   },
 
   // ── POSTRES ─────────────────────────────────────────────────
