@@ -52,6 +52,10 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .navtab.off{color:#555}
 .navtab svg{width:26px;height:26px}
 .navtab span{font-size:10px;font-weight:700;letter-spacing:.3px}
+#tab-juegos.on .pizza-fill{display:block}
+#tab-juegos.on .pizza-outline{display:none}
+#tab-juegos.off .pizza-fill{display:none}
+#tab-juegos.off .pizza-outline{display:block}
 @keyframes springback{0%{transform:scale(.82)}60%{transform:scale(1.18)}80%{transform:scale(.95)}100%{transform:scale(1)}}
 .navtab-spring svg,.navtab-spring img{animation:springback .35s cubic-bezier(.36,.07,.19,.97) forwards}
 
@@ -383,7 +387,8 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
   <!-- TAB: MENÚ (pizza icon) -->
   <button class="navtab on" id="tab-juegos" onclick="setTab('juegos')">
-    <img src="pizza.svg" width="26" height="26" alt="Menú" style="object-fit:contain;display:block">
+    <img src="pizza.svg" class="pizza-fill" width="26" height="26" alt="Menú" style="object-fit:contain">
+    <img src="pizza-outline.svg" class="pizza-outline" width="26" height="26" alt="Menú" style="object-fit:contain">
     <span>Menú</span>
   </button>
 
