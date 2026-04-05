@@ -9,6 +9,11 @@ function doGet(e) {
 
   if (action === 'inventory') return getInventory();
   if (action === 'ratings')   return getRatings();
+  if (action === 'comments')  return getComments(
+    e.parameter.producto || '',
+    parseInt(e.parameter.offset) || 0,
+    parseInt(e.parameter.limit)  || 3
+  );
 
   // Acción por defecto: devuelve el próximo número de pedido
   return ContentService
@@ -155,7 +160,7 @@ function saveRating(data) {
   }
 }
 
-// ── Devuelve promedios de valoraciones por producto ────────────
+// ── Devuelve promedios + distribución de estrellas por producto ──
 function getRatings() {
   try {
     const ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -169,21 +174,56 @@ function getRatings() {
       const producto  = String(rows[i][0]).trim();
       const estrellas = Number(rows[i][1]);
       if (!producto || !estrellas) continue;
-      if (!totals[producto]) totals[producto] = { sum: 0, count: 0 };
+      if (!totals[producto]) totals[producto] = { sum: 0, count: 0, dist: [0,0,0,0,0] };
       totals[producto].sum   += estrellas;
       totals[producto].count += 1;
+      const idx = Math.round(estrellas) - 1;
+      if (idx >= 0 && idx <= 4) totals[producto].dist[idx]++;
     }
 
     const out = {};
     for (const [producto, v] of Object.entries(totals)) {
       out[producto] = {
         avg:   Math.round(v.sum / v.count * 10) / 10,
-        count: v.count
+        count: v.count,
+        dist:  v.dist   // [n1★, n2★, n3★, n4★, n5★]
       };
     }
     return jsonResponse(out);
   } catch (err) {
     return jsonResponse({});
+  }
+}
+
+// ── Devuelve comentarios con texto de un producto (paginados) ──
+function getComments(producto, offset, limit) {
+  try {
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(VALORACIONES_SHEET);
+    if (!sheet || sheet.getLastRow() < 2) return jsonResponse({ comments: [], total: 0, hasMore: false });
+
+    const rows    = sheet.getDataRange().getValues();
+    const matches = [];
+
+    // Recopilar filas con comentario no vacío del producto
+    for (let i = 1; i < rows.length; i++) {
+      const prod      = String(rows[i][0]).trim();
+      const estrellas = Number(rows[i][1]);
+      const timestamp = String(rows[i][2]).trim();
+      const comentario = String(rows[i][4]).trim();
+      if (prod !== producto || !comentario) continue;
+      matches.push({ stars: estrellas, text: comentario, date: timestamp });
+    }
+
+    // Más recientes primero
+    matches.reverse();
+    const total   = matches.length;
+    const page    = matches.slice(offset, offset + limit);
+    const hasMore = (offset + limit) < total;
+
+    return jsonResponse({ comments: page, total, hasMore });
+  } catch (err) {
+    return jsonResponse({ comments: [], total: 0, hasMore: false });
   }
 }
 

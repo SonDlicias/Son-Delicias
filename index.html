@@ -194,6 +194,38 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .rating-comment:focus{border-color:rgba(255,107,0,.5)}
 .rating-submit-btn{margin-top:10px;width:100%;padding:11px;background:#D62828;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:background .2s;-webkit-tap-highlight-color:transparent}
 .rating-submit-btn:active{background:#b01f1f}
+.rating-avg-row{cursor:pointer}
+.rating-avg-row:hover .rating-avg-count{color:#FF8C42}
+
+/* ── MODAL RESEÑAS ── */
+.rev-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1100;backdrop-filter:blur(4px)}
+.rev-panel{display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1208;border-radius:20px 20px 0 0;z-index:1101;max-width:500px;margin:0 auto;max-height:88vh;overflow:hidden;display:none;flex-direction:column;box-shadow:0 -8px 50px rgba(0,0,0,.9)}
+.rev-panel.open{display:flex}
+.rev-handle{width:36px;height:4px;background:#444;border-radius:2px;margin:14px auto 0;flex-shrink:0}
+.rev-header{padding:16px 20px 0;flex-shrink:0}
+.rev-product-name{font-size:15px;font-weight:900;color:#fff;margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rev-summary{display:flex;gap:20px;align-items:center;margin-bottom:16px}
+.rev-big-num{font-size:52px;font-weight:900;color:#fff;line-height:1}
+.rev-big-stars{display:flex;flex-direction:column;gap:2px}
+.rev-big-star-row{color:#FFD700;font-size:18px;letter-spacing:2px}
+.rev-big-total{font-size:11px;color:#888;margin-top:4px}
+.rev-bars{flex:1;display:flex;flex-direction:column;gap:5px}
+.rev-bar-row{display:flex;align-items:center;gap:6px;font-size:10px;color:#aaa;white-space:nowrap}
+.rev-bar-track{flex:1;height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.rev-bar-fill{height:100%;background:#FFD700;border-radius:4px;transition:width .4s ease}
+.rev-bar-count{width:20px;text-align:right;color:#666;font-size:10px}
+.rev-divider{height:1px;background:rgba(255,255,255,.08);margin:0 20px}
+.rev-body{overflow-y:auto;flex:1;padding:14px 20px 24px}
+.rev-no-comments{text-align:center;color:#555;font-size:13px;padding:20px 0}
+.rev-comment{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.rev-comment:last-of-type{border-bottom:none}
+.rev-comment-stars{color:#FFD700;font-size:12px;letter-spacing:1px;margin-bottom:4px}
+.rev-comment-text{font-size:13px;color:#ddd;line-height:1.5}
+.rev-comment-date{font-size:10px;color:#555;margin-top:4px}
+.rev-load-more{width:100%;padding:11px;margin-top:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#ccc;font-size:13px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rev-load-more:active{background:rgba(255,255,255,.12)}
+.rev-loading{text-align:center;color:#666;font-size:12px;padding:12px}
+.rev-write-btn{width:100%;padding:11px;margin-top:10px;background:#D62828;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0}
 
 /* ── SIZE SELECTOR ── */
 .size-btn{padding:8px 12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#ccc;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s;white-space:nowrap}
@@ -507,10 +539,10 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
         <textarea class="rating-comment" id="gsRatingComment" placeholder="Escribe tu opinión (opcional)..." maxlength="200" rows="2" style="display:none"></textarea>
         <button class="rating-submit-btn" id="gsRatingSubmit" style="display:none">Enviar valoración</button>
         <div class="rating-msg" id="gsRatingMsg"></div>
-        <div class="rating-avg-row" id="gsRatingAvg" style="display:none">
+        <div class="rating-avg-row" id="gsRatingAvg" style="display:none" onclick="openReviews(_currentGameSheet)">
           <span class="rating-avg-stars" id="gsAvgStars"></span>
           <span class="rating-avg-num" id="gsAvgNum"></span>
-          <span class="rating-avg-count" id="gsAvgCount"></span>
+          <span class="rating-avg-count" id="gsAvgCount">Ver reseñas ›</span>
         </div>
       </div>
 
@@ -529,7 +561,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       <span id="bRatingEmoji" style="font-size:26px">🥤</span>
       <div>
         <div id="bRatingName" style="font-size:16px;font-weight:900;color:#fff"></div>
-        <div id="bRatingAvgLine" style="font-size:11px;color:#FFD700;margin-top:2px"></div>
+        <div id="bRatingAvgLine" style="font-size:11px;color:#FFD700;margin-top:2px;cursor:pointer" onclick="openReviews(_bRatingCurrent)"></div>
       </div>
     </div>
     <div class="rating-widget" style="display:block;background:transparent;padding:0">
@@ -537,6 +569,30 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       <textarea class="rating-comment" id="bRatingComment" placeholder="Escribe tu opinión (opcional)..." maxlength="200" rows="2" style="display:none"></textarea>
       <button class="rating-submit-btn" id="bRatingSubmit" style="display:none">Enviar valoración</button>
       <div class="rating-msg" id="bRatingMsg"></div>
+    </div>
+  </div>
+
+  <!-- ── MODAL DE RESEÑAS (estilo Amazon) ── -->
+  <div class="rev-overlay" id="revOverlay" onclick="closeReviews()"></div>
+  <div class="rev-panel" id="revPanel">
+    <div class="rev-handle"></div>
+    <div class="rev-header">
+      <div class="rev-product-name" id="revProductName"></div>
+      <div class="rev-summary">
+        <div>
+          <div class="rev-big-num" id="revBigNum">—</div>
+          <div class="rev-big-stars"><span class="rev-big-star-row" id="revBigStars"></span></div>
+          <div class="rev-big-total" id="revBigTotal"></div>
+        </div>
+        <div class="rev-bars" id="revBars"></div>
+      </div>
+    </div>
+    <div class="rev-divider"></div>
+    <div class="rev-body" id="revBody">
+      <div class="rev-loading" id="revLoading">Cargando reseñas...</div>
+    </div>
+    <div style="padding:0 20px 20px;flex-shrink:0">
+      <button class="rev-write-btn" id="revWriteBtn">✏️ Dejar valoración</button>
     </div>
   </div>
 
@@ -1106,9 +1162,12 @@ function shareAll() {
 }
 
 // ── SHEET DE DETALLE (PIZZA) ──────────────────────────────────
+let _currentGameSheet = null;
+
 function openGameSheet(game) {
   // Bloquear si está agotada
   if (getInventoryState(game.t) === 'Agotada') return;
+  _currentGameSheet = game.t;
 
   history.pushState({ modal: 'gameSheet' }, '');
   const overlay = document.getElementById('gsOverlay');
@@ -1797,14 +1856,19 @@ async function doSubmitRating(producto, estrellas, comentario) {
   localStorage.setItem('lapizzeria_rated_' + producto, String(estrellas));
   if (comentario) localStorage.setItem('lapizzeria_comment_' + producto, comentario);
 
-  // Actualización optimista del caché
+  // Actualización optimista del caché (incluyendo distribución)
   const old = ratingsCache[producto];
+  const idx = Math.round(estrellas) - 1;
   if (!old) {
-    ratingsCache[producto] = { avg: estrellas, count: 1 };
+    const dist = [0,0,0,0,0];
+    if (idx >= 0 && idx <= 4) dist[idx] = 1;
+    ratingsCache[producto] = { avg: estrellas, count: 1, dist };
   } else {
     const newSum   = old.avg * old.count + estrellas;
     const newCount = old.count + 1;
-    ratingsCache[producto] = { avg: Math.round(newSum / newCount * 10) / 10, count: newCount };
+    const dist     = (old.dist || [0,0,0,0,0]).slice();
+    if (idx >= 0 && idx <= 4) dist[idx]++;
+    ratingsCache[producto] = { avg: Math.round(newSum / newCount * 10) / 10, count: newCount, dist };
   }
 
   if (!SCRIPT_URL) return;
@@ -1929,6 +1993,146 @@ function refreshRatingsUI() {
     const g = G.find(x => x.t === nombre);
     el.textContent = g ? g.g + (lr && lr.count > 0 ? ' · ' + lr.avg + '/5' : '') : '';
   });
+}
+
+// ── MODAL DE RESEÑAS ──────────────────────────────────────────
+let _revProducto   = null;
+let _revOffset     = 0;
+let _revHasMore    = false;
+let _revFetching   = false;
+const REV_PAGE     = 3;
+
+function openReviews(producto) {
+  if (!producto) return;
+  _revProducto = producto;
+  _revOffset   = 0;
+  _revHasMore  = false;
+
+  // Llenar cabecera con datos del caché (disponibles inmediatamente)
+  const lr = ratingsCache[producto];
+  document.getElementById('revProductName').textContent = producto;
+  document.getElementById('revBody').innerHTML = '<div class="rev-loading">Cargando reseñas...</div>';
+
+  if (lr && lr.count > 0) {
+    document.getElementById('revBigNum').textContent   = lr.avg;
+    document.getElementById('revBigStars').textContent = ratingToStars(lr.avg);
+    const c = lr.count;
+    document.getElementById('revBigTotal').textContent = c + ' valoraci' + (c === 1 ? 'ón' : 'ones');
+    _renderRevBars(lr.dist || [0,0,0,0,0]);
+  } else {
+    document.getElementById('revBigNum').textContent   = '—';
+    document.getElementById('revBigStars').textContent = '';
+    document.getElementById('revBigTotal').textContent = 'Sin valoraciones';
+    document.getElementById('revBars').innerHTML = '';
+  }
+
+  // Botón "Dejar valoración": redirige al widget de envío
+  document.getElementById('revWriteBtn').onclick = () => {
+    closeReviews();
+    // Abrir el modal correspondiente
+    if (_bRatingCurrent === producto) {
+      // Ya está abierto el modal de bebida, no hacer nada
+    } else if (_currentGameSheet === producto) {
+      // Ya está abierto el sheet de pizza, scroll al widget
+      const w = document.getElementById('gsRatingWidget');
+      if (w) w.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  // Mostrar overlay + panel
+  document.getElementById('revOverlay').style.display = 'block';
+  document.getElementById('revPanel').classList.add('open');
+
+  // Cargar primera página de comentarios
+  _loadRevComments(producto, 0, true);
+}
+
+function closeReviews() {
+  document.getElementById('revOverlay').style.display = 'none';
+  document.getElementById('revPanel').classList.remove('open');
+  _revProducto = null;
+}
+
+function _renderRevBars(dist) {
+  // dist = [n1★, n2★, n3★, n4★, n5★]
+  const max = Math.max(...dist, 1);
+  const el  = document.getElementById('revBars');
+  // Mostrar de 5★ a 1★ (al revés)
+  el.innerHTML = [5,4,3,2,1].map(s => {
+    const n    = dist[s - 1] || 0;
+    const pct  = Math.round((n / max) * 100);
+    return `<div class="rev-bar-row">
+      <span>${s}★</span>
+      <div class="rev-bar-track"><div class="rev-bar-fill" style="width:${pct}%"></div></div>
+      <span class="rev-bar-count">${n}</span>
+    </div>`;
+  }).join('');
+}
+
+async function _loadRevComments(producto, offset, clear) {
+  if (_revFetching) return;
+  _revFetching = true;
+
+  const body = document.getElementById('revBody');
+
+  if (!SCRIPT_URL) {
+    body.innerHTML = '<div class="rev-no-comments">Sin conexión al servidor.</div>';
+    _revFetching = false;
+    return;
+  }
+
+  // Spinner al cargar más
+  if (!clear) {
+    const spinner = document.createElement('div');
+    spinner.className = 'rev-loading';
+    spinner.id = 'revSpinner';
+    spinner.textContent = 'Cargando...';
+    body.appendChild(spinner);
+  }
+
+  try {
+    const url  = `${SCRIPT_URL}?action=comments&producto=${encodeURIComponent(producto)}&offset=${offset}&limit=${REV_PAGE}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (clear) body.innerHTML = '';
+    document.getElementById('revSpinner')?.remove();
+    document.getElementById('revLoadMoreBtn')?.remove();
+
+    if (data.comments && data.comments.length > 0) {
+      data.comments.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'rev-comment';
+        const d  = c.date ? new Date(c.date) : null;
+        const ds = d && !isNaN(d) ? d.toLocaleDateString('es-CU', { day:'numeric', month:'short', year:'numeric' }) : '';
+        div.innerHTML = `
+          <div class="rev-comment-stars">${'★'.repeat(Math.round(c.stars))}${'☆'.repeat(5 - Math.round(c.stars))}</div>
+          <div class="rev-comment-text">${c.text.replace(/</g,'&lt;')}</div>
+          ${ds ? `<div class="rev-comment-date">${ds}</div>` : ''}`;
+        body.appendChild(div);
+      });
+      _revOffset  = offset + data.comments.length;
+      _revHasMore = data.hasMore;
+    } else if (clear) {
+      body.innerHTML = '<div class="rev-no-comments">Aún no hay comentarios escritos para este producto.</div>';
+    }
+
+    // Botón "Cargar más"
+    if (_revHasMore) {
+      const btn = document.createElement('button');
+      btn.className = 'rev-load-more';
+      btn.id = 'revLoadMoreBtn';
+      btn.textContent = 'Cargar más reseñas';
+      btn.onclick = () => _loadRevComments(_revProducto, _revOffset, false);
+      body.appendChild(btn);
+    }
+
+  } catch (err) {
+    document.getElementById('revSpinner')?.remove();
+    if (clear) body.innerHTML = '<div class="rev-no-comments">No se pudieron cargar las reseñas.</div>';
+  }
+
+  _revFetching = false;
 }
 
 // ── VALORACIÓN BEBIDAS ────────────────────────────────────────
