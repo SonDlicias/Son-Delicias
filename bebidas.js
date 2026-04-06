@@ -115,11 +115,12 @@ const BEBIDAS = [
 
   // ── CERVEZAS ────────────────────────────────────────────────
   {
-    nombre: "Cerveza Dispensada",
+    nombre: "Cerveza Cristal",
     categoria: "Cervezas",
     precio: 4.50,
-    specs: "Jarra fría · De barril · +18",
+    specs: "355ml · Lata fría · +18",
     emoji: "🍺",
+    img: "img/cerveza-ipa.jpg",
     disponible: true
   },
   {
