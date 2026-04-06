@@ -1,49 +1,6 @@
 // bebidas.js — Catálogo de bebidas estático
 const BEBIDAS = [
 
-  // ── CÓCTELES ──────────────────────────────────────────────────
-{
-  nombre: 'Cóctel Spritz',
-  precio: 2.50,
-  img: 'img/coctel-spritz.webp',
-  emoji: '🍊',
-  disponible: true,
-  specs: 'Naranja · Cava · Hielo · Rodaja deshidratada'
-},
-{
-  nombre: 'Cóctel Tropical',
-  precio: 2.75,
-  img: 'img/coctel-tropical.jpg',
-  emoji: '🍹',
-  disponible: true,
-  specs: 'Piña · Mango · Limón · Sombrillita decorativa'
-},
-{
-  nombre: 'Limonada Frappé',
-  precio: 1.75,
-  img: 'img/limonada-frappe.jpg',
-  emoji: '🍋',
-  disponible: true,
-  specs: 'Limón natural · Hielo triturado · Menta fresca'
-},
-{
-  nombre: 'Cóctel Carambola',
-  precio: 3.00,
-  img: 'img/coctel-carambola.webp',
-  emoji: '⭐',
-  disponible: true,
-  specs: 'Carambola · Piña · Base roja tropical · Decoración frutal'
-},
-
-// ── CAFÉ ──────────────────────────────────────────────────────
-{
-  nombre: 'Servicio de Café',
-  precio: 1.25,
-  img: 'img/cafe-dulces.webp',
-  emoji: '☕',
-  disponible: true,
-  specs: 'Espresso + café con leche · Con galleta y dulces de cortesía'
-},
   // ── GASEOSAS ────────────────────────────────────────────────
   {
     nombre: "Coca-Cola",
@@ -152,5 +109,48 @@ const BEBIDAS = [
     disponible: true
   },
 
+  // ── CÓCTELES ────────────────────────────────────────────────
+  {
+    nombre: 'Cóctel Spritz',
+    precio: 2.50,
+    img: 'img/coctel-spritz.webp',
+    emoji: '🍊',
+    disponible: true,
+    specs: 'Naranja · Cava · Hielo · Rodaja deshidratada'
+  },
+  {
+    nombre: 'Cóctel Tropical',
+    precio: 2.75,
+    img: 'img/coctel-tropical.jpg',
+    emoji: '🍹',
+    disponible: true,
+    specs: 'Piña · Mango · Limón · Sombrillita decorativa'
+  },
+  {
+    nombre: 'Limonada Frappé',
+    precio: 1.75,
+    img: 'img/limonada-frappe.jpg',
+    emoji: '🍋',
+    disponible: true,
+    specs: 'Limón natural · Hielo triturado · Menta fresca'
+  },
+  {
+    nombre: 'Cóctel Carambola',
+    precio: 3.00,
+    img: 'img/coctel-carambola.webp',
+    emoji: '⭐',
+    disponible: true,
+    specs: 'Carambola · Piña · Base roja tropical · Decoración frutal'
+  },
+
+  // ── CAFÉ ────────────────────────────────────────────────────
+  {
+    nombre: 'Servicio de Café',
+    precio: 1.25,
+    img: 'img/cafe-dulces.webp',
+    emoji: '☕',
+    disponible: true,
+    specs: 'Espresso + café con leche · Con galleta y dulces de cortesía'
+  },
 
 ];
