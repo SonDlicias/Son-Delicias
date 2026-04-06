@@ -382,4 +382,32 @@ const G = [
   s: 'Porción individual',
   badge: null
 },
+{
+  t: 'Tiramisú',
+  g: 'Postres',
+  r: 0,
+  d: 'Clásico tiramisú italiano con capas de bizcocho, mascarpone y cacao en polvo.',
+  c: 'img/tiramisu.jpg',
+  col: '#1e1208',
+  price: 4.50,
+  sizes: [
+    { label: 'Porción', cm: 0, price: 4.50 }
+  ],
+  s: 'Porción individual · Receta italiana',
+  badge: null
+},
+{
+  t: 'Panna Cotta',
+  g: 'Postres',
+  r: 0,
+  d: 'Suave panna cotta italiana servida con coulis de frutos rojos.',
+  c: 'img/panna-cotta.jpg',
+  col: '#1e1208',
+  price: 4.00,
+  sizes: [
+    { label: 'Porción', cm: 0, price: 4.00 }
+  ],
+  s: 'Con coulis de frutos rojos',
+  badge: null
+},
 ];

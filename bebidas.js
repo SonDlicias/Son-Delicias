@@ -152,24 +152,5 @@ const BEBIDAS = [
     disponible: true
   },
 
-  // ── POSTRES ─────────────────────────────────────────────────
-  {
-    nombre: "Tiramisú",
-    categoria: "Postres",
-    precio: 4.50,
-    specs: "Porción individual · Receta italiana",
-    emoji: "🍮",
-    img: "img/tiramisu.jpg",
-    disponible: true
-  },
-  {
-    nombre: "Panna Cotta",
-    categoria: "Postres",
-    precio: 4.00,
-    specs: "Con coulis de frutos rojos",
-    emoji: "🍮",
-    img: "img/panna-cotta.jpg",
-    disponible: true
-  }
 
 ];
