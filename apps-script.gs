@@ -2,6 +2,7 @@ const SHEET_ID           = '1JWFobYrSnDbrY03KrvyQhkO9A01EZvW4UIBfMKxTbak';
 const PEDIDOS_SHEET      = 'Pedidos';
 const INVENTARIO_SHEET   = 'Inventario';
 const VALORACIONES_SHEET = 'Valoraciones';
+const NOVEDADES_SHEET    = 'Novedades';
 
 // ── GET: devuelve inventario, valoraciones o número de pedido siguiente ──
 function doGet(e) {
@@ -9,6 +10,7 @@ function doGet(e) {
 
   if (action === 'inventory') return getInventory();
   if (action === 'ratings')   return getRatings();
+  if (action === 'noticias')  return getNoticias();
   if (action === 'comments')  return getComments(
     e.parameter.producto || '',
     parseInt(e.parameter.offset) || 0,
@@ -126,6 +128,46 @@ function getInventory() {
       result.push({
         nombre: row[nombreIdx].toString().trim(),
         estado: row[estadoIdx].toString().trim() || 'Disponible'
+      });
+    }
+    return jsonResponse(result);
+  } catch (err) {
+    return jsonResponse([]);
+  }
+}
+
+// ── Devuelve novedades desde la hoja "Novedades" ──────────────
+function getNoticias() {
+  try {
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(NOVEDADES_SHEET);
+    if (!sheet || sheet.getLastRow() < 2) return jsonResponse([]);
+
+    const rows    = sheet.getDataRange().getValues();
+    const headers = rows[0].map(h => h.toString().toLowerCase().trim());
+    const idx = {
+      titulo   : headers.indexOf('titulo'),
+      subtitulo: headers.indexOf('subtitulo'),
+      desc     : headers.indexOf('descripcion'),
+      tipo     : headers.indexOf('tipo'),
+      imagen   : headers.indexOf('imagen'),
+      wapp     : headers.indexOf('whatsapp'),
+      activo   : headers.indexOf('activo')
+    };
+
+    const result = [];
+    for (let i = rows.length - 1; i >= 1; i--) {   // más reciente primero
+      const r = rows[i];
+      const activo = idx.activo >= 0 ? r[idx.activo].toString().trim().toLowerCase() : 'si';
+      if (activo === 'no') continue;
+      if (idx.titulo >= 0 && !r[idx.titulo]) continue;
+      result.push({
+        titulo   : idx.titulo    >= 0 ? r[idx.titulo].toString().trim()    : '',
+        subtitulo: idx.subtitulo >= 0 ? r[idx.subtitulo].toString().trim() : '',
+        desc     : idx.desc      >= 0 ? r[idx.desc].toString().trim()      : '',
+        tipo     : idx.tipo      >= 0 ? r[idx.tipo].toString().trim().toLowerCase() : 'aviso',
+        imagen   : idx.imagen    >= 0 ? r[idx.imagen].toString().trim()    : '',
+        wapp     : idx.wapp      >= 0 ? r[idx.wapp].toString().trim()      : ''
       });
     }
     return jsonResponse(result);

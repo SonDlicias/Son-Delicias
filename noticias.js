@@ -1,114 +1,162 @@
-// noticias.js — Novedades y promociones de la pizzería
+// noticias.js — Novedades dinámicas desde Google Sheets
 (function () {
-  const NOTICIAS = [
+
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52j88VN-Z-Pf0HkqWQbSL1j43UvV4BBvBO6bM1fZ0NWi4HMys/exec';
+  const WA_NUMBER  = '5355207586';
+
+  // ── Colores por tipo (el dueño escribe la palabra, el código pone el color) ──
+  const TIPO_COLOR = {
+    promo   : '#D62828',  // rojo    — descuentos, 2x1
+    nuevo   : '#1a5a1a',  // verde   — producto nuevo
+    aviso   : '#b84d00',  // naranja — cierre, cambio de horario
+    evento  : '#5a0a8a',  // morado  — reservas, celebraciones
+    especial: '#7a5a00',  // dorado  — navidad, temporadas
+  };
+  const COLOR_DEFAULT = '#333';
+
+  // ── Datos de respaldo (se usan si Google Sheets no responde) ──
+  const FALLBACK = [
     {
-      emoji: "🔥",
-      titulo: "2x1 en Pizzas Clásicas",
-      subtitulo: "Todos los martes",
-      desc: "Ordena 2 pizzas medianas clásicas y paga solo una. Válido únicamente por WhatsApp. No acumulable con otras promociones.",
-      color: "#D62828",
-      wapp: "Hola, quiero aprovechar el 2x1 en Pizzas Clásicas del martes 🍕"
+      tipo: 'especial',
+      titulo: 'Menú Especial Navideño',
+      subtitulo: 'Reservá tu mesa ahora',
+      desc: 'Esta temporada tenemos un menú exclusivo con sabores especiales. Plazas limitadas — contáctanos y asegurá tu lugar.',
+      imagen: 'img/promo-navidena.webp',
+      wapp: 'Hola, me interesa el menú especial navideño 🎄'
     },
     {
-      emoji: "🆕",
-      titulo: "Nueva Pizza: Salmón Premium",
-      subtitulo: "¡Ya disponible!",
-      desc: "Salmón ahumado noruego, alcaparras y crema de queso. Una experiencia única que no te podés perder. Disponible en todos los tamaños.",
-      color: "#0D3B5E",
-      wapp: "Hola, me interesa probar la nueva Pizza Salmón Premium 🐟"
+      tipo: 'aviso',
+      titulo: 'Cerramos el 18 de marzo',
+      subtitulo: 'Aviso importante',
+      desc: 'Ese día no habrá servicio. Disculpe las molestias. Volvemos el 19 con toda la energía.',
+      imagen: 'img/aviso-cierre.webp',
+      wapp: 'Hola, vi el aviso de cierre del 18 de marzo, ¿cuándo retoman el servicio?'
     },
     {
-      emoji: "🛵",
-      titulo: "Delivery disponible",
-      subtitulo: "Lunes a domingo · 12pm – 11pm",
-      desc: "Recibí tu pedido en casa. Tiempo estimado: 30–45 minutos según tu zona. Pedido mínimo $15.",
-      color: "#1a5a1a",
-      wapp: "Hola, quiero hacer un pedido para delivery 🛵"
+      tipo: 'evento',
+      titulo: 'Reservas para Eventos',
+      subtitulo: 'Cumpleaños · Reuniones · Celebraciones',
+      desc: 'Reservá el local para tu evento especial. Menú personalizado, decoración incluida. Contáctanos para armar tu paquete.',
+      imagen: '',
+      wapp: 'Hola, me interesa reservar para un evento 🎉'
     },
     {
-      emoji: "🍽️",
-      titulo: "Auto-Servicio en Mesa",
-      subtitulo: "Escaneá el QR de tu mesa",
-      desc: "Hacé tu pedido directamente desde el teléfono sin esperar al mozo. Escaneá el código QR en tu mesa y listo.",
-      color: "#6b4a00",
-      wapp: "Hola, estoy en una mesa y quiero hacer un pedido 🍽️"
+      tipo: 'nuevo',
+      titulo: 'Nueva Pizza: Salmón Premium',
+      subtitulo: '¡Ya disponible!',
+      desc: 'Salmón ahumado noruego, alcaparras y crema de queso. Una experiencia única que no te podés perder. Disponible en todos los tamaños.',
+      imagen: '',
+      wapp: 'Hola, me interesa probar la nueva Pizza Salmón Premium 🐟'
     },
     {
-      emoji: "👨‍👩‍👧‍👦",
-      titulo: "Combo Familiar",
-      subtitulo: "Oferta permanente",
-      desc: "Pizza Grande a elección + 2 bebidas + postre del día. Precio especial. Ideal para compartir en familia.",
-      color: "#4a0a5a",
-      wapp: "Hola, me interesa el Combo Familiar 👨‍👩‍👧‍👦"
+      tipo: 'promo',
+      titulo: '2x1 en Pizzas Clásicas',
+      subtitulo: 'Todos los martes',
+      desc: 'Ordena 2 pizzas medianas clásicas y paga solo una. Válido únicamente por WhatsApp. No acumulable con otras promociones.',
+      imagen: '',
+      wapp: 'Hola, quiero aprovechar el 2x1 en Pizzas Clásicas del martes 🍕'
     },
-    {
-      emoji: "🎉",
-      titulo: "Reservas para Eventos",
-      subtitulo: "Cumpleaños · Reuniones · Celebraciones",
-      desc: "Reservá el local para tu evento especial. Menú personalizado, decoración incluida. Contactanos para armar tu paquete.",
-      color: "#0a4a3a",
-      wapp: "Hola, me interesa reservar para un evento 🎉"
-    },
- {
-  emoji: "⚠️",
-  titulo: "Cerramos el 18 de marzo",
-  subtitulo: "Aviso importante",
-  desc: "Ese día no habrá servicio. Disculpe las molestias. Volvemos el 19 con toda la energía.",
-  color: "#D62828",
-  img: "img/aviso-cierre.webp",
-  wapp: "Hola, vi el aviso de cierre del 18 de marzo, ¿cuándo retoman el servicio?"
-},
-{
-  emoji: "🎄",
-  titulo: "Menú Especial Navideño",
-  subtitulo: "Reservá tu mesa ahora",
-  desc: "Esta temporada tenemos un menú exclusivo con sabores especiales. Plazas limitadas — contactanos y asegurá tu lugar.",
-  color: "#0a4a1a",
-  img: "img/promo-navidena.webp",
-  wapp: "Hola, me interesa el menú especial navideño 🎄"
-},
   ];
 
-  const WA_NUMBER = '5355207586'; // ← Cambiar por el número real
+  // ── Render ─────────────────────────────────────────────────────
+  function renderNoticias(lista) {
+    const container = document.getElementById('contenedor-noticias');
+    if (!container) return;
 
-  const container = document.getElementById('contenedor-noticias');
-  if (!container) return;
+    if (!lista || lista.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:60px 20px;color:#666">
+          <div style="font-size:40px;margin-bottom:12px">📭</div>
+          <div style="font-size:14px">No hay novedades por el momento.</div>
+        </div>`;
+      return;
+    }
 
-  container.style.padding = '0';
-
-  container.innerHTML = `
-    <div style="font-size:13px;color:#aaa;text-align:center;padding:16px 0 8px;font-weight:700;letter-spacing:.5px">
-      📣 NOVEDADES Y PROMOCIONES
-    </div>
-    ${NOTICIAS.map(n => `
-      <div style="
-        background:linear-gradient(145deg,#1a1208,#140e04);
-        border:1px solid rgba(255,255,255,.07);
-        border-left:4px solid ${n.color};
-        border-radius:16px;
-        padding:18px;
-        margin-bottom:12px;
-        cursor:pointer;
-        -webkit-tap-highlight-color:transparent;
-        transition:transform .15s;
-        active:transform:scale(.98)
-      " onclick="window.open('https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(n.wapp)}','_blank')">
-      ${n.img
-  ? '<img src="' + n.img + '" alt="Aviso" loading="lazy" style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block" onerror="this.style.display=\'none\'">'
-  : '<div style="font-size:32px;margin-bottom:10px">' + n.emoji + '</div>'
-}
-        <div style="font-size:16px;font-weight:900;margin-bottom:4px;color:#fff">${n.titulo}</div>
-        <div style="font-size:11px;color:#E8A020;font-weight:800;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">${n.subtitulo}</div>
-        <div style="font-size:13px;color:#ccc;line-height:1.7;margin-bottom:14px">${n.desc}</div>
-        <div style="
-          display:inline-flex;align-items:center;gap:6px;
-          background:#25D366;border:none;border-radius:8px;
-          padding:8px 14px;color:#fff;font-size:12px;font-weight:800;
-        ">
-          💬 Consultar por WhatsApp
-        </div>
+    container.style.padding = '0';
+    container.innerHTML = `
+      <div style="font-size:13px;color:#aaa;text-align:center;padding:16px 0 8px;font-weight:700;letter-spacing:.5px">
+        📣 NOVEDADES Y PROMOCIONES
       </div>
-    `).join('')}
-    <div style="height:10px"></div>
-  `;
+      ${lista.map(n => {
+        const color  = TIPO_COLOR[n.tipo] || COLOR_DEFAULT;
+        const waText = encodeURIComponent(n.wapp || 'Hola, vi una novedad en el menú');
+        const waUrl  = `https://wa.me/${WA_NUMBER}?text=${waText}`;
+        const imgHtml = n.imagen
+          ? `<img src="${n.imagen}" alt="${n.titulo}" loading="lazy"
+               style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block"
+               onerror="this.style.display='none'">`
+          : '';
+        return `
+        <div style="
+          background:linear-gradient(145deg,#1a1208,#140e04);
+          border:1px solid rgba(255,255,255,.07);
+          border-left:4px solid ${color};
+          border-radius:16px;
+          padding:18px;
+          margin-bottom:12px;
+          cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+        " onclick="window.open('${waUrl}','_blank')">
+          ${imgHtml}
+          <div style="font-size:11px;color:${color};font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px">${n.subtitulo}</div>
+          <div style="font-size:16px;font-weight:900;margin-bottom:10px;color:#fff">${n.titulo}</div>
+          <div style="font-size:13px;color:#ccc;line-height:1.7;margin-bottom:14px">${n.desc}</div>
+          <div style="
+            display:inline-flex;align-items:center;gap:6px;
+            background:#25D366;border-radius:8px;
+            padding:8px 14px;color:#fff;font-size:12px;font-weight:800;
+          ">💬 Consultar por WhatsApp</div>
+        </div>`;
+      }).join('')}
+      <div style="height:10px"></div>`;
+  }
+
+  // ── Skeleton de carga ─────────────────────────────────────────
+  function showSkeleton() {
+    const container = document.getElementById('contenedor-noticias');
+    if (!container) return;
+    const card = `
+      <div style="
+        background:#1a1208;border:1px solid rgba(255,255,255,.07);
+        border-left:4px solid #333;border-radius:16px;padding:18px;margin-bottom:12px
+      ">
+        <div style="height:180px;background:#2a2010;border-radius:10px;margin-bottom:14px"></div>
+        <div style="height:10px;background:#2a2010;border-radius:4px;width:40%;margin-bottom:8px"></div>
+        <div style="height:16px;background:#2a2010;border-radius:4px;width:75%;margin-bottom:10px"></div>
+        <div style="height:12px;background:#2a2010;border-radius:4px;width:90%;margin-bottom:6px"></div>
+        <div style="height:12px;background:#2a2010;border-radius:4px;width:70%"></div>
+      </div>`;
+    container.innerHTML = `
+      <div style="font-size:13px;color:#aaa;text-align:center;padding:16px 0 8px;font-weight:700;letter-spacing:.5px">
+        📣 NOVEDADES Y PROMOCIONES
+      </div>
+      ${card}${card}`;
+  }
+
+  // ── Carga desde Google Sheets, fallback si falla ──────────────
+  function loadNoticias() {
+    showSkeleton();
+    fetch(`${SCRIPT_URL}?action=noticias`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          renderNoticias(data);
+        } else {
+          renderNoticias(FALLBACK);
+        }
+      })
+      .catch(() => renderNoticias(FALLBACK));
+  }
+
+  // ── Arrancar al cambiar a la pestaña Novedades ────────────────
+  const _setTab = window.setTab;
+  window.setTab = function (tab) {
+    if (typeof _setTab === 'function') _setTab(tab);
+    if (tab === 'noticias') loadNoticias();
+  };
+
+  // Si la pestaña ya está activa al cargar la página
+  const secNoticias = document.getElementById('sec-noticias');
+  if (secNoticias && secNoticias.style.display !== 'none') loadNoticias();
+
 })();
