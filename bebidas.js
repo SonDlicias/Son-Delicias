@@ -86,6 +86,7 @@ const BEBIDAS = [
     precio: 3.50,
     specs: "355ml · Botella fría · +18",
     emoji: "🍺",
+    img: "img/cerveza-rubia.jpg",
     disponible: true
   },
 

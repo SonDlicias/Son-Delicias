@@ -133,19 +133,34 @@
       ${card}${card}`;
   }
 
-  // ── Carga desde Google Sheets, fallback si falla ──────────────
-  function loadNoticias() {
-    showSkeleton();
+  // ── Caché en memoria (dura mientras la app esté abierta) ──────
+  let _cache = null;
+  const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+
+  function fetchAndCache(silent) {
     fetch(`${SCRIPT_URL}?action=noticias`)
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          renderNoticias(data);
-        } else {
-          renderNoticias(FALLBACK);
-        }
+        const lista = Array.isArray(data) && data.length > 0 ? data : FALLBACK;
+        _cache = { data: lista, ts: Date.now() };
+        renderNoticias(lista);
       })
-      .catch(() => renderNoticias(FALLBACK));
+      .catch(() => {
+        if (!silent) renderNoticias(_cache ? _cache.data : FALLBACK);
+      });
+  }
+
+  // ── Carga con caché: instantáneo en revisitas, fresco al abrir ─
+  function loadNoticias() {
+    if (_cache) {
+      renderNoticias(_cache.data);                       // muestra al instante
+      if (Date.now() - _cache.ts > CACHE_TTL) {
+        fetchAndCache(true);                             // refresca en silencio
+      }
+      return;
+    }
+    showSkeleton();
+    fetchAndCache(false);
   }
 
   // ── Arrancar al cambiar a la pestaña Novedades ────────────────
