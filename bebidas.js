@@ -115,21 +115,19 @@ const BEBIDAS = [
 
   // ── CERVEZAS ────────────────────────────────────────────────
   {
-    nombre: "Cerveza Artesanal IPA",
+    nombre: "Cerveza Dispensada",
     categoria: "Cervezas",
     precio: 4.50,
-    specs: "355ml · Botella · +18",
+    specs: "Jarra fría · De barril · +18",
     emoji: "🍺",
-    img: "img/cerveza-ipa.jpg",
     disponible: true
   },
   {
-    nombre: "Cerveza Rubia",
+    nombre: "Corona",
     categoria: "Cervezas",
     precio: 3.50,
-    specs: "355ml · Lata fría · +18",
+    specs: "355ml · Botella fría · +18",
     emoji: "🍺",
-    img: "img/cerveza-rubia.jpg",
     disponible: true
   },
 
