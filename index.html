@@ -907,8 +907,21 @@ function setOrderType(t) {
   const btn = document.getElementById('ot-' + t);
   if (btn) btn.classList.add('on');
   const fieldsEl = document.getElementById('order-fields');
+  // Guardar valores antes de reconstruir el HTML del formulario
+  const _sv = {
+    nombre: document.getElementById('of-nombre')?.value || '',
+    ci:     document.getElementById('of-ci')?.value     || '',
+    dir:    document.getElementById('of-dir')?.value    || '',
+    ref:    document.getElementById('of-ref')?.value    || '',
+    mesa:   document.getElementById('of-mesa')?.value   || ''
+  };
   if (fieldsEl) {
     fieldsEl.innerHTML = ORDER_FIELDS[t] || '';
+    // Restaurar valores guardados en los campos que existen en el nuevo tipo
+    ['nombre','ci','dir','ref','mesa'].forEach(k => {
+      const f = document.getElementById('of-' + k);
+      if (f && _sv[k]) f.value = _sv[k];
+    });
     fieldsEl.style.opacity = '0';
     requestAnimationFrame(() => { fieldsEl.style.transition = 'opacity .2s'; fieldsEl.style.opacity = '1'; });
   }
@@ -1474,6 +1487,11 @@ async function confirmOrder() {
     }
   }
   if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+  // Limpiar carrito tras enviar el pedido por WhatsApp
+  cart.length = 0;
+  updateCartBtn();
+  render();
+  _syncCartBtns();
 }
 
 // ── BEBIDAS ───────────────────────────────────────────────────
