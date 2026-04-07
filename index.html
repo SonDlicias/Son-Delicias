@@ -150,10 +150,10 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .con-bebida-cart-btn:disabled{background:#444;cursor:not-allowed;opacity:.5}
 
 /* ── FAB CARRITO ── */
-#cart-fab{position:fixed;top:auto;left:auto;bottom:90px;right:20px;width:56px;height:56px;background:#fff;border:3px solid #25D366;border-radius:50%;display:none;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(0,0,0,.4);cursor:grab;z-index:200;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;will-change:transform}
-#cart-fab:active{cursor:grabbing}
-#cart-fab svg{width:26px;height:26px;fill:none;stroke:#25D366;stroke-width:1.5}
-#cart-badge{position:absolute;top:-4px;right:-4px;background:#FF6B00;color:#fff;font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+#cart-fab{position:fixed;top:auto;left:auto;bottom:90px;right:20px;width:56px;height:56px;background:linear-gradient(135deg,#E8A020 0%,#c05c0a 100%);border:none;border-radius:50%;display:none;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(232,160,32,.55),0 2px 8px rgba(0,0,0,.45);cursor:grab;z-index:200;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;will-change:transform}
+#cart-fab:active{cursor:grabbing;box-shadow:0 2px 12px rgba(232,160,32,.4),0 1px 4px rgba(0,0,0,.4)}
+#cart-fab svg{width:26px;height:26px;fill:#fff;stroke:none}
+#cart-badge{position:absolute;top:-4px;right:-4px;background:#1a1a1a;color:#E8A020;font-size:11px;font-weight:900;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #E8A020}
 @keyframes fabIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fabShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .fab-shake{animation:fabShake .3s ease}
