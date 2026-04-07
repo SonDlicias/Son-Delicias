@@ -10,17 +10,17 @@ let _mercadoMemTs     = 0;
 
 // Datos locales de respaldo (solo se usan si el Sheet está vacío o sin red)
 const MERCADO_LOCAL = [
-  { nombre: "Jabón de Baño",       precio: 1.50, presentacion: "125 g",   categoria: "Aseo",      emoji: "🧼",  img: "img/mercado/jabon.jpg",      disponible: true },
-  { nombre: "Shampoo",             precio: 4.00, presentacion: "200 ml",  categoria: "Aseo",      emoji: "🧴",  img: "img/mercado/shampoo.jpg",     disponible: true },
-  { nombre: "Detergente en Polvo", precio: 3.50, presentacion: "500 g",   categoria: "Aseo",      emoji: "🧺",  img: "img/mercado/detergente.jpg",  disponible: true },
-  { nombre: "Pasta Dental",        precio: 2.00, presentacion: "75 ml",   categoria: "Aseo",      emoji: "🦷",  img: "img/mercado/pasta.jpg",       disponible: true },
-  { nombre: "Aceite de Cocina",    precio: 3.50, presentacion: "1 litro", categoria: "Alimentos", emoji: "🫙",  img: "img/mercado/aceite.jpg",      disponible: true },
-  { nombre: "Arroz",               precio: 2.00, presentacion: "1 kg",    categoria: "Alimentos", emoji: "🍚",  img: "img/mercado/arroz.jpg",       disponible: true },
-  { nombre: "Frijoles Negros",     precio: 2.50, presentacion: "1 kg",    categoria: "Alimentos", emoji: "🫘",  img: "img/mercado/frijoles.jpg",    disponible: true },
-  { nombre: "Sal Refinada",        precio: 0.75, presentacion: "500 g",   categoria: "Alimentos", emoji: "🧂",  img: "img/mercado/sal.jpg",         disponible: true },
-  { nombre: "Papel Higiénico",     precio: 2.50, presentacion: "4 rollos",categoria: "Hogar",     emoji: "🧻",  img: "img/mercado/papel.jpg",       disponible: true },
-  { nombre: "Bolsas de Basura",    precio: 1.50, presentacion: "10 uds",  categoria: "Hogar",     emoji: "🛍️", img: "img/mercado/bolsas.jpg",      disponible: true },
-  { nombre: "Servilletas",         precio: 1.25, presentacion: "100 uds", categoria: "Hogar",     emoji: "📄",  img: "img/mercado/servilletas.jpg", disponible: true }
+  { nombre: "Jabón de Baño",       precio: 1.50, presentacion: "125 g",    categoria: "Aseo",      descripcion: "Jabón corporal",          img: "", disponible: true },
+  { nombre: "Shampoo",             precio: 4.00, presentacion: "200 ml",   categoria: "Aseo",      descripcion: "Para todo tipo de cabello", img: "", disponible: true },
+  { nombre: "Detergente en Polvo", precio: 3.50, presentacion: "500 g",    categoria: "Aseo",      descripcion: "Para ropa blanca y color", img: "", disponible: true },
+  { nombre: "Pasta Dental",        precio: 2.00, presentacion: "75 ml",    categoria: "Aseo",      descripcion: "Higiene bucal",            img: "", disponible: true },
+  { nombre: "Aceite de Cocina",    precio: 3.50, presentacion: "1 litro",  categoria: "Alimentos", descripcion: "Aceite vegetal refinado",  img: "", disponible: true },
+  { nombre: "Arroz",               precio: 2.00, presentacion: "1 kg",     categoria: "Alimentos", descripcion: "Grano largo seleccionado", img: "", disponible: true },
+  { nombre: "Frijoles Negros",     precio: 2.50, presentacion: "1 kg",     categoria: "Alimentos", descripcion: "Frijoles negros secos",    img: "", disponible: true },
+  { nombre: "Sal Refinada",        precio: 0.75, presentacion: "500 g",    categoria: "Alimentos", descripcion: "Sal de mesa yodada",       img: "", disponible: true },
+  { nombre: "Papel Higiénico",     precio: 2.50, presentacion: "4 rollos", categoria: "Hogar",     descripcion: "Doble hoja suave",         img: "", disponible: true },
+  { nombre: "Bolsas de Basura",    precio: 1.50, presentacion: "10 uds",   categoria: "Hogar",     descripcion: "Resistentes, 20 litros",   img: "", disponible: true },
+  { nombre: "Servilletas",         precio: 1.25, presentacion: "100 uds",  categoria: "Hogar",     descripcion: "Papel de 2 capas",         img: "", disponible: true }
 ];
 
 /**
@@ -75,7 +75,7 @@ function _mergeMercado(sheetData) {
       precio      : sp.precio,
       presentacion: sp.presentacion || local.presentacion || '',
       categoria   : sp.categoria   || local.categoria    || 'General',
-      emoji       : sp.emoji       || local.emoji        || '🛒',
+      descripcion : sp.descripcion || local.descripcion  || '',
       img         : sp.img         || local.img          || '',
       disponible  : typeof sp.disponible === 'boolean' ? sp.disponible : true
     });

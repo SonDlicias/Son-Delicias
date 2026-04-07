@@ -143,10 +143,10 @@ function getMercado() {
     // Crear hoja si no existe
     if (!sheet) {
       sheet = ss.insertSheet(MERCADO_SHEET);
-      sheet.appendRow(['Nombre', 'Precio', 'Presentacion', 'Categoria', 'Emoji', 'Imagen', 'Disponible']);
+      sheet.appendRow(['Nombre', 'Precio', 'Presentacion', 'Categoria', 'Descripcion', 'Imagen', 'Disponible']);
       sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
       sheet.setFrozenRows(1);
-      sheet.appendRow(['Azúcar Refino', 1.50, '1 lb', 'Alimentos', '🍬', '', 'Si']);
+      sheet.appendRow(['Azúcar Refino', 1.50, '1 lb', 'Alimentos', 'Azúcar blanca refinada', '', 'Si']);
       return jsonResponse([]);
     }
 
@@ -159,7 +159,7 @@ function getMercado() {
       precio      : headers.indexOf('precio'),
       presentacion: headers.indexOf('presentacion'),
       categoria   : headers.indexOf('categoria'),
-      emoji       : headers.indexOf('emoji'),
+      descripcion : headers.indexOf('descripcion'),
       imagen      : headers.indexOf('imagen'),
       disponible  : headers.indexOf('disponible')
     };
@@ -181,7 +181,7 @@ function getMercado() {
         precio      : parseFloat(r[col.precio]) || 0,
         presentacion: col.presentacion >= 0 ? r[col.presentacion].toString().trim() : '',
         categoria   : col.categoria   >= 0 ? r[col.categoria].toString().trim()   : 'General',
-        emoji       : col.emoji       >= 0 ? r[col.emoji].toString().trim()       : '🛒',
+        descripcion : col.descripcion >= 0 ? r[col.descripcion].toString().trim()  : '',
         img         : col.imagen      >= 0 ? r[col.imagen].toString().trim()      : '',
         disponible  : disponible
       });
