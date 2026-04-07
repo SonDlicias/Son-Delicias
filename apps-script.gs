@@ -3,7 +3,10 @@ const PEDIDOS_SHEET      = 'Pedidos';
 const INVENTARIO_SHEET   = 'Inventario';
 const VALORACIONES_SHEET = 'Valoraciones';
 const NOVEDADES_SHEET    = 'Novedades';
-const MERCADO_SHEET      = 'Mercado';
+
+// ── MERCADO (Sheet independiente — economía aparte) ────────────
+const MERCADO_SHEET_ID = 'PON_AQUI_EL_ID_DEL_NUEVO_SHEET';
+const MERCADO_SHEET    = 'Productos';
 
 // ── GET: devuelve inventario, valoraciones o número de pedido siguiente ──
 function doGet(e) {
@@ -178,10 +181,10 @@ function getNoticias() {
   }
 }
 
-// ── Devuelve productos desde la hoja "Mercado" ────────────────
+// ── Devuelve productos desde el Sheet independiente del Mercado ─
 function getMercado() {
   try {
-    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const ss    = SpreadsheetApp.openById(MERCADO_SHEET_ID);
     let sheet   = ss.getSheetByName(MERCADO_SHEET);
 
     // Si la hoja no existe, la crea con cabeceras de ejemplo
