@@ -424,6 +424,32 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 .order-num-banner .pznum{font-size:26px;font-weight:900;color:#25D366;letter-spacing:1px;margin:6px 0 2px}
 .order-num-banner .pzmsg{font-size:12px;color:#aaa}
 
+/* ── STATUS PILL (header) ── */
+.spill-wrap{margin-left:auto;margin-right:10px;position:relative}
+.spill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.25px;cursor:pointer;transition:all .25s;-webkit-tap-highlight-color:transparent;user-select:none;border:1px solid transparent}
+.spill.full{background:rgba(10,200,80,.12);border-color:rgba(10,200,80,.3);color:#4ade80;box-shadow:0 0 14px rgba(10,200,80,.18)}
+.spill.parcial{background:rgba(232,160,32,.12);border-color:rgba(232,160,32,.35);color:#E8A020;box-shadow:0 0 14px rgba(232,160,32,.18)}
+.spill.solo-mercado{background:rgba(155,89,182,.12);border-color:rgba(155,89,182,.35);color:#c084fc;box-shadow:0 0 14px rgba(155,89,182,.18)}
+.spill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;animation:spillpulse 2.4s ease-in-out infinite}
+.spill.full .spill-dot{background:#4ade80}
+.spill.parcial .spill-dot{background:#E8A020}
+.spill.solo-mercado .spill-dot{background:#c084fc}
+@keyframes spillpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.65)}}
+/* Popover */
+.spopover{position:absolute;top:calc(100% + 10px);right:0;background:#1a1208;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 16px;min-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:200;opacity:0;transform:translateY(-6px) scale(.97);pointer-events:none;transition:opacity .2s,transform .2s;transform-origin:top right}
+.spopover.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.spopover-title{font-size:10px;font-weight:800;color:#888;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.spopover-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.spopover-row:last-child{border-bottom:none;padding-bottom:0}
+.spopover-icon{font-size:15px;width:22px;text-align:center;flex-shrink:0}
+.spopover-info{flex:1;min-width:0}
+.spopover-label{font-size:12px;font-weight:700;color:#e5e5e5}
+.spopover-time{font-size:10.5px;color:#888;margin-top:1px}
+.spopover-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;margin-left:auto;flex-shrink:0;white-space:nowrap}
+.spopover-badge.act{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+.spopover-badge.inact{background:rgba(100,100,100,.12);color:#666;border:1px solid rgba(100,100,100,.2)}
+.spopover-badge.always{background:rgba(192,132,252,.15);color:#c084fc;border:1px solid rgba(192,132,252,.3)}
+
 /* ── INVENTARIO — ESTADOS ── */
 .card-agotada .cimg img{opacity:.42;filter:grayscale(.5)}
 .card-agotada .cc-img img{opacity:.42;filter:grayscale(.5)}
@@ -445,8 +471,42 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     <div class="hlogo">
       <img src="logo-app.png" alt="Son D'licias" onerror="this.style.display='none'"/>
       <div class="htxt">
-        <h1>La Pizzería</h1>
+        <h1 id="hname">La Pizzería</h1>
         <small id="hc"></small>
+      </div>
+    </div>
+    <!-- STATUS PILL -->
+    <div class="spill-wrap">
+      <div class="spill" id="status-pill" onclick="_togglePopover(event)" aria-label="Estado del negocio">
+        <span class="spill-dot"></span>
+        <span id="spill-txt">…</span>
+      </div>
+      <div class="spopover" id="status-popover">
+        <div class="spopover-title">Horario de hoy</div>
+        <div class="spopover-row">
+          <span class="spopover-icon">🛵</span>
+          <div class="spopover-info">
+            <div class="spopover-label">Delivery</div>
+            <div class="spopover-time">11:00 AM – 5:00 PM</div>
+          </div>
+          <span class="spopover-badge inact" id="spop-delivery">Cerrado</span>
+        </div>
+        <div class="spopover-row">
+          <span class="spopover-icon">🏠</span>
+          <div class="spopover-info">
+            <div class="spopover-label">Recoger · Mesa</div>
+            <div class="spopover-time">9:00 AM – 12:00 AM</div>
+          </div>
+          <span class="spopover-badge inact" id="spop-local">Cerrado</span>
+        </div>
+        <div class="spopover-row">
+          <span class="spopover-icon">🛒</span>
+          <div class="spopover-info">
+            <div class="spopover-label">Mercado</div>
+            <div class="spopover-time">24 horas</div>
+          </div>
+          <span class="spopover-badge always">Abierto</span>
+        </div>
       </div>
     </div>
     <button class="btnall btn-lista empty" id="hcart-btn" onclick="openCart()" style="padding:0;width:44px;height:44px;border-radius:50%;background:transparent;-webkit-tap-highlight-color:transparent">
@@ -1519,7 +1579,51 @@ function _syncMercadoBtns() {
   });
 }
 
-// ── TABS ──────────────────────────────────────────────────────
+// ── STATUS PILL + TABS ────────────────────────────────────────
+function _updateStatusPill() {
+  const pill = document.getElementById('status-pill');
+  const txt  = document.getElementById('spill-txt');
+  if (!pill || typeof getEstadoHorario !== 'function') return;
+  const e  = getEstadoHorario();
+  const db = document.getElementById('spop-delivery');
+  const lb = document.getElementById('spop-local');
+  if (db) { db.textContent = e.deliveryActivo ? 'Activo' : 'Cerrado'; db.className = 'spopover-badge ' + (e.deliveryActivo ? 'act' : 'inact'); }
+  if (lb) { lb.textContent = e.localAbierto   ? 'Activo' : 'Cerrado'; lb.className = 'spopover-badge ' + (e.localAbierto   ? 'act' : 'inact'); }
+  if (e.deliveryActivo) {
+    pill.className = 'spill full';
+    txt.textContent = 'Delivery activo';
+  } else if (e.localAbierto) {
+    pill.className = 'spill parcial';
+    txt.textContent = 'Solo recogida';
+  } else {
+    pill.className = 'spill solo-mercado';
+    txt.textContent = 'Mercado 24h';
+  }
+}
+function _togglePopover(ev) {
+  ev.stopPropagation();
+  const pop = document.getElementById('status-popover');
+  if (pop) pop.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const pop = document.getElementById('status-popover');
+  if (pop) pop.classList.remove('open');
+});
+
+// ── HEADER INFO POR TAB ────────────────────────────────────────
+const _HTAB = {
+  juegos:  { title: 'La Pizzería',  sub: 'Hechas al momento · Pide por WhatsApp' },
+  mercado: { title: 'El Mercado',   sub: 'Abierto 24h · Productos del barrio'    },
+  bebidas: { title: 'La Pizzería',  sub: 'Bebidas & Refrescos'                   }
+};
+function _updateHeaderTab(t) {
+  const info = _HTAB[t] || _HTAB.juegos;
+  const hn = document.getElementById('hname');
+  const hc = document.getElementById('hc');
+  if (hn) hn.textContent = info.title;
+  if (hc) hc.textContent = info.sub;
+}
+
 function setTab(t, pushState = true) {
   if (pushState) history.pushState({ tab: t }, '');
   curTab = t;
@@ -1534,6 +1638,8 @@ function setTab(t, pushState = true) {
   document.getElementById('sec-bebidas').style.display  = t === 'bebidas'  ? 'block' : 'none';
   document.getElementById('sec-mercado').style.display  = t === 'mercado'  ? 'block' : 'none';
   document.getElementById('search-swrap').style.display = t === 'juegos'   ? 'block' : 'none';
+
+  _updateHeaderTab(t);
 
   if (t === 'bebidas') loadBebidas();
   if (t === 'mercado') loadMercado();
@@ -1960,20 +2066,6 @@ function initHero() {
   hero.appendChild(track);
   window.__heroSlides = slides;
 
-  // ── Badge de estado del negocio ──────────────────────────────
-  if (typeof getMensajeHero === 'function') {
-    const badge = document.createElement('div');
-    badge.id = 'hero-status-badge';
-    const _updateBadge = () => {
-      const { texto, tipo } = getMensajeHero();
-      badge.className = 'hero-status ' + tipo;
-      badge.innerHTML = `<span class="hero-sdot"></span>${texto}`;
-    };
-    _updateBadge();
-    hero.appendChild(badge);
-    setInterval(_updateBadge, 60000); // actualiza cada minuto
-  }
-
   // Dots — single container appended directly to hero
   const dotsWrap = document.createElement('div');
   dotsWrap.style.cssText = 'position:absolute;bottom:16px;right:20px;display:flex;gap:5px;align-items:center;z-index:10';
@@ -2137,7 +2229,7 @@ function filterByCat(cat) {
 }
 
 // ── GENRE BAR ─────────────────────────────────────────────────
-document.getElementById('hc').textContent = 'Hechas al momento · Pide rápido por WhatsApp';
+_updateHeaderTab('juegos');
 
 const GENRES = ['Todos', ...new Set(G.map(x => x.g))].sort((a, b) =>
   a === 'Todos' ? -1 : b === 'Todos' ? 1 : a.localeCompare(b)
@@ -2751,6 +2843,8 @@ render();
 loadInventory();
 loadRatings().then(() => refreshRatingsUI());
 _startPolling();
+_updateStatusPill();
+setInterval(_updateStatusPill, 60000);
 
 </script>
 

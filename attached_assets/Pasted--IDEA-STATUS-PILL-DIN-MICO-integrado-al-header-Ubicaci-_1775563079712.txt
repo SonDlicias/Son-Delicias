@@ -1,0 +1,115 @@
+🔥 IDEA: “STATUS PILL DINÁMICO” integrado al header
+📍 Ubicación exacta (clave)
+
+Colócalo en el lado derecho del header, alineado con:
+
+icono del carrito / CTA principal
+o justo al lado del logo si tu header es minimal
+
+👉 Nunca centrado
+👉 Nunca como banner superior (eso ya está quemado)
+
+🎯 Concepto visual (lo innovador)
+
+No es texto. Es una “píldora de estado” (status pill) tipo app moderna (como Uber, Glovo, iOS widgets).
+
+Ejemplo visual mental:
+[ 🟢 Abierto ahora ]
+[ 🟡 Solo recogida ]
+[ 🔴 Delivery cerrado ]
+[ 🟣 Mercado 24h activo ]
+
+Pero con un twist:
+
+👉 El color y el mensaje cambian dinámicamente según horarios
+👉 Tiene microanimación suave (respira / glow leve)
+
+🧠 Lo que la hace diferente (esto es lo importante)
+1. Estado jerárquico inteligente (no básico)
+
+No muestra solo “abierto/cerrado”, sino prioridad:
+
+Orden lógico:
+
+Si delivery activo → destacar delivery
+Si delivery cerrado pero local abierto → destacar recogida
+Si todo cerrado excepto mercado → destacar mercado 24h
+
+Ejemplo real:
+
+2PM → 🟢 Delivery disponible ahora
+8PM → 🟡 Solo recogida y mesa
+2AM → 🟣 Mercado abierto 24h
+
+👉 Esto es UX avanzada, no lo hace casi nadie
+
+2. Comportamiento interactivo (clave para innovación)
+
+Cuando el usuario toca la píldora:
+
+👉 Se despliega un mini panel flotante (popover)
+
+Con info completa:
+
+Horario de hoy:
+🛵 Delivery: 11:00 AM – 5:00 PM
+🏠 Recoger/Mesa: 9:00 AM – 12:00 AM
+🛒 Mercado: 24 horas
+
+👉 Esto elimina dudas sin saturar el header
+
+3. Feedback conectado con el carrito
+
+Cuando cambia el estado:
+
+La píldora cambia
+El carrito cambia
+Todo sincronizado
+
+👉 Sensación de sistema sólido (tipo app real, no web básica)
+
+💡 Variante aún más pro (nivel “nadie lo hace”)
+👉 “Barra de progreso del día”
+
+Debajo del header (MUY sutil):
+
+Una línea fina tipo:
+
+[=====------]
+
+Que representa el horario del día:
+
+Parte verde → tiempo abierto
+Parte gris → cerrado
+Un puntico → hora actual
+
+🔥 Esto es brutal UX:
+
+El usuario “ve” el tiempo restante de operación
+Nadie en pizzerías lo está usando
+🎨 Estilo recomendado (para tu marca)
+Fondo: oscuro translúcido o glass (tipo iOS)
+Bordes: redondeados (pill)
+Glow leve según estado:
+Verde → activo
+Amarillo → limitado
+Morado → mercado
+Rojo → cerrado
+⚠️ Lo que NO debes hacer (errores comunes)
+❌ “Horario: 9am - 12am” como texto estático
+❌ Banner grande arriba (mata diseño)
+❌ Meterlo dentro del hero (se pierde)
+❌ No sincronizar con carrito
+🧩 Resumen estratégico
+
+Lo que estás construyendo no es “mostrar horario”
+Es un:
+
+👉 Sistema visual de disponibilidad en tiempo real
+
+Que:
+
+guía decisiones
+reduce dudas
+aumenta conversiones
+se siente como app premium
