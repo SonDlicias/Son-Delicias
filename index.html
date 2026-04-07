@@ -1428,17 +1428,16 @@ async function confirmOrder() {
     msg += `\n${productosStr}\n\n💰 *Total: ${_cup(total)}*`;
   }
 
-  // Mostrar número de pedido en el modal (solo relevante para Recoger)
+  // Banner de número de pedido: solo visible en Recoger
   const container = document.getElementById('cartItems');
-  const bannerMsg = orderType === 'recoger'
-    ? 'Guarda este número · Te lo pedirán al recoger'
-    : '';
-  container.insertAdjacentHTML('afterbegin', `
-    <div class="order-num-banner">
-      <div style="font-size:11px;color:#888;font-weight:700;letter-spacing:.5px">NÚMERO DE PEDIDO</div>
-      <div class="pznum">${orderNum}</div>
-      ${bannerMsg ? `<div class="pzmsg">${bannerMsg}</div>` : ''}
-    </div>`);
+  if (orderType === 'recoger') {
+    container.insertAdjacentHTML('afterbegin', `
+      <div class="order-num-banner">
+        <div style="font-size:11px;color:#888;font-weight:700;letter-spacing:.5px">NÚMERO DE PEDIDO</div>
+        <div class="pznum">${orderNum}</div>
+        <div class="pzmsg">Guarda este número · Te lo pedirán al recoger</div>
+      </div>`);
+  }
 
   btn.disabled = false;
   btn.classList.remove('loading');
