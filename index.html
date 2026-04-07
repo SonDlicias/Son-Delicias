@@ -1591,14 +1591,12 @@ function _updateStatusPill() {
   const lb = document.getElementById('spop-local');
   if (db) { db.textContent = e.deliveryActivo ? 'Activo' : 'Cerrado'; db.className = 'spopover-badge ' + (e.deliveryActivo ? 'act' : 'inact'); }
   if (lb) { lb.textContent = e.localAbierto   ? 'Activo' : 'Cerrado'; lb.className = 'spopover-badge ' + (e.localAbierto   ? 'act' : 'inact'); }
-  if (e.deliveryActivo) {
-    pill.className = 'spill full';
-    txt.textContent = 'Delivery activo';
-  } else if (e.localAbierto) {
-    pill.className = 'spill parcial';
-    txt.textContent = 'Solo recogida';
+  // Dos estados únicos: pizzería abierta → "Abierto" (verde); cerrada → "Mercado 24h" (morado)
+  if (e.localAbierto) {
+    pill.className  = 'spill full';
+    txt.textContent = 'Abierto';
   } else {
-    pill.className = 'spill solo-mercado';
+    pill.className  = 'spill solo-mercado';
     txt.textContent = 'Mercado 24h';
   }
 }
