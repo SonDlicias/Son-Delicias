@@ -104,29 +104,58 @@ function getNextOrderNum() {
   return generateOrderNum(sheet);
 }
 
-// ── Inventario (disponibilidad pizzería) ──────────────────────
+// ── Inventario (catálogo completo + disponibilidad pizzería) ──
 function getInventory() {
   try {
     const ss    = SpreadsheetApp.openById(SHEET_ID);
-    const sheet = ss.getSheetByName(INVENTARIO_SHEET);
-    if (!sheet) return jsonResponse([]);
+    let   sheet = ss.getSheetByName(INVENTARIO_SHEET);
+
+    // Crear hoja con encabezado completo si no existe
+    if (!sheet) {
+      sheet = ss.insertSheet(INVENTARIO_SHEET);
+      sheet.appendRow([
+        'Nombre', 'Estado',
+        'Descripcion',
+        'Precio_Personal', 'Precio_Mediana', 'Precio_Grande',
+        'Badge', 'Categoria'
+      ]);
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold')
+        .setBackground('#1a1a1a').setFontColor('#ffffff');
+      sheet.setFrozenRows(1);
+      return jsonResponse([]);
+    }
 
     const data = sheet.getDataRange().getValues();
     if (data.length < 2) return jsonResponse([]);
 
-    const headers   = data[0].map(h => h.toString().toLowerCase().trim());
-    const nombreIdx = headers.indexOf('nombre');
-    const estadoIdx = headers.indexOf('estado');
-    if (nombreIdx < 0 || estadoIdx < 0) return jsonResponse([]);
+    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    const col = {
+      nombre         : headers.indexOf('nombre'),
+      estado         : headers.indexOf('estado'),
+      descripcion    : headers.indexOf('descripcion'),
+      precio_personal: headers.indexOf('precio_personal'),
+      precio_mediana : headers.indexOf('precio_mediana'),
+      precio_grande  : headers.indexOf('precio_grande'),
+      badge          : headers.indexOf('badge'),
+      categoria      : headers.indexOf('categoria')
+    };
+    if (col.nombre < 0) return jsonResponse([]);
 
     const result = [];
     for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row[nombreIdx]) continue;
-      result.push({
-        nombre: row[nombreIdx].toString().trim(),
-        estado: row[estadoIdx].toString().trim() || 'Disponible'
-      });
+      const r = data[i];
+      const nombre = (r[col.nombre] || '').toString().trim();
+      if (!nombre) continue;
+
+      const entry = { nombre };
+      if (col.estado >= 0)          entry.estado          = (r[col.estado] || 'Disponible').toString().trim();
+      if (col.descripcion >= 0)     entry.descripcion     = (r[col.descripcion] || '').toString().trim();
+      if (col.precio_personal >= 0) entry.precio_personal = parseFloat(r[col.precio_personal]) || null;
+      if (col.precio_mediana >= 0)  entry.precio_mediana  = parseFloat(r[col.precio_mediana])  || null;
+      if (col.precio_grande >= 0)   entry.precio_grande   = parseFloat(r[col.precio_grande])   || null;
+      if (col.badge >= 0)           entry.badge           = (r[col.badge] || '').toString().trim() || null;
+      if (col.categoria >= 0)       entry.categoria       = (r[col.categoria] || '').toString().trim();
+      result.push(entry);
     }
     return jsonResponse(result);
   } catch (err) {

@@ -2324,6 +2324,27 @@ window.addEventListener('popstate', e => {
 history.replaceState({ tab: 'juegos' }, '');
 
 // ── INVENTARIO DINÁMICO (Google Sheets) ───────────────────────
+// Aplica datos del Inventario Sheet a un item del array G
+function _patchPizzaFromSheet(pizza, row) {
+  if (row.estado)       inventoryMap[pizza.t.toLowerCase().trim()] = row.estado;
+  if (row.descripcion)  pizza.d = row.descripcion;
+  if (row.categoria)    pizza.g = row.categoria;
+  if (row.badge !== undefined && row.badge !== null) pizza.badge = row.badge || null;
+  // Precios por tamaño
+  if (row.precio_personal || row.precio_mediana || row.precio_grande) {
+    if (pizza.sizes && pizza.sizes.length >= 1 && row.precio_personal) {
+      pizza.sizes[0].price = row.precio_personal;
+      pizza.price = row.precio_personal;
+    }
+    if (pizza.sizes && pizza.sizes.length >= 2 && row.precio_mediana) {
+      pizza.sizes[1].price = row.precio_mediana;
+    }
+    if (pizza.sizes && pizza.sizes.length >= 3 && row.precio_grande) {
+      pizza.sizes[2].price = row.precio_grande;
+    }
+  }
+}
+
 async function loadInventory() {
   if (!SCRIPT_URL) return;
   try {
@@ -2331,9 +2352,12 @@ async function loadInventory() {
     const data = await res.json();
     if (!data || !Array.isArray(data)) return;
     data.forEach(row => {
-      if (row.nombre && row.estado) {
-        inventoryMap[row.nombre.toLowerCase().trim()] = row.estado;
-      }
+      if (!row.nombre) return;
+      const key = row.nombre.toLowerCase().trim();
+      if (row.estado) inventoryMap[key] = row.estado;
+      // Parchear el item en G si hay datos extra
+      const pizza = G.find(p => p.t.toLowerCase().trim() === key);
+      if (pizza) _patchPizzaFromSheet(pizza, row);
     });
     render();
   } catch (e) {
@@ -2366,13 +2390,16 @@ async function _pollInventory() {
 
     let changed = false;
     data.forEach(row => {
-      if (!row.nombre || !row.estado) return;
-      const key      = row.nombre.toLowerCase().trim();
-      const newState = row.estado;
-      if (inventoryMap[key] !== newState) {
-        inventoryMap[key] = newState;
+      if (!row.nombre) return;
+      const key = row.nombre.toLowerCase().trim();
+      // Estado
+      if (row.estado && inventoryMap[key] !== row.estado) {
+        inventoryMap[key] = row.estado;
         changed = true;
       }
+      // Datos del catálogo (descripcion, precios, badge, categoría)
+      const pizza = G.find(p => p.t.toLowerCase().trim() === key);
+      if (pizza) _patchPizzaFromSheet(pizza, row);
     });
 
     if (changed) {
