@@ -104,6 +104,27 @@ function getNextOrderNum() {
   return generateOrderNum(sheet);
 }
 
+// Columnas requeridas del Inventario en orden canónico
+const INV_COLS = [
+  'Nombre', 'Estado',
+  'Descripcion',
+  'Precio_Personal', 'Precio_Mediana', 'Precio_Grande',
+  'Badge', 'Categoria', 'Foto'
+];
+
+// Añade las columnas faltantes a una hoja existente
+function _ensureInvCols(sheet) {
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+    .map(h => h.toString().trim());
+  INV_COLS.forEach(col => {
+    if (!headers.some(h => h.toLowerCase() === col.toLowerCase())) {
+      const newCol = sheet.getLastColumn() + 1;
+      sheet.getRange(1, newCol).setValue(col)
+        .setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
+    }
+  });
+}
+
 // ── Inventario (catálogo completo + disponibilidad pizzería) ──
 function getInventory() {
   try {
@@ -113,17 +134,15 @@ function getInventory() {
     // Crear hoja con encabezado completo si no existe
     if (!sheet) {
       sheet = ss.insertSheet(INVENTARIO_SHEET);
-      sheet.appendRow([
-        'Nombre', 'Estado',
-        'Descripcion',
-        'Precio_Personal', 'Precio_Mediana', 'Precio_Grande',
-        'Badge', 'Categoria'
-      ]);
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold')
+      sheet.appendRow(INV_COLS);
+      sheet.getRange(1, 1, 1, INV_COLS.length).setFontWeight('bold')
         .setBackground('#1a1a1a').setFontColor('#ffffff');
       sheet.setFrozenRows(1);
       return jsonResponse([]);
     }
+
+    // Añadir columnas faltantes si la hoja ya existe con encabezado viejo
+    if (sheet.getLastRow() >= 1) _ensureInvCols(sheet);
 
     const data = sheet.getDataRange().getValues();
     if (data.length < 2) return jsonResponse([]);
@@ -137,7 +156,8 @@ function getInventory() {
       precio_mediana : headers.indexOf('precio_mediana'),
       precio_grande  : headers.indexOf('precio_grande'),
       badge          : headers.indexOf('badge'),
-      categoria      : headers.indexOf('categoria')
+      categoria      : headers.indexOf('categoria'),
+      foto           : headers.indexOf('foto')
     };
     if (col.nombre < 0) return jsonResponse([]);
 
@@ -155,6 +175,7 @@ function getInventory() {
       if (col.precio_grande >= 0)   entry.precio_grande   = parseFloat(r[col.precio_grande])   || null;
       if (col.badge >= 0)           entry.badge           = (r[col.badge] || '').toString().trim() || null;
       if (col.categoria >= 0)       entry.categoria       = (r[col.categoria] || '').toString().trim();
+      if (col.foto >= 0)            entry.foto            = (r[col.foto] || '').toString().trim();
       result.push(entry);
     }
     return jsonResponse(result);

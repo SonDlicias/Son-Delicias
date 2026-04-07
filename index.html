@@ -2330,6 +2330,8 @@ function _patchPizzaFromSheet(pizza, row) {
   if (row.descripcion)  pizza.d = row.descripcion;
   if (row.categoria)    pizza.g = row.categoria;
   if (row.badge !== undefined && row.badge !== null) pizza.badge = row.badge || null;
+  // Foto: URL de ImgBB o cualquier host externo — sobreescribe la imagen local
+  if (row.foto)         pizza.c = row.foto;
   // Precios por tamaño
   if (row.precio_personal || row.precio_mediana || row.precio_grande) {
     if (pizza.sizes && pizza.sizes.length >= 1 && row.precio_personal) {
