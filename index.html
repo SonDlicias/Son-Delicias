@@ -1418,10 +1418,8 @@ async function confirmOrder() {
       hora: now.toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
       estado: 'Pendiente'
     };
-    fetch(SCRIPT_URL, {
+  fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      keepalive: true,
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(payload)
     }).catch(e => console.warn('Sheets no disponible:', e));
