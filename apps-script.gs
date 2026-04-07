@@ -336,23 +336,102 @@ function onEdit(e) {
   const range = e.range;
   const sheet = range.getSheet();
 
-  if (sheet.getName() === 'Pedidos' && range.getColumn() === 12) {
-    const estado    = range.getValue().toString().toLowerCase().trim();
-    const row       = range.getRow();
-    const numCols   = sheet.getLastColumn();
+  if (sheet.getName() !== 'Pedidos') return;
+
+  // ── Colorear fila según estado (columna L = 12) ──
+  if (range.getColumn() === 12) {
+    const estado  = range.getValue().toString().toLowerCase().trim();
+    const row     = range.getRow();
     if (row <= 1) return;
 
-    let colorFondo = null;
-    let colorTexto = '#000000';
-
-    if (estado === 'entregado') { colorFondo = '#28a745'; colorTexto = '#ffffff'; }
-    if (estado === 'cancelado') { colorFondo = '#dc3545'; colorTexto = '#ffffff'; }
-
-    if (colorFondo) {
-      sheet.getRange(row, 1, 1, numCols).setBackground(colorFondo);
-      sheet.getRange(row, 1, 1, numCols).setFontColor(colorTexto);
+    if (estado === 'entregado') {
+      sheet.getRange(row, 1, 1, 12).setBackground('#28a745').setFontColor('#ffffff');
+    } else if (estado === 'cancelado') {
+      sheet.getRange(row, 1, 1, 12).setBackground('#dc3545').setFontColor('#ffffff');
     }
+
+    // Recalcular resumen de ventas cada vez que cambia el estado
+    actualizarVentasDiarias(sheet);
   }
+}
+
+// ── Resumen de ventas diarias (columnas N y O) ────────────────
+// Llámala manualmente desde el editor para inicializar por primera vez,
+// o se llama automáticamente al marcar un pedido como "entregado".
+function actualizarVentasDiarias(sheet) {
+  if (!sheet) {
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    sheet    = ss.getSheetByName(PEDIDOS_SHEET);
+  }
+  if (!sheet) return;
+
+  const COL_FECHA  = 14; // N
+  const COL_VENTA  = 15; // O
+  const lastRow    = sheet.getLastRow();
+
+  // ── Garantizar encabezados en N1:O1 ──
+  sheet.getRange(1, COL_FECHA).setValue('Fecha');
+  sheet.getRange(1, COL_VENTA).setValue('Venta Diaria');
+  sheet.getRange(1, COL_FECHA, 1, 2)
+    .setFontWeight('bold')
+    .setBackground('#1a1a1a')
+    .setFontColor('#ffffff');
+
+  // ── Limpiar resumen anterior (desde N2 hasta el final del rango) ──
+  if (lastRow >= 2) {
+    sheet.getRange(2, COL_FECHA, lastRow - 1, 2).clearContent();
+  }
+
+  if (lastRow < 2) return;
+
+  // ── Leer columnas B (fecha), K (total), L (estado) ──
+  const data = sheet.getRange(2, 2, lastRow - 1, 11).getValues(); // B2:L
+  // índices relativos: [0]=B, [9]=K, [10]=L
+
+  const totalesPorFecha = {};
+  data.forEach(row => {
+    const estado = (row[10] || '').toString().toLowerCase().trim();
+    if (estado !== 'entregado') return;
+
+    const fechaRaw = row[0];
+    if (!fechaRaw) return;
+
+    // Normalizar fecha: puede ser Date (si Sheets la interpretó) o string
+    let fechaStr;
+    if (fechaRaw instanceof Date) {
+      const d = fechaRaw;
+      fechaStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    } else {
+      fechaStr = fechaRaw.toString().trim();
+    }
+    if (!fechaStr) return;
+
+    const total = parseFloat(String(row[9]).replace(/[^0-9.]/g, '')) || 0;
+    totalesPorFecha[fechaStr] = (totalesPorFecha[fechaStr] || 0) + total;
+  });
+
+  const entries = Object.entries(totalesPorFecha);
+  if (entries.length === 0) return;
+
+  // Ordenar cronológicamente: dd/mm/yyyy → año, mes, día
+  entries.sort((a, b) => {
+    const toMs = s => {
+      const p = s.split('/');
+      return p.length === 3 ? new Date(p[2], p[1]-1, p[0]).getTime() : 0;
+    };
+    return toMs(a[0]) - toMs(b[0]);
+  });
+
+  // ── Escribir resumen ──
+  const filas = entries.map(([fecha, total]) => [fecha, total]);
+  sheet.getRange(2, COL_FECHA, filas.length, 2).setValues(filas);
+
+  // Formato numérico para la columna O (venta)
+  sheet.getRange(2, COL_VENTA, filas.length, 1).setNumberFormat('#,##0.00');
+
+  // Alineación y ancho mínimo
+  sheet.getRange(2, COL_FECHA, filas.length, 1).setHorizontalAlignment('center');
+  sheet.getRange(2, COL_VENTA, filas.length, 1).setHorizontalAlignment('right');
 }
 
 // ── Utilidad ──────────────────────────────────────────────────
