@@ -1396,8 +1396,14 @@ async function confirmOrder() {
   }
   productosStr = productosStr.trimEnd();
 
-  // Número de pedido siempre local — confiable y sin depender de la respuesta
-  const orderNum = genOrderNum();
+  // Número de pedido desde el backend — única fuente de verdad
+  let orderNum;
+  try {
+    const _nr = await fetch(SCRIPT_URL + '?_t=' + Date.now(), { cache: 'no-store' });
+    const _nd = await _nr.json();
+    if (_nd && _nd.nextNum) orderNum = _nd.nextNum;
+  } catch (_e) { /* sin red, se usa fallback */ }
+  if (!orderNum) orderNum = genOrderNum(); // fallback solo si no hay conexión
   lastOrderNum = orderNum;
 
   // Enviar pedido a Google Sheets con mode:'no-cors' para garantizar
