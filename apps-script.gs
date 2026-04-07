@@ -5,7 +5,7 @@ const VALORACIONES_SHEET = 'Valoraciones';
 const NOVEDADES_SHEET    = 'Novedades';
 
 // ── MERCADO (Sheet independiente — economía aparte) ────────────
-const MERCADO_SHEET_ID = 'PON_AQUI_EL_ID_DEL_NUEVO_SHEET';
+const MERCADO_SHEET_ID = '148MC038qatmyLPGaA3BbEwm7FgxmpBs4Ln57lrS55Wk';
 const MERCADO_SHEET    = 'Productos';
 
 // ── GET: devuelve inventario, valoraciones o número de pedido siguiente ──
