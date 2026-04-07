@@ -1214,6 +1214,8 @@ function loadMercado() {
   if (_mercadoLoaded) {
     _syncMercadoBtns();
     filterMercado(_mercadoCatActual);
+    // Verificación silenciosa de disponibilidad al volver al tab
+    _pollMercado();
     return;
   }
 
@@ -2061,10 +2063,9 @@ async function _pollInventory() {
 async function _pollMercado() {
   if (!_mercadoLoaded) return;
   try {
-    // Forzar bypass de caché
+    // Forzar bypass de caché en memoria para obtener datos frescos
     _mercadoMemCache = null;
     _mercadoMemTs    = 0;
-    try { localStorage.removeItem(MERCADO_CACHE_KEY); } catch (_) {}
 
     const productos = await fetchMercado();
     _patchMercadoUI(productos);
