@@ -909,26 +909,30 @@ function openCart() {
     container.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:14px;line-height:2">🍕🍷🥤<br><br>Tu carrito está vacío...<br>¡Elige tus pizzas favoritas!</div>`;
     wappBtn.style.display = 'none';
   } else {
-    let total = 0;
-    cart.forEach((item, i) => {
-      const div = document.createElement('div');
-      div.className = 'cart-item';
+    const pzItems  = cart.map((item, i) => ({ item, i })).filter(x => x.item.seccion !== 'mercado');
+    const mktItems = cart.map((item, i) => ({ item, i })).filter(x => x.item.seccion === 'mercado');
+
+    const _buildThumb = ({ item }) => {
       const gameData = (typeof G !== 'undefined') ? G.find(x => x.t === item.t) : null;
       const imgSrc = (gameData && gameData.c) || item.img || '';
-      const qty = item.qty || 1;
+      return imgSrc
+        ? `<img src="${imgSrc}" style="width:46px;height:46px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
+        : `<div style="width:46px;height:46px;border-radius:9px;background:${gameData?.col || '#1a1208'};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px">${item.seccion === 'mercado' ? '🛒' : item.type === 'bebida' ? '🥤' : '🍕'}</div>`;
+    };
+
+    const _buildItem = ({ item, i }, accentColor) => {
+      const qty       = item.qty || 1;
       const unitPrice = item.unitPrice || parseFloat((item.price || '0').replace(/[^0-9.]/g, '')) || 0;
       const lineTotal = qty * unitPrice;
-      total += lineTotal;
-      const thumb = imgSrc
-        ? `<img src="${imgSrc}" style="width:48px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
-        : `<div style="width:48px;height:48px;border-radius:9px;background:${gameData && gameData.col ? gameData.col : '#1a1208'};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">${item.type === 'mercado' ? '🛒' : item.type === 'bebida' ? '🥤' : '🍕'}</div>`;
+      const div = document.createElement('div');
+      div.className = 'cart-item';
       div.innerHTML = `
         <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0">
-          ${thumb}
+          ${_buildThumb({ item })}
           <div style="min-width:0;flex:1">
             <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.t}</div>
             ${item.size ? `<div style="font-size:10px;color:#888;margin-top:1px">${item.size}</div>` : ''}
-            <div style="font-size:10px;color:#777;margin-top:1px">$${unitPrice.toFixed(2)}/u · <span style="color:#E8A020;font-weight:800">$${lineTotal.toFixed(2)}</span></div>
+            <div style="font-size:10px;color:#777;margin-top:1px">$${unitPrice.toFixed(2)}/u · <span style="font-weight:800;color:${accentColor}">$${lineTotal.toFixed(2)}</span></div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:6px">
@@ -939,12 +943,66 @@ function openCart() {
           </div>
           <button onclick="removeFromCart(${i})" style="background:rgba(255,80,80,.15);border:none;border-radius:8px;color:#ff6b6b;width:27px;height:27px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
         </div>`;
-      container.appendChild(div);
-    });
+      return div;
+    };
 
-    // Total
+    const _buildSectionHeader = (emoji, label, color, glowColor, count) => {
+      const h = document.createElement('div');
+      h.style.cssText = `display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:8px;border-radius:12px;background:${color};border-left:3px solid ${glowColor}`;
+      h.innerHTML = `
+        <span style="font-size:20px;line-height:1">${emoji}</span>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:900;letter-spacing:1.4px;color:${glowColor};text-transform:uppercase">${label}</div>
+        </div>
+        <div style="background:${glowColor}22;border:1px solid ${glowColor}55;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:800;color:${glowColor}">${count} ${count === 1 ? 'producto' : 'productos'}</div>`;
+      return h;
+    };
+
+    const _buildSubtotal = (amount, color) => {
+      const d = document.createElement('div');
+      d.style.cssText = `text-align:right;padding:6px 4px 10px;font-size:11px;color:#666;font-weight:700;border-bottom:1px dashed #222;margin-bottom:10px`;
+      d.innerHTML = `Subtotal: <span style="color:${color};font-weight:900;font-size:13px">$${amount.toFixed(2)}</span>`;
+      return d;
+    };
+
+    let grandTotal = 0;
+
+    // ── Sección Pizzería ──────────────────────────────────────
+    if (pzItems.length > 0) {
+      container.appendChild(_buildSectionHeader('🍕', 'La Pizzería', 'linear-gradient(135deg,#1a0c00,#241200)', '#E8A020', pzItems.length));
+      let pzTotal = 0;
+      pzItems.forEach(entry => {
+        const qty = entry.item.qty || 1;
+        const up  = entry.item.unitPrice || parseFloat((entry.item.price || '0').replace(/[^0-9.]/g, '')) || 0;
+        pzTotal += qty * up;
+        grandTotal += qty * up;
+        container.appendChild(_buildItem(entry, '#E8A020'));
+      });
+      if (mktItems.length > 0) container.appendChild(_buildSubtotal(pzTotal, '#E8A020'));
+    }
+
+    // ── Sección Mercado ───────────────────────────────────────
+    if (mktItems.length > 0) {
+      container.appendChild(_buildSectionHeader('🛒', 'Mercado', 'linear-gradient(135deg,#001a10,#00241a)', '#2ecc71', mktItems.length));
+      let mktTotal = 0;
+      mktItems.forEach(entry => {
+        const qty = entry.item.qty || 1;
+        const up  = entry.item.unitPrice || parseFloat((entry.item.price || '0').replace(/[^0-9.]/g, '')) || 0;
+        mktTotal += qty * up;
+        grandTotal += qty * up;
+        container.appendChild(_buildItem(entry, '#2ecc71'));
+      });
+      if (pzItems.length > 0) container.appendChild(_buildSubtotal(mktTotal, '#2ecc71'));
+    }
+
+    // ── Total general ─────────────────────────────────────────
     const totalDiv = document.createElement('div');
-    totalDiv.innerHTML = `<div style="text-align:right;padding:10px 4px;font-size:14px;font-weight:900;color:#fff;border-top:1px solid rgba(255,255,255,.1);margin-top:4px">Total estimado: <span style="color:#E8A020">$${total.toFixed(2)}</span></div>`;
+    const isMixed = pzItems.length > 0 && mktItems.length > 0;
+    totalDiv.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:${isMixed ? '12px 4px 8px' : '10px 4px'};border-top:1px solid rgba(255,255,255,.08);margin-top:${isMixed ? '0' : '4px'}">
+        <span style="font-size:12px;color:#666;font-weight:700;letter-spacing:.5px">${isMixed ? 'TOTAL GENERAL' : 'TOTAL ESTIMADO'}</span>
+        <span style="font-size:16px;font-weight:900;color:#fff">$${grandTotal.toFixed(2)}</span>
+      </div>`;
     container.appendChild(totalDiv);
     wappBtn.style.display = 'block';
   }
