@@ -1380,37 +1380,34 @@ async function confirmOrder() {
   }
   productosStr = productosStr.trimEnd();
 
-  // Intentar guardar en Google Sheets
-  let orderNum = null;
-  if (SCRIPT_URL) {
-    try {
-      const now = new Date();
-      const payload = {
-        tipo: orderType,
-        nombre: nombre || '',
-        ci: ci || '',
-        mesa: mesa || '',
-        direccion: dir || '',
-        referencia: document.getElementById('of-ref')?.value?.trim() || '',
-        productos: cart.map(x => { const qty = x.qty||1; const up = x.unitPrice||parseFloat((x.price||'0').replace(/[^0-9.]/g,''))||0; return (qty>1?qty+'x ':'')+x.t+(x.size?' ('+x.size+')':'')+' '+_cup(qty*up); }).join('; '),
-        total: Math.round(totalConEnvio),
-        fecha: now.toLocaleDateString('es-CU'),
-        hora: now.toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
-        estado: 'Pendiente'
-      };
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.orderNumber) orderNum = data.orderNumber;
-    } catch (e) {
-      console.warn('Google Sheets no disponible, usando número local:', e);
-    }
-  }
-
-  if (!orderNum) orderNum = genOrderNum();
+  // Número de pedido siempre local — confiable y sin depender de la respuesta
+  const orderNum = genOrderNum();
   lastOrderNum = orderNum;
+
+  // Enviar pedido a Google Sheets con mode:'no-cors' para garantizar
+  // que el POST llega siempre, sin bloqueo CORS en la respuesta
+  if (SCRIPT_URL) {
+    const now = new Date();
+    const payload = {
+      orderNumber: orderNum,
+      tipo: orderType,
+      nombre: nombre || '',
+      ci: ci || '',
+      mesa: mesa || '',
+      direccion: dir || '',
+      referencia: document.getElementById('of-ref')?.value?.trim() || '',
+      productos: cart.map(x => { const qty = x.qty||1; const up = x.unitPrice||parseFloat((x.price||'0').replace(/[^0-9.]/g,''))||0; return (qty>1?qty+'x ':'')+x.t+(x.size?' ('+x.size+')':'')+' '+_cup(qty*up); }).join('; '),
+      total: Math.round(totalConEnvio),
+      fecha: now.toLocaleDateString('es-CU'),
+      hora: now.toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
+      estado: 'Pendiente'
+    };
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(payload)
+    }).catch(e => console.warn('Sheets no disponible:', e));
+  }
 
   // Construir mensaje WhatsApp
   const typeLabel = { delivery: '🛵 Delivery', recoger: '🥡 Recoger', table: '🍽️ Mesa' }[orderType];

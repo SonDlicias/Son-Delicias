@@ -53,7 +53,7 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
-    const orderNum = generateOrderNum(sheet);
+    const orderNum = data.orderNumber || generateOrderNum(sheet);
     sheet.appendRow([
       orderNum,
       data.fecha       || new Date().toLocaleDateString('es-CU'),
