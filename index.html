@@ -149,15 +149,16 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .mcat-btn{flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#ccc;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s,color .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
 .mcat-btn.active{background:#E8A020;color:#000;border-color:#E8A020}
 /* ── BUSCADOR MERCADO ── */
-.mercado-search-wrap{position:relative;padding:14px 14px 2px}
+.mercado-search-wrap{padding:14px 14px 6px}
+.mercado-search-wrap>div{position:relative}
 .mercado-search-wrap input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 42px 10px 16px;color:#fff;font-size:15px;outline:none;-webkit-appearance:none;font-family:inherit}
 .mercado-search-wrap input::placeholder{color:#777}
 .mercado-search-wrap input:focus{border-color:#E8A020;background:rgba(232,160,32,.07)}
 .mercado-search-wrap input::-webkit-search-cancel-button{-webkit-appearance:none}
-.mercado-search-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;align-items:center;pointer-events:none;transition:opacity .2s;margin-top:7px}
-.mercado-search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;cursor:pointer;color:#E8A020;display:none;background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.3);border-radius:50%;width:28px;height:28px;align-items:center;justify-content:center;line-height:1;transition:all .2s;margin-top:7px}
+.mercado-search-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;align-items:center;pointer-events:none;transition:opacity .2s}
+.mercado-search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:14px;cursor:pointer;color:#E8A020;display:none;background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.3);border-radius:50%;width:28px;height:28px;align-items:center;justify-content:center;line-height:1;transition:all .2s}
 #mercado-no-results{text-align:center;padding:48px 20px 80px;color:#777;font-size:15px;display:none}
-#mercado-no-results span{font-size:38px;display:block;margin-bottom:12px}
+#mercado-no-results .nores-icon{display:flex;justify-content:center;margin-bottom:14px;opacity:.35}
 .mcat-badge{position:absolute;top:8px;left:8px;z-index:9;background:rgba(0,0,0,.72);border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800;color:#E8A020;letter-spacing:.3px;pointer-events:none}
 .con-bebida-cart-btn{position:absolute;bottom:8px;right:8px;z-index:8;background:#D62828;border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.55);transition:background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
 .con-bebida-cart-btn:active{transform:scale(.84)}
@@ -635,23 +636,28 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
   <!-- ── SECCIÓN MERCADO ── -->
   <div id="sec-mercado" style="display:none">
     <div class="mercado-search-wrap">
-      <input id="mercado-search" type="search" inputmode="search"
-        placeholder="¿Qué necesitas hoy?" autocomplete="off" autocorrect="off"
-        autocapitalize="off" spellcheck="false"
-        oninput="_onMercadoSearch(this.value);_toggleMercadoIcon(this.value)"
-        onfocus="_toggleMercadoIcon(this.value)"
-      />
-      <span id="mercado-search-icon" class="mercado-search-icon">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(232,160,32,.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-      </span>
-      <span class="mercado-search-clear" id="mercado-search-clear" onclick="document.getElementById('mercado-search').value='';_onMercadoSearch('');_toggleMercadoIcon('');this.style.display='none'">&times;</span>
+      <div>
+        <input id="mercado-search" type="search" inputmode="search"
+          placeholder="¿Qué necesitas hoy?" autocomplete="off" autocorrect="off"
+          autocapitalize="off" spellcheck="false"
+          oninput="_onMercadoSearch(this.value);_toggleMercadoIcon(this.value)"
+          onfocus="_toggleMercadoIcon(this.value)"
+        />
+        <span id="mercado-search-icon" class="mercado-search-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(232,160,32,.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </span>
+        <span class="mercado-search-clear" id="mercado-search-clear" onclick="document.getElementById('mercado-search').value='';_onMercadoSearch('');_toggleMercadoIcon('')">&times;</span>
+      </div>
     </div>
     <div class="mcat-row" id="mercado-cats"></div>
     <div class="con-loading" id="mercado-loading">⏳ Cargando mercado…</div>
     <div id="mercadogrid" class="con-grid" style="padding:0 10px 20px"></div>
-    <div id="mercado-no-results"><span>🔍</span>Sin resultados para "<span id="mercado-no-results-q"></span>"</div>
+    <div id="mercado-no-results">
+      <div class="nores-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E8A020" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      Sin resultados para "<span id="mercado-no-results-q"></span>"
+    </div>
   </div>
 
   <!-- ── SECCIÓN BEBIDAS ── -->
@@ -1377,8 +1383,6 @@ let _mercadoSearchQ = '';
 
 function _onMercadoSearch(val) {
   _mercadoSearchQ = _normMercado(val);
-  const clr = document.querySelector('.mercado-search-clear');
-  if (clr) clr.style.display = val ? 'block' : 'none';
   _applyMercadoFilters();
 }
 
