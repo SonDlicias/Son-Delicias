@@ -263,8 +263,22 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0f0a08;border-radius:10px;margin-bottom:8px}
 
 /* ── ORDER TYPE ── */
-.otype-btn{flex:1;padding:9px 4px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#777;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s;text-align:center}
+.otype-btn{flex:1;padding:8px 4px 7px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#777;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.2}
 .otype-btn.on{background:#D62828;border-color:#D62828;color:#fff}
+.otype-btn:disabled{opacity:.38;cursor:not-allowed;border-style:dashed}
+.otype-btn:disabled.on{background:rgba(214,40,40,.2);border-color:rgba(214,40,40,.3);color:#D62828}
+.otype-hint{font-size:9px;font-weight:600;letter-spacing:0;opacity:.75;display:none;line-height:1.1}
+.otype-btn:disabled .otype-hint{display:block}
+#otype-alert{font-size:11px;color:#E8A020;background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.15);border-radius:8px;padding:8px 10px;margin-top:8px;text-align:center;display:none;line-height:1.5}
+/* ── HERO STATUS BADGE ── */
+.hero-status{position:absolute;top:14px;left:14px;z-index:10;display:flex;align-items:center;gap:7px;padding:6px 13px 6px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.3px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:none}
+.hero-status.full{background:rgba(10,180,70,.15);border:1px solid rgba(10,180,70,.3);color:#4ade80}
+.hero-status.parcial{background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.3);color:#E8A020}
+.hero-status.cerrado{background:rgba(15,10,8,.72);border:1px solid rgba(255,255,255,.1);color:#999}
+.hero-sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.full .hero-sdot{background:#4ade80;box-shadow:0 0 7px rgba(74,222,128,.8)}
+.parcial .hero-sdot{background:#E8A020;box-shadow:0 0 6px rgba(232,160,32,.7)}
+.cerrado .hero-sdot{background:#666}
 
 /* ── GB NEW (Recién agregadas) ── */
 @keyframes shine{0%{background-position:-200% center}100%{background-position:200% center}}
@@ -528,10 +542,17 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     <div style="margin-bottom:12px">
       <div style="font-size:10px;font-weight:800;color:#777;letter-spacing:.6px;margin-bottom:8px;text-transform:uppercase">Tipo de pedido</div>
       <div style="display:flex;gap:6px">
-        <button class="otype-btn on" id="ot-delivery" onclick="setOrderType('delivery')">🛵 Delivery</button>
-        <button class="otype-btn" id="ot-recoger" onclick="setOrderType('recoger')">🥡 Recoger</button>
-        <button class="otype-btn" id="ot-table" onclick="setOrderType('table')">🍽️ Mesa</button>
+        <button class="otype-btn on" id="ot-delivery" onclick="setOrderType('delivery')">
+          🛵 Delivery<span class="otype-hint" id="oth-delivery">11 AM – 5 PM</span>
+        </button>
+        <button class="otype-btn" id="ot-recoger" onclick="setOrderType('recoger')">
+          🥡 Recoger<span class="otype-hint" id="oth-recoger">9 AM – 12 AM</span>
+        </button>
+        <button class="otype-btn" id="ot-table" onclick="setOrderType('table')">
+          🍽️ Mesa<span class="otype-hint" id="oth-table">9 AM – 12 AM</span>
+        </button>
       </div>
+      <div id="otype-alert"></div>
     </div>
 
     <!-- Campos dinámicos por tipo -->
@@ -709,6 +730,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
 ════════════════════════════════════════════════════════════ -->
+<script src="horarios.js"></script>
 <script src="menu.js"></script>
 <script>
 
@@ -766,6 +788,12 @@ const ORDER_FIELDS = {
 };
 
 function setOrderType(t) {
+  // Guardia de horario: no permite seleccionar una modalidad deshabilitada
+  const e = typeof getEstadoHorario === 'function' ? getEstadoHorario() : null;
+  if (e) {
+    const activo = { delivery: e.deliveryActivo, recoger: e.recogerActivo, table: e.mesaActiva };
+    if (!activo[t]) return; // ignorar click si está fuera de horario
+  }
   orderType = t;
   document.querySelectorAll('.otype-btn').forEach(b => b.classList.remove('on'));
   const btn = document.getElementById('ot-' + t);
@@ -773,9 +801,48 @@ function setOrderType(t) {
   const fieldsEl = document.getElementById('order-fields');
   if (fieldsEl) {
     fieldsEl.innerHTML = ORDER_FIELDS[t] || '';
-    // Pequeña animación de entrada
     fieldsEl.style.opacity = '0';
     requestAnimationFrame(() => { fieldsEl.style.transition = 'opacity .2s'; fieldsEl.style.opacity = '1'; });
+  }
+}
+
+// ── MOTOR DE HORARIOS EN EL CARRITO ───────────────────────────
+function applyHorarios() {
+  if (typeof getEstadoHorario !== 'function') return;
+  const e = getEstadoHorario();
+  const map = { delivery: e.deliveryActivo, recoger: e.recogerActivo, table: e.mesaActiva };
+
+  ['delivery', 'recoger', 'table'].forEach(tipo => {
+    const btn = document.getElementById('ot-' + tipo);
+    if (!btn) return;
+    btn.disabled = !map[tipo];
+  });
+
+  // Si el tipo actual está deshabilitado, cambiar al primero disponible
+  if (map[orderType] === false) {
+    const valido = typeof getPrimerTipoValido === 'function' ? getPrimerTipoValido() : null;
+    if (valido) setOrderType(valido);
+  }
+
+  // Alerta si ninguna modalidad está disponible
+  const alertEl = document.getElementById('otype-alert');
+  const hayAlguno = e.deliveryActivo || e.recogerActivo || e.mesaActiva;
+  if (alertEl) {
+    if (!hayAlguno) {
+      alertEl.textContent = '⏰ Pedidos disponibles de 9:00 AM a 12:00 AM. Puedes seguir explorando el catálogo.';
+      alertEl.style.display = 'block';
+    } else if (!e.deliveryActivo) {
+      alertEl.textContent = '🛵 Delivery disponible de 11:00 AM a 5:00 PM';
+      alertEl.style.display = 'block';
+    } else {
+      alertEl.style.display = 'none';
+    }
+  }
+
+  // Ocultar/mostrar botón WhatsApp si no hay ninguna opción
+  const wappBtn = document.getElementById('cartWapp');
+  if (wappBtn && !hayAlguno && cart.length > 0) {
+    wappBtn.style.display = 'none';
   }
 }
 
@@ -945,6 +1012,7 @@ function updateCartBtn() {
 }
 
 function openCart() {
+  applyHorarios();
   setOrderType(orderType);
 
   const container = document.getElementById('cartItems');
@@ -1081,7 +1149,24 @@ function genOrderNum() {
 
 // ── CONFIRMAR PEDIDO ──────────────────────────────────────────
 async function confirmOrder() {
-  // Validación por tipo
+  // ── Validación de horario ──────────────────────────────────
+  if (typeof getEstadoHorario === 'function') {
+    const e = getEstadoHorario();
+    const mapActivo = { delivery: e.deliveryActivo, recoger: e.recogerActivo, table: e.mesaActiva };
+    const hayAlguno = e.deliveryActivo || e.recogerActivo || e.mesaActiva;
+    if (!hayAlguno) {
+      alert('⏰ Los pedidos están disponibles de 9:00 AM a 12:00 AM.\nPuedes explorar el catálogo mientras tanto.');
+      return;
+    }
+    if (!mapActivo[orderType]) {
+      const hint = typeof getMensajeModalidad === 'function' ? getMensajeModalidad(orderType) : '';
+      alert(`Esta modalidad no está disponible ahora.\n${hint ? 'Horario: ' + hint : ''}\nSelecciona otra opción.`);
+      applyHorarios();
+      return;
+    }
+  }
+
+  // ── Validación por tipo ──────────────────────────────────
   const nombre = document.getElementById('of-nombre')?.value?.trim();
   const ci = document.getElementById('of-ci')?.value?.trim();
   const dir = document.getElementById('of-dir')?.value?.trim();
@@ -1874,6 +1959,20 @@ function initHero() {
 
   hero.appendChild(track);
   window.__heroSlides = slides;
+
+  // ── Badge de estado del negocio ──────────────────────────────
+  if (typeof getMensajeHero === 'function') {
+    const badge = document.createElement('div');
+    badge.id = 'hero-status-badge';
+    const _updateBadge = () => {
+      const { texto, tipo } = getMensajeHero();
+      badge.className = 'hero-status ' + tipo;
+      badge.innerHTML = `<span class="hero-sdot"></span>${texto}`;
+    };
+    _updateBadge();
+    hero.appendChild(badge);
+    setInterval(_updateBadge, 60000); // actualiza cada minuto
+  }
 
   // Dots — single container appended directly to hero
   const dotsWrap = document.createElement('div');

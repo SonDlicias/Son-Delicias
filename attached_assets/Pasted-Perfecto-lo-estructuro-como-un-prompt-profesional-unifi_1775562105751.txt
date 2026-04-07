@@ -1,0 +1,102 @@
+Perfecto, lo estructuro como un **prompt profesional unificado**, incorporando exactamente tus reglas de negocio:
+
+---
+
+“Quiero implementar un sistema centralizado de horarios comerciales en el sitio, basado en un archivo independiente `horarios.js`, que funcione como el único motor de verdad para toda la lógica de disponibilidad.
+
+El negocio tiene tres niveles de operación claramente diferenciados:
+
+1. **Mercado físico (24 horas)**
+   El mercado está disponible siempre, sin restricciones horarias. Esto significa que el sitio nunca debe mostrarse completamente ‘cerrado’, ya que siempre existe actividad comercial disponible.
+
+2. **Local físico (recoger y consumo en mesa)**
+   El local abre de **9:00 AM a 12:00 AM (medianoche)**. Dentro de este rango deben estar habilitadas las opciones:
+
+* Recoger
+* Mesa
+
+Fuera de ese horario, estas opciones deben aparecer desactivadas, con feedback visual claro indicando el horario de disponibilidad.
+
+3. **Delivery (domicilio)**
+   El delivery funciona de **11:00 AM a 5:00 PM**.
+   Fuera de ese rango:
+
+* Debe mostrarse deshabilitado
+* No debe poder seleccionarse
+* Debe mostrar un mensaje tipo: ‘Delivery disponible de 11:00 AM a 5:00 PM’
+
+---
+
+El sistema debe cumplir estas reglas funcionales:
+
+* Toda la lógica debe centralizarse en `horarios.js`, donde se definan:
+
+  * Horario del mercado (siempre activo)
+  * Horario del local físico
+  * Horario de delivery
+
+* Debe existir una función global que evalúe la hora actual del usuario y determine:
+
+  * Si el local físico está abierto
+  * Si delivery está disponible
+  * Qué modalidades de pedido están habilitadas
+
+* El resultado de esa evaluación debe usarse en dos lugares clave:
+
+### 1. Hero / Header (estado global del negocio)
+
+El header debe reflejar el estado en tiempo real con mensajes claros como:
+
+* ‘Abierto ahora · Delivery disponible’
+* ‘Abierto ahora · Solo recogida y mesa’
+* ‘Mercado abierto 24h · Local cerrado en este momento’
+
+Nunca debe mostrarse como ‘cerrado total’, porque el mercado siempre está operativo.
+
+---
+
+### 2. Carrito (lógica funcional de pedidos)
+
+Las opciones de pedido deben comportarse así:
+
+* **Delivery**
+
+  * Activo solo entre 11:00 AM y 5:00 PM
+  * Fuera de ese horario: deshabilitado + mensaje informativo
+
+* **Recoger y Mesa**
+
+  * Activos solo entre 9:00 AM y 12:00 AM
+  * Fuera de ese horario: deshabilitados + mensaje informativo
+
+* Si el usuario tiene seleccionada una opción que deja de estar disponible (por cambio de hora o recarga):
+
+  * El sistema debe cambiar automáticamente a una opción válida (preferiblemente Recoger si está disponible)
+  * O forzar al usuario a seleccionar una opción válida
+
+---
+
+### Validación final (checkout WhatsApp)
+
+El botón de confirmar pedido debe validar contra el motor de horarios:
+
+* Nunca permitir enviar pedidos con una modalidad fuera de horario
+* Asegurar coherencia entre lo que se muestra y lo que se permite hacer
+
+---
+
+### Reglas de UX importantes:
+
+* No ocultar opciones: siempre mostrarlas deshabilitadas si no están disponibles
+* Dar feedback claro de horarios en cada opción
+* Mantener consistencia total entre header y carrito
+* El sistema debe actualizarse automáticamente al cargar la página y opcionalmente cada cierto tiempo
+
+---
+
+El objetivo es que todo el sitio funcione bajo un único sistema de disponibilidad comercial, fácil de modificar desde `horarios.js`, sin necesidad de tocar múltiples partes del código.”
+
+---
+
+Esto está listo para dárselo a una IA o a un dev sin ambigüedades.
+Si quieres, el siguiente paso te lo convierto ya en **estructura real de `horarios.js` + funciones exactas para tu código actual** (sin romper lo que ya tienes).
