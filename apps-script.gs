@@ -1,20 +1,25 @@
+// ══════════════════════════════════════════════════════════════
+//  Son Delicias — Apps Script
+//  Sheet Pizzería : 1JWFobYrSnDbrY03KrvyQhkO9A01EZvW4UIBfMKxTbak
+//  Sheet Mercado  : 148MC038qatmyLPGaA3BbEwm7FgxmpBs4Ln57lrS55Wk
+// ══════════════════════════════════════════════════════════════
+
+// ── Pizzería ──────────────────────────────────────────────────
 const SHEET_ID           = '1JWFobYrSnDbrY03KrvyQhkO9A01EZvW4UIBfMKxTbak';
 const PEDIDOS_SHEET      = 'Pedidos';
 const INVENTARIO_SHEET   = 'Inventario';
 const VALORACIONES_SHEET = 'Valoraciones';
-const NOVEDADES_SHEET    = 'Novedades';
 
-// ── MERCADO (Sheet independiente — economía aparte) ────────────
+// ── Mercado (economía independiente) ─────────────────────────
 const MERCADO_SHEET_ID = '148MC038qatmyLPGaA3BbEwm7FgxmpBs4Ln57lrS55Wk';
 const MERCADO_SHEET    = 'Productos';
 
-// ── GET: devuelve inventario, valoraciones o número de pedido siguiente ──
+// ── Enrutador GET ─────────────────────────────────────────────
 function doGet(e) {
   const action = e.parameter.action || '';
 
   if (action === 'inventory') return getInventory();
   if (action === 'ratings')   return getRatings();
-  if (action === 'noticias')  return getNoticias();
   if (action === 'mercado')   return getMercado();
   if (action === 'comments')  return getComments(
     e.parameter.producto || '',
@@ -22,27 +27,22 @@ function doGet(e) {
     parseInt(e.parameter.limit)  || 3
   );
 
-  // Acción por defecto: devuelve el próximo número de pedido
   return ContentService
     .createTextOutput(JSON.stringify({ nextNum: getNextOrderNum() }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ── POST: guarda un pedido o una valoración ────────────────────
+// ── Enrutador POST ────────────────────────────────────────────
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
 
-    // Ruta valoración anónima
-    if (data.action === 'rating') {
-      return saveRating(data);
-    }
+    if (data.action === 'rating') return saveRating(data);
 
-    // Ruta pedido (comportamiento original tuyo)
-    const ss   = SpreadsheetApp.openById(SHEET_ID);
+    // Guardar pedido
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
     const sheet = ss.getSheetByName(PEDIDOS_SHEET) || ss.insertSheet(PEDIDOS_SHEET);
 
-    // Crear cabeceras si la hoja está vacía
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
         'Pedido #', 'Fecha', 'Hora', 'Tipo',
@@ -53,26 +53,22 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
-    // Generar número de pedido
     const orderNum = generateOrderNum(sheet);
-
-    // Agregar fila
     sheet.appendRow([
       orderNum,
-      data.fecha  || new Date().toLocaleDateString('es-CU'),
-      data.hora   || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
-      data.tipo   || '',
-      data.nombre || '',
-      data.ci     || '',
-      data.mesa   || '',
-      data.direccion  || '',
-      data.referencia || '',
-      data.productos  || '',
-      data.total  || '0.00',
-      data.estado || 'Pendiente'
+      data.fecha       || new Date().toLocaleDateString('es-CU'),
+      data.hora        || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
+      data.tipo        || '',
+      data.nombre      || '',
+      data.ci          || '',
+      data.mesa        || '',
+      data.direccion   || '',
+      data.referencia  || '',
+      data.productos   || '',
+      data.total       || '0.00',
+      data.estado      || 'Pendiente'
     ]);
 
-    // Colorear fila nueva según tipo de pedido (tus colores originales)
     const lastRow = sheet.getLastRow();
     const color = { delivery: '#d4edda', recoger: '#fff3cd', table: '#d1ecf1' }[data.tipo] || '#f8f9fa';
     sheet.getRange(lastRow, 1, 1, 12).setBackground(color);
@@ -88,12 +84,10 @@ function doPost(e) {
   }
 }
 
-// ── Genera número de pedido consecutivo ───────────────────────
+// ── Número de pedido ──────────────────────────────────────────
 function generateOrderNum(sheet) {
   const lastRow = sheet.getLastRow();
-  if (lastRow <= 1) return 'PZ-001'; // solo cabecera
-
-  // Buscar el último número en la columna A
+  if (lastRow <= 1) return 'PZ-001';
   const col = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat().filter(Boolean);
   let max = 0;
   col.forEach(v => {
@@ -110,7 +104,7 @@ function getNextOrderNum() {
   return generateOrderNum(sheet);
 }
 
-// ── Devuelve inventario desde la hoja "Inventario" ────────────
+// ── Inventario (disponibilidad pizzería) ──────────────────────
 function getInventory() {
   try {
     const ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -120,8 +114,7 @@ function getInventory() {
     const data = sheet.getDataRange().getValues();
     if (data.length < 2) return jsonResponse([]);
 
-    // Cabecera esperada: ID | Nombre | Categoría | Precio | Estado
-    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    const headers   = data[0].map(h => h.toString().toLowerCase().trim());
     const nombreIdx = headers.indexOf('nombre');
     const estadoIdx = headers.indexOf('estado');
     if (nombreIdx < 0 || estadoIdx < 0) return jsonResponse([]);
@@ -141,59 +134,18 @@ function getInventory() {
   }
 }
 
-// ── Devuelve novedades desde la hoja "Novedades" ──────────────
-function getNoticias() {
-  try {
-    const ss    = SpreadsheetApp.openById(SHEET_ID);
-    const sheet = ss.getSheetByName(NOVEDADES_SHEET);
-    if (!sheet || sheet.getLastRow() < 2) return jsonResponse([]);
-
-    const rows    = sheet.getDataRange().getValues();
-    const headers = rows[0].map(h => h.toString().toLowerCase().trim());
-    const idx = {
-      titulo   : headers.indexOf('titulo'),
-      subtitulo: headers.indexOf('subtitulo'),
-      desc     : headers.indexOf('descripcion'),
-      tipo     : headers.indexOf('tipo'),
-      imagen   : headers.indexOf('imagen'),
-      wapp     : headers.indexOf('whatsapp'),
-      activo   : headers.indexOf('activo')
-    };
-
-    const result = [];
-    for (let i = rows.length - 1; i >= 1; i--) {   // más reciente primero
-      const r = rows[i];
-      const activo = idx.activo >= 0 ? r[idx.activo].toString().trim().toLowerCase() : 'si';
-      if (activo === 'no') continue;
-      if (idx.titulo >= 0 && !r[idx.titulo]) continue;
-      result.push({
-        titulo   : idx.titulo    >= 0 ? r[idx.titulo].toString().trim()    : '',
-        subtitulo: idx.subtitulo >= 0 ? r[idx.subtitulo].toString().trim() : '',
-        desc     : idx.desc      >= 0 ? r[idx.desc].toString().trim()      : '',
-        tipo     : idx.tipo      >= 0 ? r[idx.tipo].toString().trim().toLowerCase() : 'aviso',
-        imagen   : idx.imagen    >= 0 ? r[idx.imagen].toString().trim()    : '',
-        wapp     : idx.wapp      >= 0 ? r[idx.wapp].toString().trim()      : ''
-      });
-    }
-    return jsonResponse(result);
-  } catch (err) {
-    return jsonResponse([]);
-  }
-}
-
-// ── Devuelve productos desde el Sheet independiente del Mercado ─
+// ── Productos del Mercado (Sheet independiente) ───────────────
 function getMercado() {
   try {
-    const ss    = SpreadsheetApp.openById(MERCADO_SHEET_ID);
-    let sheet   = ss.getSheetByName(MERCADO_SHEET);
+    const ss  = SpreadsheetApp.openById(MERCADO_SHEET_ID);
+    let sheet = ss.getSheetByName(MERCADO_SHEET);
 
-    // Si la hoja no existe, la crea con cabeceras de ejemplo
+    // Crear hoja si no existe
     if (!sheet) {
       sheet = ss.insertSheet(MERCADO_SHEET);
       sheet.appendRow(['Nombre', 'Precio', 'Presentacion', 'Categoria', 'Emoji', 'Imagen', 'Disponible']);
       sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
       sheet.setFrozenRows(1);
-      // Fila de ejemplo
       sheet.appendRow(['Azúcar Refino', 1.50, '1 lb', 'Alimentos', '🍬', '', 'Si']);
       return jsonResponse([]);
     }
@@ -216,8 +168,8 @@ function getMercado() {
 
     const result = [];
     for (let i = 1; i < rows.length; i++) {
-      const r = rows[i];
-      const nombre = col.nombre >= 0 ? r[col.nombre].toString().trim() : '';
+      const r      = rows[i];
+      const nombre = r[col.nombre].toString().trim();
       if (!nombre) continue;
 
       const disponible = col.disponible >= 0
@@ -240,7 +192,7 @@ function getMercado() {
   }
 }
 
-// ── Guarda una valoración anónima en la hoja "Valoraciones" ───
+// ── Valoraciones ──────────────────────────────────────────────
 function saveRating(data) {
   try {
     const ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -266,7 +218,6 @@ function saveRating(data) {
   }
 }
 
-// ── Devuelve promedios + distribución de estrellas por producto ──
 function getRatings() {
   try {
     const ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -292,7 +243,7 @@ function getRatings() {
       out[producto] = {
         avg:   Math.round(v.sum / v.count * 10) / 10,
         count: v.count,
-        dist:  v.dist   // [n1★, n2★, n3★, n4★, n5★]
+        dist:  v.dist
       };
     }
     return jsonResponse(out);
@@ -301,7 +252,6 @@ function getRatings() {
   }
 }
 
-// ── Devuelve comentarios con texto de un producto (paginados) ──
 function getComments(producto, offset, limit) {
   try {
     const ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -311,17 +261,15 @@ function getComments(producto, offset, limit) {
     const rows    = sheet.getDataRange().getValues();
     const matches = [];
 
-    // Recopilar filas con comentario no vacío del producto
     for (let i = 1; i < rows.length; i++) {
-      const prod      = String(rows[i][0]).trim();
-      const estrellas = Number(rows[i][1]);
-      const timestamp = String(rows[i][2]).trim();
+      const prod       = String(rows[i][0]).trim();
+      const estrellas  = Number(rows[i][1]);
+      const timestamp  = String(rows[i][2]).trim();
       const comentario = String(rows[i][4]).trim();
       if (prod !== producto || !comentario) continue;
       matches.push({ stars: estrellas, text: comentario, date: timestamp });
     }
 
-    // Más recientes primero
     matches.reverse();
     const total   = matches.length;
     const page    = matches.slice(offset, offset + limit);
@@ -333,44 +281,33 @@ function getComments(producto, offset, limit) {
   }
 }
 
-function jsonResponse(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-/**
- * Función que cambia el color de la fila automáticamente al editar el Estado.
- * Se activa en la columna L (12) de la hoja "Pedidos".
- */
+// ── Colores automáticos al editar Estado en Pedidos ───────────
 function onEdit(e) {
   const range = e.range;
   const sheet = range.getSheet();
-  
-  // 1. Verificamos que sea la hoja "Pedidos" y la columna L (12)
-  if (sheet.getName() === "Pedidos" && range.getColumn() === 12) {
-    const estado = range.getValue().toString().toLowerCase().trim();
-    const row = range.getRow();
-    const numCols = sheet.getLastColumn();
-    
-    // Saltamos la fila 1 (encabezados)
+
+  if (sheet.getName() === 'Pedidos' && range.getColumn() === 12) {
+    const estado    = range.getValue().toString().toLowerCase().trim();
+    const row       = range.getRow();
+    const numCols   = sheet.getLastColumn();
     if (row <= 1) return;
 
     let colorFondo = null;
-    let colorTexto = "#000000"; // Negro por defecto para lectura clara
+    let colorTexto = '#000000';
 
-    if (estado === "entregado") {
-      colorFondo = "#28a745"; // Verde fuerte
-      colorTexto = "#ffffff"; // Letra blanca para contraste
-    } else if (estado === "cancelado") {
-      colorFondo = "#dc3545"; // Rojo fuerte
-      colorTexto = "#ffffff"; // Letra blanca
-    }
+    if (estado === 'entregado') { colorFondo = '#28a745'; colorTexto = '#ffffff'; }
+    if (estado === 'cancelado') { colorFondo = '#dc3545'; colorTexto = '#ffffff'; }
 
-    // Si el estado coincide, aplicamos el cambio a toda la fila
     if (colorFondo) {
       sheet.getRange(row, 1, 1, numCols).setBackground(colorFondo);
       sheet.getRange(row, 1, 1, numCols).setFontColor(colorTexto);
     }
   }
+}
+
+// ── Utilidad ──────────────────────────────────────────────────
+function jsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
