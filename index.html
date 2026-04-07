@@ -10,6 +10,7 @@
 <meta property="og:type" content="website"/>
 <meta name="theme-color" content="#0f0a08"/>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="manifest" href="site.webmanifest">
@@ -1187,9 +1188,11 @@ function loadBebidas() {
     const safeName = b.nombre.replace(/'/g, "\\'");
     const safeImg  = (b.img || '').replace(/'/g, "\\'");
     d.innerHTML = `
-      <div class="con-img-wrap"${b.img ? ` style="background-image:url('${b.img}')"` : ''}>
+      <div class="con-img-wrap">
         ${b.img
-          ? `<img class="con-img" src="${b.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${b.nombre}"/>
+          ? `<img class="con-img" src="${b.img}" loading="lazy" decoding="async"
+               onload="this.parentElement.style.backgroundImage='url('+this.src+')'"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${b.nombre}"/>
              <div class="con-img-fall" style="display:none">${b.emoji || '🥤'}</div>`
           : `<div class="con-img-fall">${b.emoji || '🥤'}</div>`
         }
@@ -1263,9 +1266,11 @@ function loadMercado() {
       const safeImg  = (p.img || '').replace(/'/g, "\\'");
       const specs    = p.presentacion || p.specs || '';
       d.innerHTML = `
-        <div class="con-img-wrap"${p.img ? ` style="background-image:url('${p.img}')"` : ''}>
+        <div class="con-img-wrap">
           ${p.img
-            ? `<img class="con-img" src="${p.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${p.nombre}"/>
+            ? `<img class="con-img" src="${p.img}" loading="lazy" decoding="async"
+                 onload="this.parentElement.style.backgroundImage='url('+this.src+')'"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${p.nombre}"/>
                <div class="con-img-fall" style="display:none">${p.emoji || '🛒'}</div>`
             : `<div class="con-img-fall">${p.emoji || '🛒'}</div>`
           }

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fondo dorado -->
+  <circle cx="16" cy="16" r="16" fill="#F5A800"/>
+  <!-- Crust de pizza -->
+  <path d="M5.5 26.5 Q16 31.5 26.5 26.5 L27 27.5 Q16 33 5 27.5 Z" fill="#C05810"/>
+  <!-- Cuerpo de pizza (queso) -->
+  <path d="M16 5.5 L27 26 L5 26 Z" fill="#FFD740"/>
+  <!-- Mancha de salsa naranja -->
+  <ellipse cx="16" cy="20" rx="5.5" ry="4" fill="#E86820" opacity="0.75"/>
+  <!-- Topping rojo 1 -->
+  <circle cx="13.5" cy="19" r="2" fill="#CC1100"/>
+  <!-- Topping rojo 2 -->
+  <circle cx="19" cy="17" r="1.7" fill="#CC1100"/>
+  <!-- Topping verde -->
+  <circle cx="16.5" cy="22" r="1.5" fill="#228B22"/>
+  <!-- Contorno fino del triángulo -->
+  <path d="M16 5.5 L27 26 L5 26 Z" fill="none" stroke="#B8860B" stroke-width="0.5"/>
+</svg>
