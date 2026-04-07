@@ -801,6 +801,15 @@ const WA = '5355207586';         // ← Tu número de WhatsApp (solo dígitos)
 const NOMBRE_LOCAL = 'La Pizzería';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52j88VN-Z-Pf0HkqWQbSL1j43UvV4BBvBO6bM1fZ0NWi4HMys/exec';          // ← URL del Web App de Google Apps Script (ver apps-script.gs)
 
+// ── CONFIGURACIÓN DE ENVÍO (ajusta aquí cuando quieras) ───────
+const CFG_ENVIO = {
+  costo: 500,        // CUP — costo del domicilio por defecto
+  gratis_desde: 7000 // CUP — si el pedido supera este monto, envío gratis
+};
+
+// ── UTILIDAD MONEDA ────────────────────────────────────────────
+function _cup(n) { return Math.round(n).toLocaleString('es-CU') + ' CUP'; }
+
 // ── ESTADO GLOBAL ─────────────────────────────────────────────
 let aG = 'Todos';
 let curTab = 'juegos';
@@ -872,25 +881,38 @@ function setOrderType(t) {
 function applyHorarios() {
   if (typeof getEstadoHorario !== 'function') return;
   const e = getEstadoHorario();
+
+  // Si el carrito es 100% mercado → solo delivery disponible (sin recoger ni mesa)
+  const onlyMercado = cart.length > 0 && cart.every(x => x.seccion === 'mercado');
+
   const map = { delivery: e.deliveryActivo, recoger: e.recogerActivo, table: e.mesaActiva };
 
   ['delivery', 'recoger', 'table'].forEach(tipo => {
     const btn = document.getElementById('ot-' + tipo);
     if (!btn) return;
-    btn.disabled = !map[tipo];
+    if (onlyMercado && tipo !== 'delivery') {
+      btn.disabled = true;   // mercado-only: bloquear recoger y mesa
+    } else {
+      btn.disabled = !map[tipo];
+    }
   });
 
-  // Si el tipo actual está deshabilitado, cambiar al primero disponible
-  if (map[orderType] === false) {
+  // Si el tipo actual quedó deshabilitado, forzar delivery
+  if (onlyMercado && orderType !== 'delivery') {
+    setOrderType('delivery');
+  } else if (!onlyMercado && map[orderType] === false) {
     const valido = typeof getPrimerTipoValido === 'function' ? getPrimerTipoValido() : null;
     if (valido) setOrderType(valido);
   }
 
-  // Alerta si ninguna modalidad está disponible
+  // Alerta informativa
   const alertEl = document.getElementById('otype-alert');
   const hayAlguno = e.deliveryActivo || e.recogerActivo || e.mesaActiva;
   if (alertEl) {
-    if (!hayAlguno) {
+    if (onlyMercado) {
+      alertEl.textContent = '🛒 El Mercado solo admite pedidos con Delivery';
+      alertEl.style.display = 'block';
+    } else if (!hayAlguno) {
       alertEl.textContent = '⏰ Pedidos disponibles de 9:00 AM a 12:00 AM. Puedes seguir explorando el catálogo.';
       alertEl.style.display = 'block';
     } else if (!e.deliveryActivo) {
@@ -901,7 +923,7 @@ function applyHorarios() {
     }
   }
 
-  // Ocultar/mostrar botón WhatsApp si no hay ninguna opción
+  // Ocultar botón WhatsApp si no hay ninguna opción y hay productos
   const wappBtn = document.getElementById('cartWapp');
   if (wappBtn && !hayAlguno && cart.length > 0) {
     wappBtn.style.display = 'none';
@@ -915,7 +937,7 @@ function toggleCart(game, btn) {
     const defSize = game.sizes ? (game.sizes[1] || game.sizes[0]) : null;
     const unitPrice = defSize ? defSize.price : (game.price || 0);
     const size = defSize ? defSize.label : '';
-    cart.push({ t: game.t, type: 'pizza', unitPrice, price: '$' + unitPrice.toFixed(2), size, qty: 1 });
+    cart.push({ t: game.t, type: 'pizza', unitPrice, price: unitPrice.toFixed(0) + ' CUP', size, qty: 1 });
     if (btn) {
       btn.textContent = '✅ Agregado';
       btn.style.background = '#25D366';
@@ -958,7 +980,7 @@ function quickAddToCart(game, btn) {
     const defSize = game.sizes ? (game.sizes[1] || game.sizes[0]) : null;
     const unitPrice = defSize ? defSize.price : (game.price || 0);
     const size = defSize ? defSize.label : '';
-    cart.push({ t: game.t, type: 'pizza', unitPrice, price: '$' + unitPrice.toFixed(2), size, qty: 1 });
+    cart.push({ t: game.t, type: 'pizza', unitPrice, price: unitPrice.toFixed(0) + ' CUP', size, qty: 1 });
     btn.innerHTML = '✓'; btn.classList.add('in-cart');
     btn.classList.remove('cart-add-pop'); void btn.offsetWidth; btn.classList.add('cart-add-pop');
     if (navigator.vibrate) navigator.vibrate([40]);
@@ -983,7 +1005,7 @@ function addBebidaToCart(nombre, precio, img, btn) {
   const idx = cart.findIndex(x => x.t === nombre);
   if (idx === -1) {
     const unitPrice = parseFloat(precio);
-    cart.push({ t: nombre, type: 'bebida', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
+    cart.push({ t: nombre, type: 'bebida', unitPrice, price: unitPrice.toFixed(0) + ' CUP', img, qty: 1 });
     if (btn) {
       btn.textContent = '✅ Agregado';
       btn.style.background = '#25D366';
@@ -1006,7 +1028,7 @@ function _bebidaCartToggle(nombre, precio, img, btn) {
   const idx = cart.findIndex(x => x.t === nombre);
   if (idx === -1) {
     const unitPrice = parseFloat(precio);
-    cart.push({ t: nombre, type: 'bebida', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
+    cart.push({ t: nombre, type: 'bebida', unitPrice, price: unitPrice.toFixed(0) + ' CUP', img, qty: 1 });
     btn.textContent = '✓'; btn.classList.add('in-cart');
     btn.classList.remove('cart-add-pop'); void btn.offsetWidth; btn.classList.add('cart-add-pop');
     if (navigator.vibrate) navigator.vibrate([40]);
@@ -1109,7 +1131,7 @@ function openCart() {
           <div style="min-width:0;flex:1">
             <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.t}</div>
             ${item.size ? `<div style="font-size:10px;color:#888;margin-top:1px">${item.size}</div>` : ''}
-            <div style="font-size:10px;color:#777;margin-top:1px">$${unitPrice.toFixed(2)}/u · <span style="font-weight:800;color:${accentColor}">$${lineTotal.toFixed(2)}</span></div>
+            <div style="font-size:10px;color:#777;margin-top:1px">${_cup(unitPrice)}/u · <span style="font-weight:800;color:${accentColor}">${_cup(lineTotal)}</span></div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:6px">
@@ -1138,7 +1160,7 @@ function openCart() {
     const _buildSubtotal = (amount, color) => {
       const d = document.createElement('div');
       d.style.cssText = `text-align:right;padding:6px 4px 10px;font-size:11px;color:#666;font-weight:700;border-bottom:1px dashed #222;margin-bottom:10px`;
-      d.innerHTML = `Subtotal: <span style="color:${color};font-weight:900;font-size:13px">$${amount.toFixed(2)}</span>`;
+      d.innerHTML = `Subtotal: <span style="color:${color};font-weight:900;font-size:13px">${_cup(amount)}</span>`;
       return d;
     };
 
@@ -1172,13 +1194,28 @@ function openCart() {
       if (pzItems.length > 0) container.appendChild(_buildSubtotal(mktTotal, '#2ecc71'));
     }
 
+    // ── Costo de envío (solo delivery) ───────────────────────
+    let envioMonto = 0;
+    if (orderType === 'delivery') {
+      const gratis = grandTotal >= CFG_ENVIO.gratis_desde;
+      envioMonto   = gratis ? 0 : CFG_ENVIO.costo;
+      const envioDiv = document.createElement('div');
+      envioDiv.id = 'cart-envio-row';
+      envioDiv.style.cssText = `display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-top:1px dashed #333;margin-top:4px;font-size:11px;font-weight:700;color:#888`;
+      envioDiv.innerHTML = gratis
+        ? `<span>🚴 Envío a domicilio</span><span style="color:#4ade80;font-weight:900">¡GRATIS! <span style="font-size:9px;color:#666;font-weight:500">pedido ≥ ${_cup(CFG_ENVIO.gratis_desde)}</span></span>`
+        : `<span>🚴 Envío a domicilio</span><span style="color:#E8A020;font-weight:900">${_cup(CFG_ENVIO.costo)}</span>`;
+      container.appendChild(envioDiv);
+    }
+
     // ── Total general ─────────────────────────────────────────
+    const totalFinal = grandTotal + envioMonto;
     const totalDiv = document.createElement('div');
     const isMixed = pzItems.length > 0 && mktItems.length > 0;
     totalDiv.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:${isMixed ? '12px 4px 8px' : '10px 4px'};border-top:1px solid rgba(255,255,255,.08);margin-top:${isMixed ? '0' : '4px'}">
         <span style="font-size:12px;color:#666;font-weight:700;letter-spacing:.5px">${isMixed ? 'TOTAL GENERAL' : 'TOTAL ESTIMADO'}</span>
-        <span style="font-size:16px;font-weight:900;color:#fff">$${grandTotal.toFixed(2)}</span>
+        <span style="font-size:16px;font-weight:900;color:#fff">${_cup(totalFinal)}</span>
       </div>`;
     container.appendChild(totalDiv);
     wappBtn.style.display = 'block';
@@ -1249,13 +1286,20 @@ async function confirmOrder() {
   btn.classList.add('loading');
   btn.innerHTML = '<span style="font-size:18px;animation:firePulse 1s infinite">⏳</span> Guardando pedido…';
 
-  // Calcular total
+  // Calcular subtotal de productos
   let total = 0;
   cart.forEach(item => {
     const qty = item.qty || 1;
     const unitPrice = item.unitPrice || parseFloat((item.price || '0').replace(/[^0-9.]/g, '')) || 0;
     total += qty * unitPrice;
   });
+
+  // Costo de envío (solo delivery)
+  let envioCosto = 0;
+  if (orderType === 'delivery') {
+    envioCosto = total >= CFG_ENVIO.gratis_desde ? 0 : CFG_ENVIO.costo;
+  }
+  const totalConEnvio = total + envioCosto;
 
   // Construir lista agrupada por sección
   const _pzItems  = cart.filter(x => x.seccion !== 'mercado');
@@ -1266,7 +1310,7 @@ async function confirmOrder() {
     const qty = item.qty || 1;
     const up  = item.unitPrice || parseFloat((item.price || '0').replace(/[^0-9.]/g, '')) || 0;
     const qtyStr = qty > 1 ? `${qty}x ` : '';
-    return `  ${_n++}. ${qtyStr}${item.t}${item.size ? ' (' + item.size + ')' : ''} — $${(qty * up).toFixed(2)}\n`;
+    return `  ${_n++}. ${qtyStr}${item.t}${item.size ? ' (' + item.size + ')' : ''} — ${_cup(qty * up)}\n`;
   };
   if (_pzItems.length > 0) {
     productosStr += `🍕 *Pizzería:*\n`;
@@ -1291,8 +1335,8 @@ async function confirmOrder() {
         mesa: mesa || '',
         direccion: dir || '',
         referencia: document.getElementById('of-ref')?.value?.trim() || '',
-        productos: cart.map(x => { const qty = x.qty||1; const up = x.unitPrice||parseFloat((x.price||'0').replace(/[^0-9.]/g,''))||0; return (qty>1?qty+'x ':'')+x.t+(x.size?' ('+x.size+')':'')+' $'+(qty*up).toFixed(2); }).join('; '),
-        total: total.toFixed(2),
+        productos: cart.map(x => { const qty = x.qty||1; const up = x.unitPrice||parseFloat((x.price||'0').replace(/[^0-9.]/g,''))||0; return (qty>1?qty+'x ':'')+x.t+(x.size?' ('+x.size+')':'')+' '+_cup(qty*up); }).join('; '),
+        total: Math.round(totalConEnvio),
         fecha: now.toLocaleDateString('es-CU'),
         hora: now.toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
         estado: 'Pendiente'
@@ -1329,7 +1373,13 @@ async function confirmOrder() {
     if (nombre) msg += `👤 Nombre: ${nombre}\n`;
   }
 
-  msg += `\n${productosStr}\n\n💰 *Total aprox: $${total.toFixed(2)}*`;
+  if (orderType === 'delivery' && envioCosto > 0) {
+    msg += `\n${productosStr}\n\n🚴 Envío: ${_cup(envioCosto)}\n💰 *Total: ${_cup(totalConEnvio)}*`;
+  } else if (orderType === 'delivery') {
+    msg += `\n${productosStr}\n\n🚴 Envío: ¡GRATIS!\n💰 *Total: ${_cup(totalConEnvio)}*`;
+  } else {
+    msg += `\n${productosStr}\n\n💰 *Total: ${_cup(total)}*`;
+  }
 
   // Mostrar número de pedido en el modal
   const container = document.getElementById('cartItems');
@@ -1384,7 +1434,7 @@ function loadBebidas() {
       </div>
       <div class="con-info" style="cursor:pointer" onclick="openBebidaRating('${safeName}','${b.emoji || '🥤'}')">
         <div class="con-name">${b.nombre}</div>
-        <div class="con-price">$${parseFloat(b.precio).toFixed(2)}</div>
+        <div class="con-price">${_cup(parseFloat(b.precio))}</div>
         <div style="font-size:10px;color:#FFD700;font-weight:700;margin-top:3px;min-height:14px" data-cardrating="${b.nombre}"></div>
       </div>`;
     cg.appendChild(d);
@@ -1393,7 +1443,7 @@ function loadBebidas() {
 
 function compartirBebida(nombre, precio, e) {
   e.stopPropagation();
-  const msg = `🥤 *${nombre}*\n💰 $${parseFloat(precio).toFixed(2)}\n\n📲 Pedidos: wa.me/${WA}`;
+  const msg = `🥤 *${nombre}*\n💰 ${_cup(parseFloat(precio))}\n\n📲 Pedidos: wa.me/${WA}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
@@ -1465,7 +1515,7 @@ function loadMercado() {
         </div>
         <div class="con-info">
           <div class="con-name">${p.nombre}</div>
-          <div class="con-price">$${parseFloat(p.precio).toFixed(2)}</div>
+          <div class="con-price">${_cup(parseFloat(p.precio))}</div>
           ${specs ? `<div class="con-specs">${specs}</div>` : ''}
           ${p.descripcion ? `<div class="con-desc">${p.descripcion}</div>` : ''}
         </div>`;
@@ -1565,7 +1615,7 @@ function _mercadoCartToggle(nombre, precio, img, btn) {
   if (idx >= 0) {
     cart.splice(idx, 1);
   } else {
-    cart.push({ t: nombre, type: 'mercado', seccion: 'mercado', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
+    cart.push({ t: nombre, type: 'mercado', seccion: 'mercado', unitPrice, price: unitPrice.toFixed(0) + ' CUP', img, qty: 1 });
   }
   updateCartBtn();
   render();
@@ -1670,14 +1720,14 @@ function pedir(game, e) {
 
 function compartir(game, e) {
   e.stopPropagation();
-  const msg = `🍕 *${game.t}*\n🎯 ${game.g} · ⭐${game.r}/5\n💰 Desde $${game.price.toFixed(2)}\n\n📲 Pedidos: wa.me/${WA}`;
+  const msg = `🍕 *${game.t}*\n🎯 ${game.g} · ⭐${game.r}/5\n💰 Desde ${_cup(game.price)}\n\n📲 Pedidos: wa.me/${WA}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 function shareAll() {
   const list = filtered();
   const hdr = `🍕 *Menú — ${NOMBRE_LOCAL}*\n\n`;
-  const body = list.map((g, i) => `${i + 1}. ${g.t} — Desde $${g.price.toFixed(2)}`).join('\n');
+  const body = list.map((g, i) => `${i + 1}. ${g.t} — Desde ${_cup(g.price)}`).join('\n');
   const footer = `\n\n📲 Pedidos: wa.me/${WA}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(hdr + body + footer)}`, '_blank');
 }
@@ -1799,18 +1849,18 @@ function openGameSheet(game) {
     game.sizes.forEach((sz) => {
       const b = document.createElement('button');
       b.className = 'size-btn' + (sz === selectedSize ? ' on' : '');
-      b.textContent = `${sz.label} ${sz.cm}cm · $${sz.price.toFixed(2)}`;
+      b.textContent = `${sz.label} ${sz.cm}cm · ${_cup(sz.price)}`;
       b.onclick = () => {
         selectedSize = sz;
         sizeBtns.querySelectorAll('.size-btn').forEach(x => x.classList.remove('on'));
         b.classList.add('on');
-        document.getElementById('gsPrice').textContent = `$${sz.price.toFixed(2)}`;
+        document.getElementById('gsPrice').textContent = _cup(sz.price);
         // Si ya está en carrito, actualizar tamaño y precio en tiempo real
         const idx = cart.findIndex(x => x.t === game.t);
         if (idx !== -1) {
           cart[idx].size = sz.label;
           cart[idx].unitPrice = sz.price;
-          cart[idx].price = '$' + sz.price.toFixed(2);
+          cart[idx].price = sz.price.toFixed(0) + ' CUP';
           updateCartBtn();
           _syncCartBtns();
         }
@@ -1819,10 +1869,10 @@ function openGameSheet(game) {
       sizeBtns.appendChild(b);
     });
 
-    document.getElementById('gsPrice').textContent = `$${selectedSize.price.toFixed(2)}`;
+    document.getElementById('gsPrice').textContent = _cup(selectedSize.price);
   } else {
     sizeWrap.style.display = 'none';
-    document.getElementById('gsPrice').textContent = game.price ? `$${game.price.toFixed(2)}` : '';
+    document.getElementById('gsPrice').textContent = game.price ? _cup(game.price) : '';
   }
 
   // Botón carrito
@@ -1832,12 +1882,12 @@ function openGameSheet(game) {
     if (idx === -1) {
       const unitPrice = selectedSize ? selectedSize.price : (game.price || 0);
       const size = selectedSize ? selectedSize.label : '';
-      cart.push({ t: game.t, type: 'pizza', unitPrice, price: '$' + unitPrice.toFixed(2), size, qty: modalQty });
+      cart.push({ t: game.t, type: 'pizza', unitPrice, price: unitPrice.toFixed(0) + ' CUP', size, qty: modalQty });
     } else {
       // Actualizar tamaño, precio y cantidad
       const unitPrice = selectedSize ? selectedSize.price : (cart[idx].unitPrice || 0);
       cart[idx].unitPrice = unitPrice;
-      cart[idx].price = '$' + unitPrice.toFixed(2);
+      cart[idx].price = unitPrice.toFixed(0) + ' CUP';
       if (selectedSize) cart[idx].size = selectedSize.label;
       cart[idx].qty = modalQty;
     }
@@ -1984,7 +2034,7 @@ function render() {
     card.style.setProperty('--gcol-border', glowCfg.border);
     card.style.setProperty('--gcol-glow-soft', glowCfg.glow);
 
-    const priceDisplay = game.price ? 'Desde $' + game.price.toFixed(2) : '';
+    const priceDisplay = game.price ? 'Desde ' + _cup(game.price) : '';
     const inCart = cart.some(x => x.t === game.t);
     const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
     const gameJson = JSON.stringify(game).replace(/"/g, '&quot;');
@@ -2151,7 +2201,7 @@ function renderCarousels() {
 
       const isFeat = idx < 2;
       const glow = getCardGlowByRating(g.r);
-      const priceLabel = g.price ? `$${g.price.toFixed(2)}` : '';
+      const priceLabel = g.price ? _cup(g.price) : '';
       const inCart = cart.some(x => x.t === g.t);
 
       const card = document.createElement('div');
