@@ -60,8 +60,8 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 #tab-bebidas.on .bebidas-outline{display:none}
 #tab-bebidas.off .bebidas-fill{display:none}
 #tab-bebidas.off .bebidas-outline{display:block}
-#tab-noticias.on svg{stroke:#e6392e}
-#tab-noticias.off svg{stroke:#F5EDE4}
+#tab-mercado.on svg{stroke:#e6392e}
+#tab-mercado.off svg{stroke:#F5EDE4}
 @keyframes springback{0%{transform:scale(.82)}60%{transform:scale(1.18)}80%{transform:scale(.95)}100%{transform:scale(1)}}
 .navtab-spring svg,.navtab-spring img{animation:springback .35s cubic-bezier(.36,.07,.19,.97) forwards}
 
@@ -134,9 +134,16 @@ header{background:rgba(15,10,8,.6);backdrop-filter:blur(20px);-webkit-backdrop-f
 .con-desc,.con-specs,.con-btns,.con-stock-si,.con-stock-no{display:none}
 .con-loading{text-align:center;padding:40px;color:#555;font-size:14px}
 
-/* ── WRAPPER DE IMAGEN BEBIDA ── */
+/* ── WRAPPER DE IMAGEN BEBIDA / MERCADO ── */
 .con-img-wrap{position:relative;display:block;background-size:cover;background-position:center;overflow:hidden}
 .con-img-wrap::before{content:'';position:absolute;inset:-8px;background:inherit;filter:blur(14px) brightness(.35);transform:scale(1.08)}
+
+/* ── MERCADO: FILTROS DE CATEGORÍA ── */
+.mcat-row{display:flex;gap:8px;padding:12px 12px 8px;overflow-x:auto;scrollbar-width:none}
+.mcat-row::-webkit-scrollbar{display:none}
+.mcat-btn{flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#ccc;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s,color .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.mcat-btn.active{background:#E8A020;color:#000;border-color:#E8A020}
+.mcat-badge{position:absolute;top:8px;left:8px;z-index:9;background:rgba(0,0,0,.72);border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800;color:#E8A020;letter-spacing:.3px;pointer-events:none}
 .con-bebida-cart-btn{position:absolute;bottom:8px;right:8px;z-index:8;background:#D62828;border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.55);transition:background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
 .con-bebida-cart-btn:active{transform:scale(.84)}
 .con-bebida-cart-btn.in-cart{background:#25D366}
@@ -449,15 +456,14 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     <span>Menú</span>
   </button>
 
-  <!-- TAB: NOVEDADES (badge-percent icon) -->
-  <button class="navtab off" id="tab-noticias" onclick="setTab('noticias')">
+  <!-- TAB: MERCADO (shopping bag icon) -->
+  <button class="navtab off" id="tab-mercado" onclick="setTab('mercado')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-      <path d="m15 9-6 6"/>
-      <path d="M9 9h.01"/>
-      <path d="M15 15h.01"/>
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
     </svg>
-    <span>Novedades</span>
+    <span>Mercado</span>
   </button>
 
   <!-- TAB: BEBIDAS (cup icon) -->
@@ -597,9 +603,11 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     </div>
   </div>
 
-  <!-- ── SECCIÓN NOVEDADES ── -->
-  <div id="sec-noticias" style="display:none">
-    <div id="contenedor-noticias"></div>
+  <!-- ── SECCIÓN MERCADO ── -->
+  <div id="sec-mercado" style="display:none">
+    <div class="mcat-row" id="mercado-cats"></div>
+    <div class="con-loading" id="mercado-loading">⏳ Cargando mercado…</div>
+    <div id="mercadogrid" class="con-grid" style="padding:0 10px 80px"></div>
   </div>
 
   <!-- ── SECCIÓN BEBIDAS ── -->
@@ -910,7 +918,7 @@ function openCart() {
       total += lineTotal;
       const thumb = imgSrc
         ? `<img src="${imgSrc}" style="width:48px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
-        : `<div style="width:48px;height:48px;border-radius:9px;background:${gameData && gameData.col ? gameData.col : '#1a1208'};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">${item.type === 'bebida' ? '🥤' : '🍕'}</div>`;
+        : `<div style="width:48px;height:48px;border-radius:9px;background:${gameData && gameData.col ? gameData.col : '#1a1208'};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">${item.type === 'mercado' ? '🛒' : item.type === 'bebida' ? '🥤' : '🍕'}</div>`;
       div.innerHTML = `
         <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0">
           ${thumb}
@@ -986,16 +994,35 @@ async function confirmOrder() {
   btn.classList.add('loading');
   btn.innerHTML = '<span style="font-size:18px;animation:firePulse 1s infinite">⏳</span> Guardando pedido…';
 
-  // Calcular total y lista (con cantidades)
+  // Calcular total
   let total = 0;
-  const productosStr = cart.map((item, i) => {
+  cart.forEach(item => {
     const qty = item.qty || 1;
     const unitPrice = item.unitPrice || parseFloat((item.price || '0').replace(/[^0-9.]/g, '')) || 0;
-    const lineTotal = qty * unitPrice;
-    total += lineTotal;
+    total += qty * unitPrice;
+  });
+
+  // Construir lista agrupada por sección
+  const _pzItems  = cart.filter(x => x.seccion !== 'mercado');
+  const _mktItems = cart.filter(x => x.seccion === 'mercado');
+  let productosStr = '';
+  let _n = 1;
+  const _fmtLine = (item) => {
+    const qty = item.qty || 1;
+    const up  = item.unitPrice || parseFloat((item.price || '0').replace(/[^0-9.]/g, '')) || 0;
     const qtyStr = qty > 1 ? `${qty}x ` : '';
-    return `${i + 1}. ${qtyStr}${item.t}${item.size ? ' (' + item.size + ')' : ''} — $${lineTotal.toFixed(2)}`;
-  }).join('\n');
+    return `  ${_n++}. ${qtyStr}${item.t}${item.size ? ' (' + item.size + ')' : ''} — $${(qty * up).toFixed(2)}\n`;
+  };
+  if (_pzItems.length > 0) {
+    productosStr += `🍕 *Pizzería:*\n`;
+    _pzItems.forEach(item => { productosStr += _fmtLine(item); });
+  }
+  if (_mktItems.length > 0) {
+    if (_pzItems.length > 0) productosStr += '\n';
+    productosStr += `🛒 *Mercado:*\n`;
+    _mktItems.forEach(item => { productosStr += _fmtLine(item); });
+  }
+  productosStr = productosStr.trimEnd();
 
   // Intentar guardar en Google Sheets
   let orderNum = null;
@@ -1113,24 +1140,112 @@ function compartirBebida(nombre, precio, e) {
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
+// ── MERCADO ───────────────────────────────────────────────────
+let _mercadoLoaded = false;
+let _mercadoCatActual = 'Todos';
+
+function loadMercado() {
+  if (typeof MERCADO === 'undefined') return;
+  const grid    = document.getElementById('mercadogrid');
+  const loading = document.getElementById('mercado-loading');
+  const catRow  = document.getElementById('mercado-cats');
+
+  if (!_mercadoLoaded) {
+    _mercadoLoaded = true;
+    loading.style.display = 'none';
+
+    // Botones de categoría dinámicos
+    const cats = ['Todos', ...new Set(MERCADO.map(p => p.categoria).filter(Boolean))];
+    catRow.innerHTML = cats.map(c =>
+      `<button class="mcat-btn${c === 'Todos' ? ' active' : ''}" onclick="filterMercado('${c}')">${c}</button>`
+    ).join('');
+
+    // Renderizar tarjetas
+    MERCADO.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'con-card';
+      d.dataset.cat = p.categoria || '';
+      const disponible = p.disponible !== false;
+      const inCart  = cart.some(x => x.t === p.nombre && x.seccion === 'mercado');
+      const safeName = p.nombre.replace(/'/g, "\\'");
+      const safeImg  = (p.img || '').replace(/'/g, "\\'");
+      d.innerHTML = `
+        <div class="con-img-wrap"${p.img ? ` style="background-image:url('${p.img}')"` : ''}>
+          ${p.img
+            ? `<img class="con-img" src="${p.img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${p.nombre}"/>
+               <div class="con-img-fall" style="display:none">${p.emoji || '🛒'}</div>`
+            : `<div class="con-img-fall">${p.emoji || '🛒'}</div>`
+          }
+          <div class="mcat-badge">${p.categoria}</div>
+          <button class="con-bebida-cart-btn${inCart ? ' in-cart' : ''}" data-mname="${p.nombre}"
+            ${!disponible ? 'disabled' : ''}
+            onclick="event.stopPropagation();_mercadoCartToggle('${safeName}','${p.precio}','${safeImg}',this)">
+            ${inCart ? '✓' : CART_SVG}
+          </button>
+        </div>
+        <div class="con-info">
+          <div class="con-name">${p.nombre}</div>
+          <div class="con-price">$${parseFloat(p.precio).toFixed(2)}</div>
+          ${p.specs ? `<div style="font-size:10px;color:#777;margin-top:2px">${p.specs}</div>` : ''}
+        </div>`;
+      grid.appendChild(d);
+    });
+  }
+
+  _syncMercadoBtns();
+  filterMercado(_mercadoCatActual);
+}
+
+function filterMercado(cat) {
+  _mercadoCatActual = cat;
+  document.querySelectorAll('#mercado-cats .mcat-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === cat);
+  });
+  document.querySelectorAll('#mercadogrid .con-card').forEach(c => {
+    c.style.display = (cat === 'Todos' || c.dataset.cat === cat) ? '' : 'none';
+  });
+}
+
+function _mercadoCartToggle(nombre, precio, img, btn) {
+  const idx = cart.findIndex(x => x.t === nombre && x.seccion === 'mercado');
+  const unitPrice = parseFloat(precio);
+  if (idx >= 0) {
+    cart.splice(idx, 1);
+  } else {
+    cart.push({ t: nombre, type: 'mercado', seccion: 'mercado', unitPrice, price: '$' + unitPrice.toFixed(2), img, qty: 1 });
+  }
+  updateCartBtn();
+  render();
+  _syncMercadoBtns();
+}
+
+function _syncMercadoBtns() {
+  document.querySelectorAll('.con-bebida-cart-btn[data-mname]').forEach(b => {
+    const nombre = b.dataset.mname;
+    const inCart = cart.some(x => x.t === nombre && x.seccion === 'mercado');
+    b.classList.toggle('in-cart', inCart);
+    b.innerHTML = inCart ? '✓' : CART_SVG;
+  });
+}
+
 // ── TABS ──────────────────────────────────────────────────────
 function setTab(t, pushState = true) {
   if (pushState) history.pushState({ tab: t }, '');
   curTab = t;
-  ['juegos', 'noticias', 'bebidas'].forEach(id => {
+  ['juegos', 'mercado', 'bebidas'].forEach(id => {
     const btn = document.getElementById('tab-' + id);
-    btn.className = 'navtab ' + (t === id ? 'on' : 'off');
+    if (btn) btn.className = 'navtab ' + (t === id ? 'on' : 'off');
   });
   const active = document.getElementById('tab-' + t);
-  active.classList.add('navtab-spring');
-  setTimeout(() => active.classList.remove('navtab-spring'), 350);
+  if (active) { active.classList.add('navtab-spring'); setTimeout(() => active.classList.remove('navtab-spring'), 350); }
 
-  document.getElementById('sec-juegos').style.display = t === 'juegos' ? 'block' : 'none';
-  document.getElementById('sec-bebidas').style.display = t === 'bebidas' ? 'block' : 'none';
-  document.getElementById('sec-noticias').style.display = t === 'noticias' ? 'block' : 'none';
-  document.getElementById('si').style.display = t === 'juegos' ? 'block' : 'none';
+  document.getElementById('sec-juegos').style.display   = t === 'juegos'   ? 'block' : 'none';
+  document.getElementById('sec-bebidas').style.display  = t === 'bebidas'  ? 'block' : 'none';
+  document.getElementById('sec-mercado').style.display  = t === 'mercado'  ? 'block' : 'none';
+  document.getElementById('si').style.display           = t === 'juegos'   ? 'block' : 'none';
 
   if (t === 'bebidas') loadBebidas();
+  if (t === 'mercado') loadMercado();
 }
 
 // ── BÚSQUEDA ──────────────────────────────────────────────────
@@ -2252,7 +2367,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<script src="noticias.js"></script>
+<script src="mercado.js"></script>
 <script src="bebidas.js"></script>
 
 </body>
