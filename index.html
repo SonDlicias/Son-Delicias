@@ -399,10 +399,13 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 .card-agotada .cc-img img{opacity:.42;filter:grayscale(.5)}
 .card-agotada .bped,.card-agotada .cc-add{opacity:.38;cursor:not-allowed;background:#555 !important;pointer-events:none;color:#999 !important;border-color:transparent !important}
 .agotada-tag{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.78);border:1px solid rgba(255,100,100,.4);color:#ff8080;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;z-index:7;letter-spacing:.3px;pointer-events:none}
+#inv-toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1e1e;border:1px solid #444;color:#eee;font-size:13px;font-weight:600;padding:10px 18px;border-radius:24px;z-index:9999;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.55)}
+#inv-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .inv-loading{font-size:11px;color:#555;text-align:center;padding:8px;letter-spacing:.3px}
 </style>
 </head>
 <body>
+<div id="inv-toast"></div>
 
 <!-- ═══════════════════════════════════════════════════════════
      HEADER
@@ -1960,6 +1963,100 @@ function getInventoryState(nombre) {
   return inventoryMap[nombre.toLowerCase().trim()] || 'Disponible';
 }
 
+// ── TOAST ─────────────────────────────────────────────────────
+let _toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('inv-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── POLLING SILENCIOSO (cada 90 s) ────────────────────────────
+async function _pollInventory() {
+  if (!SCRIPT_URL) return;
+  try {
+    const res  = await fetch(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    if (!data || !Array.isArray(data)) return;
+
+    let changed = false;
+    data.forEach(row => {
+      if (!row.nombre || !row.estado) return;
+      const key      = row.nombre.toLowerCase().trim();
+      const newState = row.estado;
+      if (inventoryMap[key] !== newState) {
+        inventoryMap[key] = newState;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      render();
+      showToast('🔄 El menú fue actualizado');
+    }
+  } catch (_) {}
+}
+
+async function _pollMercado() {
+  if (!_mercadoLoaded) return;
+  try {
+    // Forzar bypass de caché
+    _mercadoMemCache = null;
+    _mercadoMemTs    = 0;
+    try { localStorage.removeItem(MERCADO_CACHE_KEY); } catch (_) {}
+
+    const productos = await fetchMercado();
+    _patchMercadoUI(productos);
+  } catch (_) {}
+}
+
+function _patchMercadoUI(productos) {
+  const prodMap = new Map(productos.map(p => [p.nombre.toLowerCase().trim(), p]));
+  let changed = false;
+
+  document.querySelectorAll('#mercadogrid .con-card').forEach(card => {
+    const btn = card.querySelector('.con-bebida-cart-btn[data-mname]');
+    if (!btn) return;
+    const prod = prodMap.get(btn.dataset.mname.toLowerCase().trim());
+    if (!prod) return;
+
+    const debeEstarDeshabilitado = !prod.disponible;
+    const estaDeshabilitado      = btn.disabled;
+
+    if (debeEstarDeshabilitado === estaDeshabilitado) return;
+
+    // Cambió el estado → actualizar quirúrgicamente
+    changed = true;
+    btn.disabled = debeEstarDeshabilitado;
+
+    if (debeEstarDeshabilitado) {
+      card.classList.add('card-agotada');
+      if (!card.querySelector('.agotada-tag')) {
+        const tag = document.createElement('div');
+        tag.className = 'agotada-tag';
+        tag.textContent = 'Agotado';
+        const wrap = card.querySelector('.con-img-wrap');
+        if (wrap) wrap.appendChild(tag);
+      }
+    } else {
+      card.classList.remove('card-agotada');
+      const tag = card.querySelector('.agotada-tag');
+      if (tag) tag.remove();
+    }
+  });
+
+  if (changed) showToast('🔄 El mercado fue actualizado');
+}
+
+function _startPolling() {
+  const INTERVAL = 90 * 1000; // 90 segundos
+  setInterval(_pollInventory, INTERVAL);
+  setInterval(_pollMercado,   INTERVAL);
+}
+
 // ══════════════════════════════════════════════════════════════
 //  SISTEMA DE VALORACIONES ANÓNIMAS
 // ══════════════════════════════════════════════════════════════
@@ -2364,6 +2461,7 @@ initHero();
 render();
 loadInventory();
 loadRatings().then(() => refreshRatingsUI());
+_startPolling();
 
 </script>
 
