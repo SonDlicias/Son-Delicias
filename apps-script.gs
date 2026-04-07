@@ -3,6 +3,7 @@ const PEDIDOS_SHEET      = 'Pedidos';
 const INVENTARIO_SHEET   = 'Inventario';
 const VALORACIONES_SHEET = 'Valoraciones';
 const NOVEDADES_SHEET    = 'Novedades';
+const MERCADO_SHEET      = 'Mercado';
 
 // ── GET: devuelve inventario, valoraciones o número de pedido siguiente ──
 function doGet(e) {
@@ -11,6 +12,7 @@ function doGet(e) {
   if (action === 'inventory') return getInventory();
   if (action === 'ratings')   return getRatings();
   if (action === 'noticias')  return getNoticias();
+  if (action === 'mercado')   return getMercado();
   if (action === 'comments')  return getComments(
     e.parameter.producto || '',
     parseInt(e.parameter.offset) || 0,
@@ -168,6 +170,65 @@ function getNoticias() {
         tipo     : idx.tipo      >= 0 ? r[idx.tipo].toString().trim().toLowerCase() : 'aviso',
         imagen   : idx.imagen    >= 0 ? r[idx.imagen].toString().trim()    : '',
         wapp     : idx.wapp      >= 0 ? r[idx.wapp].toString().trim()      : ''
+      });
+    }
+    return jsonResponse(result);
+  } catch (err) {
+    return jsonResponse([]);
+  }
+}
+
+// ── Devuelve productos desde la hoja "Mercado" ────────────────
+function getMercado() {
+  try {
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    let sheet   = ss.getSheetByName(MERCADO_SHEET);
+
+    // Si la hoja no existe, la crea con cabeceras de ejemplo
+    if (!sheet) {
+      sheet = ss.insertSheet(MERCADO_SHEET);
+      sheet.appendRow(['Nombre', 'Precio', 'Presentacion', 'Categoria', 'Emoji', 'Imagen', 'Disponible']);
+      sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
+      sheet.setFrozenRows(1);
+      // Fila de ejemplo
+      sheet.appendRow(['Azúcar Refino', 1.50, '1 lb', 'Alimentos', '🍬', '', 'Si']);
+      return jsonResponse([]);
+    }
+
+    if (sheet.getLastRow() < 2) return jsonResponse([]);
+
+    const rows    = sheet.getDataRange().getValues();
+    const headers = rows[0].map(h => h.toString().toLowerCase().trim());
+    const col = {
+      nombre      : headers.indexOf('nombre'),
+      precio      : headers.indexOf('precio'),
+      presentacion: headers.indexOf('presentacion'),
+      categoria   : headers.indexOf('categoria'),
+      emoji       : headers.indexOf('emoji'),
+      imagen      : headers.indexOf('imagen'),
+      disponible  : headers.indexOf('disponible')
+    };
+
+    if (col.nombre < 0 || col.precio < 0) return jsonResponse([]);
+
+    const result = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const nombre = col.nombre >= 0 ? r[col.nombre].toString().trim() : '';
+      if (!nombre) continue;
+
+      const disponible = col.disponible >= 0
+        ? r[col.disponible].toString().trim().toLowerCase() !== 'no'
+        : true;
+
+      result.push({
+        nombre      : nombre,
+        precio      : parseFloat(r[col.precio]) || 0,
+        presentacion: col.presentacion >= 0 ? r[col.presentacion].toString().trim() : '',
+        categoria   : col.categoria   >= 0 ? r[col.categoria].toString().trim()   : 'General',
+        emoji       : col.emoji       >= 0 ? r[col.emoji].toString().trim()       : '🛒',
+        img         : col.imagen      >= 0 ? r[col.imagen].toString().trim()      : '',
+        disponible  : disponible
       });
     }
     return jsonResponse(result);

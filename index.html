@@ -1145,30 +1145,47 @@ let _mercadoLoaded = false;
 let _mercadoCatActual = 'Todos';
 
 function loadMercado() {
-  if (typeof MERCADO === 'undefined') return;
+  if (typeof fetchMercado !== 'function') return;
   const grid    = document.getElementById('mercadogrid');
   const loading = document.getElementById('mercado-loading');
   const catRow  = document.getElementById('mercado-cats');
 
-  if (!_mercadoLoaded) {
+  if (_mercadoLoaded) {
+    _syncMercadoBtns();
+    filterMercado(_mercadoCatActual);
+    return;
+  }
+
+  // Mostrar skeleton mientras carga
+  loading.style.display = 'block';
+  grid.innerHTML = '';
+  catRow.innerHTML = '';
+
+  fetchMercado().then(productos => {
     _mercadoLoaded = true;
     loading.style.display = 'none';
 
+    if (!productos || productos.length === 0) {
+      grid.innerHTML = '<p style="color:#aaa;text-align:center;padding:30px">El mercado está vacío por ahora.</p>';
+      return;
+    }
+
     // Botones de categoría dinámicos
-    const cats = ['Todos', ...new Set(MERCADO.map(p => p.categoria).filter(Boolean))];
+    const cats = ['Todos', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
     catRow.innerHTML = cats.map(c =>
       `<button class="mcat-btn${c === 'Todos' ? ' active' : ''}" onclick="filterMercado('${c}')">${c}</button>`
     ).join('');
 
     // Renderizar tarjetas
-    MERCADO.forEach(p => {
+    productos.forEach(p => {
       const d = document.createElement('div');
       d.className = 'con-card';
       d.dataset.cat = p.categoria || '';
       const disponible = p.disponible !== false;
-      const inCart  = cart.some(x => x.t === p.nombre && x.seccion === 'mercado');
+      const inCart   = cart.some(x => x.t === p.nombre && x.seccion === 'mercado');
       const safeName = p.nombre.replace(/'/g, "\\'");
       const safeImg  = (p.img || '').replace(/'/g, "\\'");
+      const specs    = p.presentacion || p.specs || '';
       d.innerHTML = `
         <div class="con-img-wrap"${p.img ? ` style="background-image:url('${p.img}')"` : ''}>
           ${p.img
@@ -1186,14 +1203,17 @@ function loadMercado() {
         <div class="con-info">
           <div class="con-name">${p.nombre}</div>
           <div class="con-price">$${parseFloat(p.precio).toFixed(2)}</div>
-          ${p.specs ? `<div style="font-size:10px;color:#777;margin-top:2px">${p.specs}</div>` : ''}
+          ${specs ? `<div style="font-size:10px;color:#aaa;margin-top:2px">${specs}</div>` : ''}
         </div>`;
       grid.appendChild(d);
     });
-  }
 
-  _syncMercadoBtns();
-  filterMercado(_mercadoCatActual);
+    _syncMercadoBtns();
+    filterMercado(_mercadoCatActual);
+  }).catch(() => {
+    loading.style.display = 'none';
+    grid.innerHTML = '<p style="color:#aaa;text-align:center;padding:30px">Error al cargar el mercado. Intenta de nuevo.</p>';
+  });
 }
 
 function filterMercado(cat) {
