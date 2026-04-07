@@ -1421,6 +1421,8 @@ async function confirmOrder() {
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
+      keepalive: true,
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(payload)
     }).catch(e => console.warn('Sheets no disponible:', e));
   }
