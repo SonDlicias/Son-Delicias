@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "zVDaAcn6ypgojDpVC3XA8"
+uri = "file://GUIA-GOOGLE-SHEETS.md"
+type = "text"
+title = "Guía para llenar las Hojas de Google — Son Delicias"
