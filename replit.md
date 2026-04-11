@@ -9,7 +9,7 @@ PWA estática mobile-first para menú digital y pedidos online. HTML/JS/CSS puro
 - `bebidas.js` — catálogo de bebidas (array `BEBIDAS`)
 - `mercado.js` — productos del mercado (fetch dinámico desde Sheets + fallback local)
 - `apps-script.gs` — backend en Google Apps Script (referencia local, se despliega en Google)
-- `sw.js` — Service Worker PWA (versión actual: `pizzeria-v5.1.0`)
+- `sw.js` — Service Worker PWA (versión actual: `pizzeria-v6.0.0`)
 - `site.webmanifest` — manifest de la app instalable
 
 ## Configuración importante
@@ -35,9 +35,11 @@ v5 → v5.0 → v5.0.0 → v5.0.1 → ... → v5.1 → v5.1.0 → v5.1.1 → ...
 ```
 
 ## Funcionalidades implementadas
-- Hero auto-slide con pizzas destacadas (`featured: true`)
-- Carruseles por categoría + vista grid
-- Cards con imagen, precio, badge, estado de inventario
+- Hero auto-slide con pizzas destacadas (`featured: true`) + hero dinámico desde hoja "Hero" en Sheets
+- Carruseles por categoría + vista grid con jerarquía de productos (ancla/destacado/normal)
+- Cards con imagen, precio, badge, estado de inventario, badges comerciales, auto-labels, urgencia
+- Sistema comercial editable desde Sheets: Prioridad, Etiqueta_Comercial, Urgencia, Destacado
+- Auto-labels basados en ratings reales: "Más reseñada", "Mejor valorada", "Popular"
 - Sistema de pedidos: Delivery / Recoger / Mesa
 - Carrito con cantidades y envío por WhatsApp
 - Valoraciones anónimas (1 por producto por navegador)
@@ -45,6 +47,13 @@ v5 → v5.0 → v5.0.0 → v5.0.1 → ... → v5.1 → v5.1.0 → v5.1.1 → ...
 - Tab Mercado: carga dinámica desde Sheets, caché 10 min, fallback local
 - Búsqueda en tiempo real
 - PWA instalable: manifest relativo (`./`), íconos sin márgenes, SW network-first
+- Carga por fases: Fase 1 (render crítico), Fase 2 (datos dinámicos), Fase 3 (polling diferido)
+
+## Inventario — columnas en Google Sheets
+Nombre · Estado · Descripcion · Precio_Personal · Precio_Mediana · Precio_Grande · Badge · Categoria · Foto · Prioridad · Etiqueta_Comercial · Urgencia · Destacado
+
+## Hoja Hero — columnas
+Orden · Producto · Titulo · Subtitulo · Etiqueta · CTA_Texto · Imagen · Activo
 
 ## Notas técnicas
 - Los íconos PWA se generaron con `sharp`: recorte cuadrado centrado de `logo-app.png`

@@ -21,6 +21,7 @@ function doGet(e) {
   if (action === 'inventory') return getInventory();
   if (action === 'ratings')   return getRatings();
   if (action === 'mercado')   return getMercado();
+  if (action === 'hero')      return getHero();
   if (action === 'comments')  return getComments(
     e.parameter.producto || '',
     parseInt(e.parameter.offset) || 0,
@@ -109,7 +110,8 @@ const INV_COLS = [
   'Nombre', 'Estado',
   'Descripcion',
   'Precio_Personal', 'Precio_Mediana', 'Precio_Grande',
-  'Badge', 'Categoria', 'Foto'
+  'Badge', 'Categoria', 'Foto',
+  'Prioridad', 'Etiqueta_Comercial', 'Urgencia', 'Destacado'
 ];
 
 // Añade las columnas faltantes a una hoja existente
@@ -149,15 +151,19 @@ function getInventory() {
 
     const headers = data[0].map(h => h.toString().toLowerCase().trim());
     const col = {
-      nombre         : headers.indexOf('nombre'),
-      estado         : headers.indexOf('estado'),
-      descripcion    : headers.indexOf('descripcion'),
-      precio_personal: headers.indexOf('precio_personal'),
-      precio_mediana : headers.indexOf('precio_mediana'),
-      precio_grande  : headers.indexOf('precio_grande'),
-      badge          : headers.indexOf('badge'),
-      categoria      : headers.indexOf('categoria'),
-      foto           : headers.indexOf('foto')
+      nombre             : headers.indexOf('nombre'),
+      estado             : headers.indexOf('estado'),
+      descripcion        : headers.indexOf('descripcion'),
+      precio_personal    : headers.indexOf('precio_personal'),
+      precio_mediana     : headers.indexOf('precio_mediana'),
+      precio_grande      : headers.indexOf('precio_grande'),
+      badge              : headers.indexOf('badge'),
+      categoria          : headers.indexOf('categoria'),
+      foto               : headers.indexOf('foto'),
+      prioridad          : headers.indexOf('prioridad'),
+      etiqueta_comercial : headers.indexOf('etiqueta_comercial'),
+      urgencia           : headers.indexOf('urgencia'),
+      destacado          : headers.indexOf('destacado')
     };
     if (col.nombre < 0) return jsonResponse([]);
 
@@ -176,6 +182,10 @@ function getInventory() {
       if (col.badge >= 0)           entry.badge           = (r[col.badge] || '').toString().trim() || null;
       if (col.categoria >= 0)       entry.categoria       = (r[col.categoria] || '').toString().trim();
       if (col.foto >= 0)            entry.foto            = (r[col.foto] || '').toString().trim();
+      if (col.prioridad >= 0)          entry.prioridad          = parseInt(r[col.prioridad]) || 0;
+      if (col.etiqueta_comercial >= 0) entry.etiqueta_comercial = (r[col.etiqueta_comercial] || '').toString().trim() || null;
+      if (col.urgencia >= 0)           entry.urgencia           = (r[col.urgencia] || '').toString().trim() || null;
+      if (col.destacado >= 0)          entry.destacado          = (r[col.destacado] || '').toString().trim().toLowerCase() === 'si';
       result.push(entry);
     }
     return jsonResponse(result);
@@ -432,6 +442,59 @@ function actualizarVentasDiarias(sheet) {
   // Alineación y ancho mínimo
   sheet.getRange(2, COL_FECHA, filas.length, 1).setHorizontalAlignment('center');
   sheet.getRange(2, COL_VENTA, filas.length, 1).setHorizontalAlignment('right');
+}
+
+// ── Hero dinámico (slides editables desde Google Sheets) ─────
+function getHero() {
+  try {
+    const ss  = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = ss.getSheetByName('Hero');
+
+    if (!sheet) {
+      sheet = ss.insertSheet('Hero');
+      sheet.appendRow(['Orden', 'Producto', 'Titulo', 'Subtitulo', 'Etiqueta', 'CTA_Texto', 'Imagen', 'Activo']);
+      sheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#1a1a1a').setFontColor('#ffffff');
+      sheet.setFrozenRows(1);
+      return jsonResponse([]);
+    }
+
+    if (sheet.getLastRow() < 2) return jsonResponse([]);
+
+    const rows    = sheet.getDataRange().getValues();
+    const headers = rows[0].map(h => h.toString().toLowerCase().trim());
+    const col = {
+      orden    : headers.indexOf('orden'),
+      producto : headers.indexOf('producto'),
+      titulo   : headers.indexOf('titulo'),
+      subtitulo: headers.indexOf('subtitulo'),
+      etiqueta : headers.indexOf('etiqueta'),
+      cta      : headers.indexOf('cta_texto'),
+      imagen   : headers.indexOf('imagen'),
+      activo   : headers.indexOf('activo')
+    };
+
+    const result = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      const activo = col.activo >= 0 ? r[col.activo].toString().trim().toLowerCase() !== 'no' : true;
+      if (!activo) continue;
+
+      result.push({
+        orden    : col.orden >= 0    ? (parseInt(r[col.orden]) || i) : i,
+        producto : col.producto >= 0 ? r[col.producto].toString().trim() : '',
+        titulo   : col.titulo >= 0   ? r[col.titulo].toString().trim()   : '',
+        subtitulo: col.subtitulo >= 0? r[col.subtitulo].toString().trim() : '',
+        etiqueta : col.etiqueta >= 0 ? r[col.etiqueta].toString().trim() : '',
+        cta      : col.cta >= 0      ? r[col.cta].toString().trim()      : '',
+        imagen   : col.imagen >= 0   ? r[col.imagen].toString().trim()   : ''
+      });
+    }
+
+    result.sort((a, b) => a.orden - b.orden);
+    return jsonResponse(result);
+  } catch (err) {
+    return jsonResponse([]);
+  }
 }
 
 // ── Utilidad ──────────────────────────────────────────────────

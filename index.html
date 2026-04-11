@@ -412,6 +412,22 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 .modal-qty-btn:active{background:rgba(255,255,255,.25)}
 .modal-qty-num{font-size:17px;font-weight:900;min-width:28px;text-align:center;color:#fff}
 
+/* ── SISTEMA COMERCIAL: BADGES, URGENCIA, JERARQUÍA ── */
+.cc-label-wrap{position:absolute;top:8px;left:8px;z-index:6;display:flex;flex-direction:column;gap:4px;pointer-events:none;max-width:calc(100% - 56px)}
+.cc-commercial-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#D62828,#a51c1c);box-shadow:0 2px 8px rgba(214,40,40,.4);white-space:nowrap}
+.cc-auto-label{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:8px;font-size:7.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#fff;white-space:nowrap}
+.cc-auto-label.mas-resenada{background:linear-gradient(135deg,#7b2ff7,#c084fc);box-shadow:0 2px 6px rgba(123,47,247,.35)}
+.cc-auto-label.mejor-valorada{background:linear-gradient(135deg,#E8A020,#c47a00);box-shadow:0 2px 6px rgba(232,160,32,.35)}
+.cc-auto-label.popular{background:linear-gradient(135deg,#0ea5e9,#0284c7);box-shadow:0 2px 6px rgba(14,165,233,.35)}
+.cc-urgency{position:absolute;bottom:30px;left:0;right:0;z-index:7;text-align:center}
+.cc-urgency-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:8px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#fff;background:rgba(214,40,40,.92);backdrop-filter:blur(4px);animation:urgencyPulse 2s ease-in-out infinite;box-shadow:0 2px 10px rgba(214,40,40,.5)}
+@keyframes urgencyPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.85;transform:scale(1.03)}}
+.hero-commercial-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.92);backdrop-filter:blur(6px);color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:16px;margin-bottom:6px}
+.hero-urgency{display:inline-flex;align-items:center;gap:4px;background:rgba(214,40,40,.92);color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:16px;animation:urgencyPulse 2s ease-in-out infinite;margin-bottom:8px}
+.cc.anchor{width:220px !important}
+.cc.anchor .cc-img{height:240px !important}
+.cc.anchor .cc-name{font-size:15px !important}
+
 /* ── SISTEMA DE PEDIDOS — FORM ── */
 .oform-section{margin-bottom:14px}
 .oform-label{display:block;font-size:10px;font-weight:800;color:#888;letter-spacing:.6px;margin-bottom:5px;text-transform:uppercase}
@@ -2163,12 +2179,16 @@ function render() {
     const priceDisplay = game.price ? 'Desde ' + _cup(game.price) : '';
     const inCart = cart.some(x => x.t === game.t);
     const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
+    const gridLabelHtml = _getProductLabelsHtml(game);
+    const gridUrgencyHtml = game._urgencia ? '<div class="cc-urgency"><span class="cc-urgency-tag">\u23F0 ' + game._urgencia + '</span></div>' : '';
     const gameJson = JSON.stringify(game).replace(/"/g, '&quot;');
 
     card.innerHTML = `
       <div class="cimg" style="background:${game.col}">
         ${agotadaTag}
+        ${gridLabelHtml}
         ${game.c ? `<img src="${game.c}" alt="${game.t}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` : ''}
+        ${gridUrgencyHtml}
         <div class="fall" style="${!game.c ? 'display:flex;' : ''}background:${game.col}">
           <img src="logo-app.png" alt="" onerror="this.outerHTML='<span style=font-size:38px>🍕</span>'"/>
           <p>${game.t}</p>
@@ -2318,34 +2338,41 @@ function renderCarousels() {
     const scroll = document.createElement('div');
     scroll.className = 'cat-scroll';
 
-    // Sort: highest rated first
-    const sorted = [...items].sort((a, b) => b.r - a.r);
+    const sorted = [...items].sort((a, b) => (b._prioridad || 0) - (a._prioridad || 0) || b.r - a.r);
 
     sorted.forEach((g, idx) => {
       const invState = getInventoryState(g.t);
-      if (invState === 'Oculta') return; // no mostrar
+      if (invState === 'Oculta') return;
 
-      const isFeat = idx < 2;
+      const isAnchor = (g._prioridad || 0) >= 8 || g._destacado;
+      const isFeat = isAnchor || idx < 2;
+      const sizeClass = isAnchor ? 'anchor' : (isFeat ? 'feat' : 'std');
       const glow = getCardGlowByRating(g.r);
       const priceLabel = g.price ? _cup(g.price) : '';
       const inCart = cart.some(x => x.t === g.t);
 
       const card = document.createElement('div');
-      card.className = `cc ${isFeat ? 'feat' : 'std'}${invState === 'Agotada' ? ' card-agotada' : ''}`;
+      card.className = `cc ${sizeClass}${invState === 'Agotada' ? ' card-agotada' : ''}`;
       card.style.setProperty('--cc-border', glow.border);
       card.style.setProperty('--cc-glow', glow.glow);
       card.style.animationDelay = `${idx * 40}ms`;
 
       const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
+      const labelHtml = _getProductLabelsHtml(g);
+      const urgencyHtml = g._urgencia ? '<div class="cc-urgency"><span class="cc-urgency-tag">\u23F0 ' + g._urgencia + '</span></div>' : '';
+      const ribbonHtml = g.badge ? '<div class="cc-ribbon-wrap"><div class="cc-ribbon ' + g.badge.toLowerCase() + '">' + g.badge + '</div></div>' : '';
       const imgHtml = g.c
         ? `<img src="${g.c}" alt="${g.t}" loading="lazy" onerror="this.style.display='none'">`
-        : `<div class="cc-img-fall" style="background:${g.col}">🍕</div>`;
+        : `<div class="cc-img-fall" style="background:${g.col}">\uD83C\uDF55</div>`;
 
       const gJson = JSON.stringify(g).replace(/"/g,'&quot;');
       card.innerHTML = `
         <div class="cc-img" style="background:${g.col}">
           ${agotadaTag}
+          ${ribbonHtml}
+          ${labelHtml}
           ${imgHtml}
+          ${urgencyHtml}
           ${priceLabel ? `<div class="cc-price-badge">${priceLabel}</div>` : ''}
           ${invState !== 'Agotada' ? `<button class="cc-cart-btn${inCart?' in-cart':''}" data-t="${g.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gJson},this)">${inCart?'✓':CART_SVG}</button>` : ''}
         </div>
@@ -2521,6 +2548,157 @@ function _patchPizzaFromSheet(pizza, row) {
       pizza.sizes[2].price = row.precio_grande;
     }
   }
+  if (row.prioridad !== undefined) pizza._prioridad = parseInt(row.prioridad) || 0;
+  if (row.etiqueta_comercial) pizza._etiquetaComercial = row.etiqueta_comercial;
+  if (row.urgencia) pizza._urgencia = row.urgencia;
+  if (row.destacado !== undefined) pizza._destacado = row.destacado;
+}
+
+let _autoLabels = {};
+
+function _processAutoLabels() {
+  _autoLabels = {};
+  if (!ratingsCache || !Object.keys(ratingsCache).length) return;
+
+  let maxCount = 0, maxCountName = '';
+  let bestAvg = 0, bestAvgName = '';
+  const byCount = [];
+
+  Object.entries(ratingsCache).forEach(([nombre, data]) => {
+    if (!data || !data.count) return;
+    const isInMenu = G.some(g => g.t === nombre);
+    if (!isInMenu) return;
+    if (data.count >= 3) byCount.push({ nombre, count: data.count, avg: data.avg });
+    if (data.count >= 5 && data.count > maxCount) { maxCount = data.count; maxCountName = nombre; }
+    if (data.count >= 3 && data.avg >= 4.5 && data.avg > bestAvg) { bestAvg = data.avg; bestAvgName = nombre; }
+  });
+
+  if (maxCountName) _autoLabels[maxCountName] = { type: 'mas-resenada', text: '\uD83D\uDD25 Más reseñada' };
+  if (bestAvgName && bestAvgName !== maxCountName) _autoLabels[bestAvgName] = { type: 'mejor-valorada', text: '\u2B50 Mejor valorada' };
+
+  byCount.sort((a, b) => b.count - a.count);
+  byCount.slice(0, 5).forEach(p => {
+    if (!_autoLabels[p.nombre]) {
+      _autoLabels[p.nombre] = { type: 'popular', text: '\uD83D\uDCC8 Popular' };
+    }
+  });
+}
+
+function _getProductLabelsHtml(g) {
+  let html = '';
+  const manual = g._etiquetaComercial;
+  const auto = _autoLabels[g.t];
+  if (manual || auto) {
+    html = '<div class="cc-label-wrap">';
+    if (manual) html += '<span class="cc-commercial-badge">' + manual + '</span>';
+    if (auto) html += '<span class="cc-auto-label ' + auto.type + '">' + auto.text + '</span>';
+    html += '</div>';
+  }
+  return html;
+}
+
+async function loadHero() {
+  if (!SCRIPT_URL) return;
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=hero&_t=' + Date.now(), { cache: 'no-store' });
+    const heroData = await res.json();
+    if (!heroData || !Array.isArray(heroData) || heroData.length === 0) return;
+
+    const hero = document.getElementById('hero-section');
+    if (!hero) return;
+
+    const slides = [];
+    heroData.forEach(function(h) {
+      const product = h.producto ? G.find(function(g) { return g.t.toLowerCase().trim() === h.producto.toLowerCase().trim(); }) : null;
+      const img = h.imagen || (product ? product.c : '');
+      if (!img && !product) return;
+      slides.push({
+        t: h.titulo || (product ? product.t : h.producto),
+        d: h.subtitulo || (product ? (product.d || '') : ''),
+        c: img,
+        col: product ? product.col : '#1a1a1a',
+        g: product ? product.g : '',
+        _etiqueta: h.etiqueta || '',
+        _cta: h.cta || 'Ordenar ahora',
+        _product: product
+      });
+    });
+
+    if (!slides.length) return;
+
+    hero.innerHTML = '';
+    window.__heroSlides = slides.map(function(s) { return s._product || s; });
+
+    var cur = 0, paused = false, autoTimer = null;
+
+    slides.forEach(function(s, i) {
+      var sl = document.createElement('div');
+      sl.className = 'hero-slide' + (i === 0 ? ' active' : '');
+      sl.style.cssText = 'position:absolute;inset:0;opacity:' + (i === 0 ? 1 : 0) + ';transition:opacity .65s ease;pointer-events:' + (i === 0 ? 'all' : 'none');
+
+      sl.innerHTML = s.c
+        ? '<img src="' + s.c + '" alt="' + s.t + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" onerror="this.style.display=\'none\'">'
+        : '<div class="hero-slide-fallback" style="background:' + s.col + '">\uD83C\uDF55</div>';
+      sl.innerHTML += '<div class="hero-overlay"></div>';
+
+      var badgeHtml = s._etiqueta ? '<div class="hero-commercial-badge">' + s._etiqueta + '</div>' : '';
+      var productUrgency = s._product && s._product._urgencia
+        ? '<div class="hero-urgency">\u23F0 ' + s._product._urgencia + '</div>' : '';
+
+      sl.innerHTML += '<div class="hero-content">'
+        + badgeHtml
+        + '<div class="hero-eyebrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
+        + '<span data-herorating="' + (s._product ? s._product.t : s.t) + '">' + s.g + '</span></div>'
+        + productUrgency
+        + '<div class="hero-title">' + s.t + '</div>'
+        + '<div class="hero-sub">' + (s.d || '').slice(0, 72) + (s.d && s.d.length > 72 ? '\u2026' : '') + '</div>'
+        + '<div class="hero-actions"><button class="hero-btn" onclick="event.stopPropagation();' + (s._product ? 'openGameSheet(window.__heroSlides[' + i + '])' : '') + '">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>'
+        + s._cta + '</button></div></div>';
+
+      sl.onclick = function() { if (slides[cur]._product) openGameSheet(slides[cur]._product); };
+      hero.appendChild(sl);
+    });
+
+    var dotsWrap = document.createElement('div');
+    dotsWrap.style.cssText = 'position:absolute;bottom:16px;right:20px;display:flex;gap:5px;align-items:center;z-index:10';
+    slides.forEach(function(_, i) {
+      var d = document.createElement('div');
+      d.className = 'hero-dot' + (i === 0 ? ' on' : '');
+      dotsWrap.appendChild(d);
+    });
+    hero.appendChild(dotsWrap);
+
+    function goTo(n) {
+      var sEls = hero.querySelectorAll('.hero-slide');
+      sEls[cur].style.opacity = '0';
+      sEls[cur].style.pointerEvents = 'none';
+      sEls[cur].classList.remove('active');
+      cur = (n + slides.length) % slides.length;
+      sEls[cur].style.opacity = '1';
+      sEls[cur].style.pointerEvents = 'all';
+      sEls[cur].classList.add('active');
+      hero.querySelectorAll('.hero-dot').forEach(function(d, i) { d.classList.toggle('on', i === cur); });
+    }
+
+    autoTimer = setInterval(function() { if (!paused) goTo(cur + 1); }, 5000);
+
+    var tsx = 0;
+    hero.addEventListener('touchstart', function(e) { tsx = e.touches[0].clientX; paused = true; }, { passive: true });
+    hero.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - tsx;
+      if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1));
+      setTimeout(function() { paused = false; }, 3000);
+    }, { passive: true });
+
+    hero.querySelectorAll('.hero-btn').forEach(function(b) {
+      b.addEventListener('click', function(e) { e.stopPropagation(); paused = true; setTimeout(function() { paused = false; }, 4000); });
+    });
+
+    refreshRatingsUI();
+  } catch (e) {
+    console.warn('Hero dinamico no disponible:', e);
+  }
 }
 
 async function loadInventory() {
@@ -2533,10 +2711,10 @@ async function loadInventory() {
       if (!row.nombre) return;
       const key = row.nombre.toLowerCase().trim();
       if (row.estado) inventoryMap[key] = row.estado;
-      // Parchear el item en G si hay datos extra
       const pizza = G.find(p => p.t.toLowerCase().trim() === key);
       if (pizza) _patchPizzaFromSheet(pizza, row);
     });
+    _processAutoLabels();
     render();
   } catch (e) {
     console.warn('Inventario no disponible:', e);
@@ -2580,9 +2758,10 @@ async function _pollInventory() {
       if (pizza) _patchPizzaFromSheet(pizza, row);
     });
 
+    _processAutoLabels();
     if (changed) {
       render();
-      showToast('🔄 El menú fue actualizado');
+      showToast('\uD83D\uDD04 El menú fue actualizado');
     }
   } catch (_) {}
 }
@@ -3041,15 +3220,39 @@ function renderBebidaRatingWidget(producto) {
   };
 }
 
-// ── INIT ──────────────────────────────────────────────────────
+// ── INIT (carga por fases) ────────────────────────────────────
+// FASE 1: Render crítico — lo que el usuario ve primero
 updateCartBtn();
 initHero();
 render();
-loadInventory();
-loadRatings().then(() => refreshRatingsUI());
-_startPolling();
 _updateStatusPill();
-setInterval(_updateStatusPill, 60000);
+
+// FASE 2: Datos dinámicos — tras primer paint
+requestAnimationFrame(function() {
+  setTimeout(function() {
+    loadInventory().then(function() {
+      _processAutoLabels();
+      render();
+      loadHero();
+    });
+    loadRatings().then(function() {
+      refreshRatingsUI();
+      _processAutoLabels();
+      render();
+    });
+  }, 0);
+});
+
+// FASE 3: Polling diferido — en idle
+var _deferPolling = function() {
+  _startPolling();
+  setInterval(_updateStatusPill, 60000);
+};
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(_deferPolling, { timeout: 5000 });
+} else {
+  setTimeout(_deferPolling, 3000);
+}
 
 </script>
 
