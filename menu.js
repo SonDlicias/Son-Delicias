@@ -118,7 +118,7 @@ const G = [
     col: "#4a1a00",
     s: "Personal · Mediana · Grande",
     price: 11.00,
-    badge: "Estreno",
+    badge: "Nueva",
     fotos: [],
     sizes: [
       { label: "Personal", cm: 25, price: 11.00 },
@@ -169,7 +169,7 @@ const G = [
     col: "#1a2a0a",
     s: "Personal · Mediana · Grande",
     price: 13.00,
-    badge: "Nuevo",
+    badge: "Nueva",
     fotos: [],
     sizes: [
       { label: "Personal", cm: 25, price: 13.00 },
@@ -278,7 +278,7 @@ const G = [
     col: "#0a1a3a",
     s: "Personal · Mediana · Grande",
     price: 14.50,
-    badge: "Nuevo",
+    badge: "Nueva",
     fotos: [],
     sizes: [
       { label: "Personal", cm: 25, price: 14.50 },
@@ -312,7 +312,7 @@ const G = [
     col: "#6b0a3a",
     s: "2x Mediana (32cm) + extras",
     price: 26.00,
-    badge: "Estreno",
+    badge: "Nueva",
     fotos: [],
     sizes: [
       { label: "Duo Romántico", cm: 32, price: 26.00 }
@@ -364,7 +364,7 @@ const G = [
     { label: 'Para 4', cm: 0, price: 9.50 }
   ],
   s: 'Para 2 · Para 4 personas',
-  badge: 'Nuevo'
+  badge: 'Nueva'
 },
 
 // ── POSTRES ───────────────────────────────────────────────────
