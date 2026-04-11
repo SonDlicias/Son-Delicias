@@ -2593,47 +2593,31 @@ function _createPizzaFromSheet(row) {
   const nombre = (row.nombre || '').toString().trim();
   if (!nombre) return null;
 
-  const categoriaRaw = (row.categoria || '').toString().trim();
-  const categoria = categoriaRaw.toLowerCase();
-
-  const categoriasBebidas = new Set([
-    'gaseosas',
-    'agua',
-    'jugos',
-    'cervezas',
-    'vinos',
-    'cócteles',
-    'cocteles',
-    'café',
-    'cafe'
-  ]);
-
-  if (categoriasBebidas.has(categoria)) return null;
-
   const sizes = _buildSizesFromSheetRow(row);
+   const categoria = (row.categoria || '').toString().toLowerCase();
 
-  const isPizza =
-    categoria.includes('pizza') ||
-    categoria.includes('clasica') ||
-    categoria.includes('clásica') ||
-    categoria.includes('especial') ||
-    categoria.includes('carne') ||
-    categoria.includes('marisco');
+const isPizza =
+  categoria.includes('pizza') ||
+  categoria.includes('clasica') ||
+  categoria.includes('clásica') ||
+  categoria.includes('especial') ||
+  categoria.includes('carne') ||
+  categoria.includes('marisco');
 
-  if (isPizza) {
-    sizes.length = 0;
-    sizes.push(
-      { label: 'Personal', cm: 20, price: parseFloat(row.precio_personal) || 0 },
-      { label: 'Mediana',  cm: 28, price: parseFloat(row.precio_mediana)  || 0 },
-      { label: 'Grande',   cm: 35, price: parseFloat(row.precio_grande)   || 0 }
-    );
-  }
+if (isPizza) {
+  sizes.length = 0;
 
+  sizes.push(
+    { label: 'Personal', cm: 20, price: parseFloat(row.precio_personal) || 0 },
+    { label: 'Mediana',  cm: 28, price: parseFloat(row.precio_mediana)  || 0 },
+    { label: 'Grande',   cm: 35, price: parseFloat(row.precio_grande)   || 0 }
+  );
+}
   const basePrice = sizes[0] && typeof sizes[0].price === 'number' ? sizes[0].price : 0;
 
   const pizza = {
     t: nombre,
-    g: categoriaRaw || 'General',
+    g: (row.categoria || 'General').toString().trim(),
     r: 0,
     d: (row.descripcion || 'Disponible en nuestro menú.').toString().trim(),
     c: (row.foto || '').toString().trim(),
@@ -2655,23 +2639,8 @@ function _createPizzaFromSheet(row) {
 
   return pizza;
 }
+
 function _upsertPizzaFromSheetRow(row) {
-  const categoria = (row.categoria || '').toString().trim().toLowerCase();
-
-  const categoriasBebidas = new Set([
-    'gaseosas',
-    'agua',
-    'jugos',
-    'cervezas',
-    'vinos',
-    'cócteles',
-    'cocteles',
-    'café',
-    'cafe'
-  ]);
-
-  if (categoriasBebidas.has(categoria)) return false;
-
   const key = _normMenuKey(row && row.nombre);
   if (!key) return false;
 
@@ -2681,13 +2650,6 @@ function _upsertPizzaFromSheetRow(row) {
     _patchPizzaFromSheet(existing, row);
     return false;
   }
-
-  const created = _createPizzaFromSheet(row);
-  if (!created) return false;
-
-  G.push(created);
-  return true;
-}
 
   const created = _createPizzaFromSheet(row);
   if (!created) return false;
