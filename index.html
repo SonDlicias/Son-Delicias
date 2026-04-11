@@ -417,7 +417,15 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
 /* ── SISTEMA COMERCIAL: BADGES, URGENCIA, JERARQUÍA ── */
 .cc-label-wrap{position:absolute;top:8px;left:8px;z-index:6;display:flex;flex-direction:column;gap:4px;pointer-events:none;max-width:calc(100% - 56px)}
-.cc-commercial-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#D62828,#a51c1c);box-shadow:0 2px 8px rgba(214,40,40,.4);white-space:nowrap}
+.cc-commercial-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);white-space:nowrap}
+.cc-commercial-badge.cb-oferta{background:#E53935}
+.cc-commercial-badge.cb-combo{background:#FB8C00}
+.cc-commercial-badge.cb-recomendada{background:#43A047}
+.cc-commercial-badge.cb-especialidad{background:#8E24AA}
+.cc-commercial-badge.cb-nueva{background:#00C853}
+.cc-commercial-badge.cb-mas-pedida{background:#FBC02D;color:#333}
+.cc-commercial-badge.cb-de-la-casa{background:#424242}
+.cc-commercial-badge.cb-default{background:rgba(255,255,255,.18);backdrop-filter:blur(4px)}
 .cc-auto-label{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:8px;font-size:7.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#fff;white-space:nowrap}
 .cc-auto-label.mas-pedida{background:#FBC02D;color:#333;box-shadow:0 2px 6px rgba(251,192,45,.4)}
 .cc-auto-label.top-valorada{background:#1E88E5;box-shadow:0 2px 6px rgba(30,136,229,.4)}
@@ -426,7 +434,14 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 .cc-urgency-tag.urg-hoy{background:rgba(211,47,47,.92);box-shadow:0 2px 10px rgba(211,47,47,.5)}
 .cc-urgency-tag.urg-pocas{background:rgba(239,108,0,.92);box-shadow:0 2px 10px rgba(239,108,0,.5)}
 @keyframes urgencyPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.85;transform:scale(1.03)}}
-.hero-commercial-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.92);backdrop-filter:blur(6px);color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:16px;margin-bottom:6px}
+.hero-commercial-badge{display:inline-flex;align-items:center;gap:5px;color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:16px;margin-bottom:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);background:rgba(255,255,255,.18);backdrop-filter:blur(6px)}
+.hero-commercial-badge.cb-oferta{background:#E53935}
+.hero-commercial-badge.cb-combo{background:#FB8C00}
+.hero-commercial-badge.cb-recomendada{background:#43A047}
+.hero-commercial-badge.cb-especialidad{background:#8E24AA}
+.hero-commercial-badge.cb-nueva{background:#00C853}
+.hero-commercial-badge.cb-mas-pedida{background:#FBC02D;color:#333}
+.hero-commercial-badge.cb-de-la-casa{background:#424242}
 .hero-urgency{display:inline-flex;align-items:center;gap:4px;background:rgba(214,40,40,.92);color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:16px;animation:urgencyPulse 2s ease-in-out infinite;margin-bottom:8px}
 .cc.anchor{width:220px !important}
 .cc.anchor .cc-img{height:240px !important}
@@ -2344,13 +2359,16 @@ function renderCarousels() {
     scroll.className = 'cat-scroll';
 
     const sorted = [...items].sort((a, b) => (b._prioridad || 0) - (a._prioridad || 0) || b.r - a.r);
+    let _anchorUsed = false;
 
     sorted.forEach((g, idx) => {
       const invState = getInventoryState(g.t);
       if (invState === 'Oculta') return;
 
-      const isAnchor = (g._prioridad || 0) >= 8 || g._destacado;
-      const isFeat = isAnchor || idx < 2;
+      const _prio = g._prioridad || 0;
+      const isAnchor = _prio >= 9 && !_anchorUsed;
+      if (isAnchor) _anchorUsed = true;
+      const isFeat = isAnchor || _prio >= 7 || g._destacado || idx < 2;
       const sizeClass = isAnchor ? 'anchor' : (isFeat ? 'feat' : 'std');
       const glow = getCardGlowByRating(g.r);
       const priceLabel = g.price ? _cup(g.price) : '';
@@ -2584,15 +2602,33 @@ function _processAutoLabels() {
   if (bestAvgName && bestAvgName !== maxCountName) _autoLabels[bestAvgName] = { type: 'top-valorada', text: 'TOP \u2B50' };
 }
 
+function _mapBadgeClass(text) {
+  if (!text) return 'cb-default';
+  var t = text.toLowerCase();
+  if (t.includes('oferta')) return 'cb-oferta';
+  if (t.includes('combo')) return 'cb-combo';
+  if (t.includes('recomendada')) return 'cb-recomendada';
+  if (t.includes('especialidad')) return 'cb-especialidad';
+  if (t.includes('nueva')) return 'cb-nueva';
+  if (t.includes('pedida')) return 'cb-mas-pedida';
+  if (t.includes('de la casa') || t.includes('casa')) return 'cb-de-la-casa';
+  return 'cb-default';
+}
+
+function _escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
 function _getProductLabelsHtml(g) {
-  let html = '';
-  const manual = g._etiquetaComercial;
-  const auto = _autoLabels[g.t];
-  if (manual || auto) {
+  var html = '';
+  var manual = g._etiquetaComercial;
+  var auto = _autoLabels[g.t];
+  if (manual && auto) {
     html = '<div class="cc-label-wrap">';
-    if (manual) html += '<span class="cc-commercial-badge">' + manual + '</span>';
-    if (auto) html += '<span class="cc-auto-label ' + auto.type + '">' + auto.text + '</span>';
+    html += '<span class="cc-commercial-badge ' + _mapBadgeClass(manual) + '">' + _escHtml(manual) + '</span>';
     html += '</div>';
+  } else if (manual) {
+    html = '<div class="cc-label-wrap"><span class="cc-commercial-badge ' + _mapBadgeClass(manual) + '">' + _escHtml(manual) + '</span></div>';
+  } else if (auto) {
+    html = '<div class="cc-label-wrap"><span class="cc-auto-label ' + auto.type + '">' + auto.text + '</span></div>';
   }
   return html;
 }
@@ -2607,19 +2643,27 @@ async function loadHero() {
     const hero = document.getElementById('hero-section');
     if (!hero) return;
 
-    const slides = [];
-    heroData.forEach(function(h) {
-      const product = h.producto ? G.find(function(g) { return g.t.toLowerCase().trim() === h.producto.toLowerCase().trim(); }) : null;
-      const img = h.imagen || (product ? product.c : '');
-      if (!img && !product) return;
+    var slides = [];
+    var seenOrden = {};
+    heroData.forEach(function(h, rowIdx) {
+      if (!h || typeof h !== 'object') return;
+      var producto = (h.producto || '').trim();
+      var product = producto ? G.find(function(g) { return g.t.toLowerCase().trim() === producto.toLowerCase(); }) : null;
+      var img = (h.imagen || '').trim() || (product ? product.c : '');
+      var titulo = (h.titulo || '').trim() || (product ? product.t : producto);
+      if (!titulo && !img) return;
+      var orden = (h.orden != null && h.orden !== '') ? h.orden : ('_row' + rowIdx);
+      if (seenOrden[orden]) return;
+      seenOrden[orden] = true;
+      var _esc = function(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
       slides.push({
-        t: h.titulo || (product ? product.t : h.producto),
-        d: h.subtitulo || (product ? (product.d || '') : ''),
+        t: _esc(titulo || 'Sin título'),
+        d: _esc((h.subtitulo || (product ? (product.d || '') : '')).slice(0, 120)),
         c: img,
         col: product ? product.col : '#1a1a1a',
         g: product ? product.g : '',
-        _etiqueta: h.etiqueta || '',
-        _cta: h.cta || 'Ordenar ahora',
+        _etiqueta: _esc((h.etiqueta || '').trim()),
+        _cta: _esc((h.cta || '').trim() || 'Ordenar ahora'),
         _product: product
       });
     });
@@ -2641,7 +2685,7 @@ async function loadHero() {
         : '<div class="hero-slide-fallback" style="background:' + s.col + '">\uD83C\uDF55</div>';
       sl.innerHTML += '<div class="hero-overlay"></div>';
 
-      var badgeHtml = s._etiqueta ? '<div class="hero-commercial-badge">' + s._etiqueta + '</div>' : '';
+      var badgeHtml = s._etiqueta ? '<div class="hero-commercial-badge ' + _mapBadgeClass(s._etiqueta) + '">' + s._etiqueta + '</div>' : '';
       var productUrgency = s._product && s._product._urgencia
         ? '<div class="hero-urgency">\u23F0 ' + s._product._urgencia + '</div>' : '';
 
