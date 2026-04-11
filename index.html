@@ -2591,6 +2591,13 @@ function _buildSizeTextFromSizes(sizes) {
 
 function _createPizzaFromSheet(row) {
   const nombre = (row.nombre || '').toString().trim();
+   const categoria = (row.categoria || '').toString().trim().toLowerCase();
+
+const categoriasBebidas = new Set([
+  'gaseosas','agua','jugos','cervezas','vinos','cócteles','cocteles','café','cafe'
+]);
+
+if (categoriasBebidas.has(categoria)) return null;
   if (!nombre) return null;
 
   const sizes = _buildSizesFromSheetRow(row);
@@ -2722,7 +2729,13 @@ function _createBebidaFromSheet(row) {
 
 function _upsertBebidaFromSheetRow(row) {
   if (!_isBebidaRow(row)) return false;
+const categoria = (row.categoria || '').toString().trim().toLowerCase();
 
+const categoriasBebidas = new Set([
+  'gaseosas','agua','jugos','cervezas','vinos','cócteles','cocteles','café','cafe'
+]);
+
+if (!categoriasBebidas.has(categoria)) return false;
   const key = _normBebidaKey(row && row.nombre);
   if (!key) return false;
 
