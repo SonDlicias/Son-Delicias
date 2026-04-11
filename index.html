@@ -2594,6 +2594,25 @@ function _createPizzaFromSheet(row) {
   if (!nombre) return null;
 
   const sizes = _buildSizesFromSheetRow(row);
+   const categoria = (row.categoria || '').toString().toLowerCase();
+
+const isPizza =
+  categoria.includes('pizza') ||
+  categoria.includes('clasica') ||
+  categoria.includes('clásica') ||
+  categoria.includes('especial') ||
+  categoria.includes('carne') ||
+  categoria.includes('marisco');
+
+if (isPizza) {
+  sizes.length = 0;
+
+  sizes.push(
+    { label: 'Personal', cm: 20, price: parseFloat(row.precio_personal) || 0 },
+    { label: 'Mediana',  cm: 28, price: parseFloat(row.precio_mediana)  || 0 },
+    { label: 'Grande',   cm: 35, price: parseFloat(row.precio_grande)   || 0 }
+  );
+}
   const basePrice = sizes[0] && typeof sizes[0].price === 'number' ? sizes[0].price : 0;
 
   const pizza = {
