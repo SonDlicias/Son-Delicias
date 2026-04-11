@@ -2657,6 +2657,52 @@ function _upsertPizzaFromSheetRow(row) {
   G.push(created);
   return true;
 }
+   function _normBebidaKey(v) {
+  return (v || '').toString().trim().toLowerCase();
+}
+
+function _patchBebidaFromSheet(b, row) {
+  if (row.precio !== undefined) b.precio = parseFloat(row.precio) || b.precio;
+  if (row.specs) b.specs = row.specs;
+  if (row.img) b.img = row.img;
+  if (row.categoria) b.categoria = row.categoria;
+  if (row.disponible !== undefined) {
+    b.disponible = row.disponible === true || row.disponible === 'true';
+  }
+}
+
+function _createBebidaFromSheet(row) {
+  const nombre = (row.nombre || '').toString().trim();
+  if (!nombre) return null;
+
+  return {
+    nombre: nombre,
+    categoria: (row.categoria || 'General').toString().trim(),
+    precio: parseFloat(row.precio) || 0,
+    specs: (row.specs || row.presentacion || '').toString().trim(),
+    emoji: row.emoji || '🥤',
+    img: (row.img || '').toString().trim(),
+    disponible: row.disponible !== false
+  };
+}
+
+function _upsertBebidaFromSheetRow(row) {
+  const key = _normBebidaKey(row && row.nombre);
+  if (!key) return false;
+
+  const existing = BEBIDAS.find(b => _normBebidaKey(b.nombre) === key);
+
+  if (existing) {
+    _patchBebidaFromSheet(existing, row);
+    return false;
+  }
+
+  const created = _createBebidaFromSheet(row);
+  if (!created) return false;
+
+  BEBIDAS.push(created);
+  return true;
+}
 // ── INVENTARIO DINÁMICO (Google Sheets) ───────────────────────
 // Aplica datos del Inventario Sheet a un item del array G
 function _patchPizzaFromSheet(pizza, row) {
@@ -2862,6 +2908,7 @@ async function loadInventory() {
 
     data.forEach(row => {
       if (!row.nombre) return;
+       _upsertBebidaFromSheetRow(row);
 
       const key = _normMenuKey(row.nombre);
       if (row.estado) inventoryMap[key] = row.estado;
@@ -2934,6 +2981,9 @@ async function _pollInventory() {
 
     data.forEach(row => {
       if (!row.nombre) return;
+       if (_upsertBebidaFromSheetRow(row)) {
+  changed = true;
+}
 
       const key = _normMenuKey(row.nombre);
 
