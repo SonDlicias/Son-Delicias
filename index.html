@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -2240,126 +2241,14 @@ function render() {
 }
 
 // ── HERO PRINCIPAL ────────────────────────────────────────────
-// ── HERO PRINCIPAL — función compartida de render ─────────────
-// Usada tanto por initHero (datos estáticos) como por loadHero (Sheets)
-function _renderHero(slides) {
-  const hero = document.getElementById('hero-section');
-  if (!hero || !slides.length) return;
-
-  hero.innerHTML = '';
-  window.__heroSlides = slides.map(s => s._product || s);
-
-  const track = document.createElement('div');
-  track.className = 'hero-track';
-  track.style.cssText = 'position:relative;width:100%;height:100%';
-
-  let cur = 0, paused = false;
-
-  slides.forEach((s, i) => {
-    const sl = document.createElement('div');
-    sl.className = 'hero-slide' + (i === 0 ? ' active' : '');
-    sl.style.cssText = 'position:absolute;inset:0;opacity:' + (i===0?1:0)
-      + ';transition:opacity .65s ease;pointer-events:' + (i===0?'all':'none');
-
-    const imgHtml = s.c
-      ? '<img src="' + s.c + '" alt="' + _escHtml(s.t||'') + '" loading="' + (i===0?'eager':'lazy')
-        + '" onerror="this.style.display=\'none\'">'
-      : '<div class="hero-slide-fallback" style="background:' + (s.col||'#1a1a1a') + '">🍕</div>';
-
-    const badgeHtml = s._etiqueta
-      ? '<div class="hero-commercial-badge ' + _mapBadgeClass(s._etiqueta) + '">'
-        + _escHtml(s._etiqueta) + '</div>'
-      : '';
-
-    const urgencyHtml = s._urgencia
-      ? '<div class="hero-urgency">⏰ ' + _escHtml(s._urgencia) + '</div>'
-      : '';
-
-    const ratingKey = s._product ? s._product.t : (s.t || '');
-
-    sl.innerHTML = imgHtml
-      + '<div class="hero-overlay"></div>'
-      + '<div class="hero-content">'
-      + badgeHtml
-      + '<div class="hero-eyebrow">'
-      + '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
-      + '<span data-herorating="' + _escHtml(ratingKey) + '">' + _escHtml(s.g||'') + '</span>'
-      + '</div>'
-      + urgencyHtml
-      + '<div class="hero-title">' + _escHtml(s.t||'') + '</div>'
-      + '<div class="hero-sub">' + _escHtml((s.d||'').slice(0,72)) + (s.d&&s.d.length>72?'…':'') + '</div>'
-      + '<div class="hero-actions">'
-      + '<button class="hero-btn" onclick="event.stopPropagation();'
-      + (s._product ? 'openGameSheet(window.__heroSlides[' + i + '])' : '') + '">'
-      + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-      + '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>'
-      + '<path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>'
-      + _escHtml(s._cta||'Ordenar ahora')
-      + '</button></div></div>';
-
-    sl.onclick = () => { if (slides[cur]._product) openGameSheet(slides[cur]._product); };
-    track.appendChild(sl);
-  });
-
-  hero.appendChild(track);
-
-  // Dots
-  const dotsWrap = document.createElement('div');
-  dotsWrap.style.cssText = 'position:absolute;bottom:16px;right:20px;display:flex;gap:5px;align-items:center;z-index:10';
-  slides.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'hero-dot' + (i === 0 ? ' on' : '');
-    dotsWrap.appendChild(d);
-  });
-  hero.appendChild(dotsWrap);
-
-  function goTo(n) {
-    const sEls = track.children;
-    sEls[cur].style.opacity = '0';
-    sEls[cur].style.pointerEvents = 'none';
-    sEls[cur].classList.remove('active');
-    cur = (n + slides.length) % slides.length;
-    // Reiniciar Ken Burns en el slide entrante
-    const activeImg = sEls[cur].querySelector('img');
-    if (activeImg) {
-      activeImg.style.animation = 'none';
-      void activeImg.offsetWidth;
-      activeImg.style.animation = '';
-    }
-    sEls[cur].style.opacity = '1';
-    sEls[cur].style.pointerEvents = 'all';
-    sEls[cur].classList.add('active');
-    hero.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('on', i === cur));
-  }
-
-  setInterval(() => { if (!paused) goTo(cur + 1); }, 5000);
-
-  let tsx = 0;
-  hero.addEventListener('touchstart', e => { tsx = e.touches[0].clientX; paused = true; }, { passive: true });
-  hero.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - tsx;
-    if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1));
-    setTimeout(() => { paused = false; }, 3000);
-  }, { passive: true });
-
-  hero.querySelectorAll('.hero-btn').forEach(b => {
-    b.addEventListener('click', e => { e.stopPropagation(); paused = true; setTimeout(() => { paused = false; }, 4000); });
-  });
-
-  refreshRatingsUI();
-}
-
-// ── initHero: datos estáticos desde G.featured ───────────────
 function initHero() {
-  if (typeof G === 'undefined') return;
-  const slides = G.filter(g => g.featured).slice(0, 6).map(g => ({
-    t: g.t, d: g.d||'', c: g.c||'', col: g.col||'#1a1a1a', g: g.g||'',
-    _etiqueta: g._etiquetaComercial||g.badge||'',
-    _cta: 'Ordenar ahora',
-    _product: g,
-    _urgencia: g._urgencia||null
-  }));
-  if (slides.length) _renderHero(slides);
+  const hero = document.getElementById('hero-section');
+  if (!hero || typeof G === 'undefined') return;
+
+  const slides = G.filter(g => g.featured).slice(0, 6);
+  if (!slides.length) { hero.style.display = 'none'; return; }
+
+  let cur = 0, paused = false, autoTimer = null;
 
   const track = document.createElement('div');
   track.className = 'hero-track';
@@ -2745,14 +2634,15 @@ function _getProductLabelsHtml(g) {
   return html;
 }
 
-// ── loadHero: datos dinámicos desde Google Sheets ─────────────
-// Si Sheets falla o está vacío → el hero estático de initHero permanece intacto
 async function loadHero() {
   if (!SCRIPT_URL) return;
   try {
     const res = await fetch(SCRIPT_URL + '?action=hero&_t=' + Date.now(), { cache: 'no-store' });
     const heroData = await res.json();
     if (!heroData || !Array.isArray(heroData) || heroData.length === 0) return;
+
+    const hero = document.getElementById('hero-section');
+    if (!hero) return;
 
     var slides = [];
     var seenOrden = {};
@@ -2846,34 +2736,13 @@ async function loadHero() {
       setTimeout(function() { paused = false; }, 3000);
     }, { passive: true });
 
-   const slides = [];
-    const seenOrden = {};
-    heroData.forEach((h, rowIdx) => {
-      if (!h || typeof h !== 'object') return;
-      const producto = (h.producto || '').trim();
-      const product  = producto ? G.find(g => g.t.toLowerCase().trim() === producto.toLowerCase()) : null;
-      const img      = (h.imagen || '').trim() || (product ? product.c : '');
-      const titulo   = (h.titulo  || '').trim() || (product ? product.t : producto);
-      if (!titulo && !img) return;
-      const orden = (h.orden != null && h.orden !== '') ? h.orden : ('_row' + rowIdx);
-      if (seenOrden[orden]) return;
-      seenOrden[orden] = true;
-      slides.push({
-        t:         titulo,
-        d:         (h.subtitulo || (product ? product.d||'' : '')).slice(0,120),
-        c:         img,
-        col:       product ? product.col : '#1a1a1a',
-        g:         product ? product.g   : '',
-        _etiqueta: (h.etiqueta || '').trim(),
-        _cta:      (h.cta      || '').trim() || 'Ordenar ahora',
-        _product:  product || null,
-        _urgencia: product ? (product._urgencia||null) : null
-      });
+    hero.querySelectorAll('.hero-btn').forEach(function(b) {
+      b.addEventListener('click', function(e) { e.stopPropagation(); paused = true; setTimeout(function() { paused = false; }, 4000); });
     });
 
-    if (slides.length) _renderHero(slides);
+    refreshRatingsUI();
   } catch (e) {
-    console.warn('Hero dinámico no disponible, se mantiene el estático:', e);
+    console.warn('Hero dinamico no disponible:', e);
   }
 }
 
