@@ -2551,7 +2551,93 @@ window.addEventListener('popstate', e => {
   if (e.state && e.state.tab) setTab(e.state.tab, false);
 });
 history.replaceState({ tab: 'juegos' }, '');
+function _normMenuKey(v) {
+  return (v || '').toString().trim().toLowerCase();
+}
 
+function _buildSizesFromSheetRow(row) {
+  const sizes = [];
+
+  const pPersonal = parseFloat(row.precio_personal);
+  const pMediana  = parseFloat(row.precio_mediana);
+  const pGrande   = parseFloat(row.precio_grande);
+
+  if (!Number.isNaN(pPersonal) && pPersonal > 0) {
+    sizes.push({ label: 'Personal', cm: 0, price: pPersonal });
+  }
+  if (!Number.isNaN(pMediana) && pMediana > 0) {
+    sizes.push({ label: 'Mediana', cm: 0, price: pMediana });
+  }
+  if (!Number.isNaN(pGrande) && pGrande > 0) {
+    sizes.push({ label: 'Grande', cm: 0, price: pGrande });
+  }
+
+  if (!sizes.length) {
+    const pBase =
+      parseFloat(row.precio) ||
+      parseFloat(row.precio_base) ||
+      0;
+
+    sizes.push({ label: 'Porción', cm: 0, price: pBase });
+  }
+
+  return sizes;
+}
+
+function _buildSizeTextFromSizes(sizes) {
+  if (!Array.isArray(sizes) || !sizes.length) return '';
+  return sizes.map(s => s.label).join(' · ');
+}
+
+function _createPizzaFromSheet(row) {
+  const nombre = (row.nombre || '').toString().trim();
+  if (!nombre) return null;
+
+  const sizes = _buildSizesFromSheetRow(row);
+  const basePrice = sizes[0] && typeof sizes[0].price === 'number' ? sizes[0].price : 0;
+
+  const pizza = {
+    t: nombre,
+    g: (row.categoria || 'General').toString().trim(),
+    r: 0,
+    d: (row.descripcion || 'Disponible en nuestro menú.').toString().trim(),
+    c: (row.foto || '').toString().trim(),
+    col: '#1a1208',
+    s: _buildSizeTextFromSizes(sizes),
+    price: basePrice,
+    badge: row.badge !== undefined && row.badge !== null ? (row.badge || null) : null,
+    fotos: [],
+    sizes: sizes,
+    featured: false
+  };
+
+  if (row.prioridad !== undefined) pizza._prioridad = parseInt(row.prioridad, 10) || 0;
+  if (row.etiqueta_comercial) pizza._etiquetaComercial = row.etiqueta_comercial;
+  if (row.urgencia) pizza._urgencia = row.urgencia;
+  if (row.destacado !== undefined) pizza._destacado = row.destacado;
+
+  if (row.estado) inventoryMap[_normMenuKey(nombre)] = row.estado;
+
+  return pizza;
+}
+
+function _upsertPizzaFromSheetRow(row) {
+  const key = _normMenuKey(row && row.nombre);
+  if (!key) return false;
+
+  const existing = G.find(p => _normMenuKey(p.t) === key);
+
+  if (existing) {
+    _patchPizzaFromSheet(existing, row);
+    return false;
+  }
+
+  const created = _createPizzaFromSheet(row);
+  if (!created) return false;
+
+  G.push(created);
+  return true;
+}
 // ── INVENTARIO DINÁMICO (Google Sheets) ───────────────────────
 // Aplica datos del Inventario Sheet a un item del array G
 function _patchPizzaFromSheet(pizza, row) {
@@ -2752,14 +2838,49 @@ async function loadInventory() {
     const res = await fetch(SCRIPT_URL + '?action=inventory', { method: 'GET' });
     const data = await res.json();
     if (!data || !Array.isArray(data)) return;
+
+    let createdNew = false;
+
     data.forEach(row => {
       if (!row.nombre) return;
-      const key = row.nombre.toLowerCase().trim();
+
+      const key = _normMenuKey(row.nombre);
       if (row.estado) inventoryMap[key] = row.estado;
-      const pizza = G.find(p => p.t.toLowerCase().trim() === key);
-      if (pizza) _patchPizzaFromSheet(pizza, row);
+
+      if (_upsertPizzaFromSheetRow(row)) {
+        createdNew = true;
+      }
     });
+
     _processAutoLabels();
+
+    if (createdNew) {
+      const currentGenres = new Set(
+        [...document.querySelectorAll('#gbar .gb')]
+          .map(btn => btn.textContent.trim())
+          .filter(Boolean)
+      );
+
+      G.map(x => x.g)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(cat => {
+          if (cat === 'Todos' || currentGenres.has(cat)) return;
+
+          const b = document.createElement('button');
+          b.className = 'gb';
+          b.textContent = cat;
+          b.onclick = () => {
+            aG = cat;
+            document.querySelectorAll('.gb').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            render();
+          };
+          document.getElementById('gbar').appendChild(b);
+          currentGenres.add(cat);
+        });
+    }
+
     render();
   } catch (e) {
     console.warn('Inventario no disponible:', e);
@@ -2790,27 +2911,59 @@ async function _pollInventory() {
     if (!data || !Array.isArray(data)) return;
 
     let changed = false;
+    let createdNew = false;
+
     data.forEach(row => {
       if (!row.nombre) return;
-      const key = row.nombre.toLowerCase().trim();
-      // Estado
+
+      const key = _normMenuKey(row.nombre);
+
       if (row.estado && inventoryMap[key] !== row.estado) {
         inventoryMap[key] = row.estado;
         changed = true;
       }
-      // Datos del catálogo (descripcion, precios, badge, categoría)
-      const pizza = G.find(p => p.t.toLowerCase().trim() === key);
-      if (pizza) _patchPizzaFromSheet(pizza, row);
+
+      if (_upsertPizzaFromSheetRow(row)) {
+        createdNew = true;
+        changed = true;
+      }
     });
 
     _processAutoLabels();
+
+    if (createdNew) {
+      const currentGenres = new Set(
+        [...document.querySelectorAll('#gbar .gb')]
+          .map(btn => btn.textContent.trim())
+          .filter(Boolean)
+      );
+
+      G.map(x => x.g)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(cat => {
+          if (cat === 'Todos' || currentGenres.has(cat)) return;
+
+          const b = document.createElement('button');
+          b.className = 'gb';
+          b.textContent = cat;
+          b.onclick = () => {
+            aG = cat;
+            document.querySelectorAll('.gb').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            render();
+          };
+          document.getElementById('gbar').appendChild(b);
+          currentGenres.add(cat);
+        });
+    }
+
     if (changed) {
       render();
-      showToast('\uD83D\uDD04 El menú fue actualizado');
+      showToast('🔄 El menú fue actualizado');
     }
   } catch (_) {}
 }
-
 async function _pollMercado() {
   if (!_mercadoLoaded) return;
   try {
