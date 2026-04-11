@@ -2662,31 +2662,67 @@ function _upsertPizzaFromSheetRow(row) {
 }
 
 function _patchBebidaFromSheet(b, row) {
-  if (row.precio !== undefined) b.precio = parseFloat(row.precio) || b.precio;
-  if (row.specs) b.specs = row.specs;
-  if (row.img) b.img = row.img;
-  if (row.categoria) b.categoria = row.categoria;
-  if (row.disponible !== undefined) {
-    b.disponible = row.disponible === true || row.disponible === 'true';
+  const precio = parseFloat(row.precio ?? row.precio_personal ?? 0);
+  if (!Number.isNaN(precio) && precio > 0) b.precio = precio;
+
+  const specs = (row.specs || row.descripcion || row.presentacion || '').toString().trim();
+  if (specs) b.specs = specs;
+
+  const img = (row.img || row.foto || '').toString().trim();
+  if (img) b.img = img;
+
+  if (row.categoria) b.categoria = row.categoria.toString().trim();
+
+  if (row.estado !== undefined) {
+    const estado = row.estado.toString().trim().toLowerCase();
+    b.disponible = estado === 'disponible';
   }
+
+  if (!b.img && !b.emoji) b.emoji = '🥤';
+}
+   function _isBebidaRow(row) {
+  const categoria = (row.categoria || '').toString().trim().toLowerCase();
+
+  const categoriasBebidas = new Set([
+    'gaseosas',
+    'agua',
+    'jugos',
+    'cervezas',
+    'vinos',
+    'cócteles',
+    'cocteles',
+    'café',
+    'cafe'
+  ]);
+
+  return categoriasBebidas.has(categoria);
 }
 
 function _createBebidaFromSheet(row) {
+  if (!_isBebidaRow(row)) return null;
+
   const nombre = (row.nombre || '').toString().trim();
   if (!nombre) return null;
 
+  const precio = parseFloat(row.precio ?? row.precio_personal ?? 0);
+  const img = (row.img || row.foto || '').toString().trim();
+  const specs = (row.specs || row.descripcion || row.presentacion || '').toString().trim();
+  const estado = (row.estado || '').toString().trim().toLowerCase();
+
   return {
-    nombre: nombre,
-    categoria: (row.categoria || 'General').toString().trim(),
-    precio: parseFloat(row.precio) || 0,
-    specs: (row.specs || row.presentacion || '').toString().trim(),
-    emoji: row.emoji || '🥤',
-    img: (row.img || '').toString().trim(),
-    disponible: row.disponible !== false
+    nombre,
+    categoria: (row.categoria || 'Bebidas').toString().trim(),
+    precio: !Number.isNaN(precio) ? precio : 0,
+    specs: specs,
+    emoji: img ? '' : (row.emoji || '🥤'),
+    img: img,
+    disponible: estado ? estado === 'disponible' : true
   };
 }
 
 function _upsertBebidaFromSheetRow(row) {
+  if (!_isBebidaRow(row)) return false;
+
   const key = _normBebidaKey(row && row.nombre);
   if (!key) return false;
 
