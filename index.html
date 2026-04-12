@@ -2268,21 +2268,19 @@ function _renderHero(slides) {
       : '<div class="hero-slide-fallback" style="background:' + (s.col||'#1a1a1a') + '">🍕</div>';
     sl.innerHTML += '<div class="hero-overlay"></div>';
 
-   const badgeHtml = s._etiqueta
-      ? '<div class="hero-badge-tr">⏰ ' + s._etiqueta + '</div>'
-      : '';
-    const urgencyHtml = s._urgencia
-      ? '<div class="hero-urgency">⏰ ' + s._urgencia + '</div>'
-      : '';
+  // Badge esquina superior derecha: _etiqueta > _urgencia > _etiquetaComercial del producto
+    const badgeText = s._etiqueta
+      || (s._product ? (s._product._urgencia || s._product._etiquetaComercial || '') : '')
+      || s._urgencia
+      || '';
     const ratingKey = s._product ? s._product.t : (s.t || '');
 
-    if (badgeHtml) sl.innerHTML += badgeHtml;
+    if (badgeText) sl.innerHTML += '<div class="hero-badge-tr">⏰ ' + badgeText + '</div>';
     sl.innerHTML += '<div class="hero-content">'
       + '<div class="hero-eyebrow">'
       + '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
       + '<span data-herorating="' + ratingKey + '">' + (s.g||'') + '</span>'
       + '</div>'
-      + urgencyHtml
       + '<div class="hero-title">' + (s.t||'') + '</div>'
       + '<div class="hero-sub">' + (s.d||'').slice(0,72) + (s.d&&s.d.length>72?'…':'') + '</div>'
       + '<div class="hero-actions">'
@@ -2874,16 +2872,17 @@ async function loadHero() {
       const orden = (h.orden != null && h.orden !== '') ? h.orden : ('_row' + rowIdx);
       if (seenOrden[orden]) return;
       seenOrden[orden] = true;
-      slides.push({
+   slides.push({
         t:         titulo,
         d:         (h.subtitulo || (product ? product.d||'' : '')).slice(0, 120),
         c:         img,
         col:       product ? product.col : '#1a1a1a',
         g:         product ? product.g   : '',
-        _etiqueta: (h.etiqueta || '').trim(),
-        _cta:      (h.cta      || '').trim() || 'Ordenar ahora',
+        _etiqueta: (h.etiqueta || '').trim()
+                   || (product ? (product._urgencia || product._etiquetaComercial || '') : ''),
+        _cta:      (h.cta || '').trim() || 'Ordenar ahora',
         _product:  product || null,
-        _urgencia: product ? (product._urgencia||null) : null
+        _urgencia: null  // cubierto por _etiqueta — evita duplicado en hero-content
       });
     });
 
