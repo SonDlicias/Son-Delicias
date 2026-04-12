@@ -2627,6 +2627,21 @@ function _buildSizeTextFromSizes(sizes) {
   return sizes.map(s => s.label).join(' · ');
 }
 
+// Resuelve la categoría del sheet contra las existentes en G.
+// Normaliza: sin tildes, sin mayúsculas, sin espacios extra, sin plural/singular.
+// Si encuentra coincidencia → devuelve el nombre canónico (con tildes correctas).
+// Si no → devuelve la categoría tal cual (nueva categoría válida).
+function _resolveCategory(raw) {
+  if (!raw) return 'General';
+  const _n = s => (s||'').trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/s$/,''); // ignora plural/singular al final
+  const rawNorm = _n(raw);
+  const existing = [...new Set(G.map(g => g.g).filter(Boolean))];
+  const match = existing.find(c => _n(c) === rawNorm);
+  return match || raw.trim();
+}
+
 function _createPizzaFromSheet(row) {
   const nombre = (row.nombre || '').toString().trim();
 const categoria = (row.categoria || '').toString().trim().toLowerCase();
@@ -2659,9 +2674,9 @@ if (isPizza) {
 }
   const basePrice = sizes[0] && typeof sizes[0].price === 'number' ? sizes[0].price : 0;
 
-  const pizza = {
+ const pizza = {
     t: nombre,
-    g: (row.categoria || 'General').toString().trim(),
+    g: _resolveCategory(row.categoria),
     r: 0,
     d: (row.descripcion || 'Disponible en nuestro menú.').toString().trim(),
     c: (row.foto || '').toString().trim(),
@@ -2787,13 +2802,7 @@ function _upsertBebidaFromSheetRow(row) {
 function _patchPizzaFromSheet(pizza, row) {
   if (row.estado)       inventoryMap[pizza.t.toLowerCase().trim()] = row.estado;
   if (row.descripcion)  pizza.d = row.descripcion;
-  if (row.categoria) {
-    // Buscar si ya existe una categoría en G con el mismo nombre normalizado (sin tildes/mayúsculas)
-    const _n = s => (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    const catNorm = _n(row.categoria);
-    const existingCat = [...new Set(G.map(g => g.g))].find(c => _n(c) === catNorm);
-    pizza.g = existingCat || row.categoria;
-  }
+ if (row.categoria) pizza.g = _resolveCategory(row.categoria);
   if (row.badge !== undefined && row.badge !== null) pizza.badge = row.badge || null;
   // Foto: URL de ImgBB o cualquier host externo — sobreescribe la imagen local
   if (row.foto)         pizza.c = row.foto;
