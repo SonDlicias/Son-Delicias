@@ -2885,12 +2885,12 @@ async function loadHero() {
         _urgencia: null  // cubierto por _etiqueta — evita duplicado en hero-content
       });
     });
-
-   // Rellenar hasta 3 slides con pizzas featured si Sheets tiene menos de 3
+    // Rellenar hasta 3 slides con pizzas featured si Sheets tiene menos de 3
     if (slides.length > 0 && slides.length < 3) {
-      const usedTitles = new Set(slides.map(s => s.t.toLowerCase()));
+      // Deduplicar por referencia de producto (no por título, que puede ser personalizado)
+      const usedProducts = new Set(slides.map(s => s._product ? _normMenuKey(s._product.t) : null).filter(Boolean));
       const extras = G
-        .filter(g => g.featured && !usedTitles.has(g.t.toLowerCase()))
+        .filter(g => g.featured && !usedProducts.has(_normMenuKey(g.t)))
         .slice(0, 3 - slides.length)
         .map(g => ({
           t: g.t, d: g.d||'', c: g.c||'', col: g.col||'#1a1a1a', g: g.g||'',
@@ -2932,9 +2932,10 @@ async function loadInventory() {
     _processAutoLabels();
 
     if (createdNew) {
+     const _normCat = s => (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       const currentGenres = new Set(
         [...document.querySelectorAll('#gbar .gb')]
-          .map(btn => btn.textContent.trim())
+          .map(btn => _normCat(btn.textContent))
           .filter(Boolean)
       );
 
@@ -2942,7 +2943,7 @@ async function loadInventory() {
         .filter(Boolean)
         .sort((a, b) => a.localeCompare(b))
         .forEach(cat => {
-          if (cat === 'Todos' || currentGenres.has(cat)) return;
+          if (cat === 'Todos' || currentGenres.has(_normCat(cat))) return;
 
           const b = document.createElement('button');
           b.className = 'gb';
@@ -3012,9 +3013,10 @@ async function _pollInventory() {
     _processAutoLabels();
 
     if (createdNew) {
+     const _normCat = s => (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       const currentGenres = new Set(
         [...document.querySelectorAll('#gbar .gb')]
-          .map(btn => btn.textContent.trim())
+          .map(btn => _normCat(btn.textContent))
           .filter(Boolean)
       );
 
@@ -3022,7 +3024,7 @@ async function _pollInventory() {
         .filter(Boolean)
         .sort((a, b) => a.localeCompare(b))
         .forEach(cat => {
-          if (cat === 'Todos' || currentGenres.has(cat)) return;
+          if (cat === 'Todos' || currentGenres.has(_normCat(cat))) return;
 
           const b = document.createElement('button');
           b.className = 'gb';
