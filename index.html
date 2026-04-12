@@ -444,6 +444,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 .hero-commercial-badge.cb-mas-pedida{background:#FBC02D;color:#333}
 .hero-commercial-badge.cb-de-la-casa{background:#424242}
 .hero-urgency{display:inline-flex;align-items:center;gap:4px;background:rgba(214,40,40,.92);color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:16px;animation:urgencyPulse 2s ease-in-out infinite;margin-bottom:8px}
+.hero-badge-tr{position:absolute;top:20px;right:20px;z-index:10;display:inline-flex;align-items:center;gap:6px;background:#D62828;color:#fff;font-size:11px;font-weight:900;padding:7px 16px;border-radius:20px;letter-spacing:.4px;box-shadow:0 3px 14px rgba(0,0,0,.45),0 0 0 1.5px rgba(255,255,255,.12);pointer-events:none}
 .cc.anchor{width:220px !important}
 .cc.anchor .cc-img{height:240px !important}
 .cc.anchor .cc-name{font-size:15px !important}
@@ -2267,16 +2268,16 @@ function _renderHero(slides) {
       : '<div class="hero-slide-fallback" style="background:' + (s.col||'#1a1a1a') + '">🍕</div>';
     sl.innerHTML += '<div class="hero-overlay"></div>';
 
-    const badgeHtml = s._etiqueta
-      ? '<div class="hero-commercial-badge ' + _mapBadgeClass(s._etiqueta) + '">' + s._etiqueta + '</div>'
+   const badgeHtml = s._etiqueta
+      ? '<div class="hero-badge-tr">⏰ ' + s._etiqueta + '</div>'
       : '';
     const urgencyHtml = s._urgencia
       ? '<div class="hero-urgency">⏰ ' + s._urgencia + '</div>'
       : '';
     const ratingKey = s._product ? s._product.t : (s.t || '');
 
+    if (badgeHtml) sl.innerHTML += badgeHtml;
     sl.innerHTML += '<div class="hero-content">'
-      + badgeHtml
       + '<div class="hero-eyebrow">'
       + '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
       + '<span data-herorating="' + ratingKey + '">' + (s.g||'') + '</span>'
@@ -2886,6 +2887,21 @@ async function loadHero() {
       });
     });
 
+   // Rellenar hasta 3 slides con pizzas featured si Sheets tiene menos de 3
+    if (slides.length > 0 && slides.length < 3) {
+      const usedTitles = new Set(slides.map(s => s.t.toLowerCase()));
+      const extras = G
+        .filter(g => g.featured && !usedTitles.has(g.t.toLowerCase()))
+        .slice(0, 3 - slides.length)
+        .map(g => ({
+          t: g.t, d: g.d||'', c: g.c||'', col: g.col||'#1a1a1a', g: g.g||'',
+          _etiqueta: g._etiquetaComercial||g.badge||'',
+          _cta: 'Ordenar ahora',
+          _product: g,
+          _urgencia: g._urgencia||null
+        }));
+      slides.push(...extras);
+    }
     // Si hay slides válidos → reemplaza el hero estático con el del dueño
     if (slides.length) _renderHero(slides);
   } catch (e) {
