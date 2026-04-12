@@ -2686,7 +2686,8 @@ if (isPizza) {
     badge: row.badge !== undefined && row.badge !== null ? (row.badge || null) : null,
     fotos: [],
     sizes: sizes,
-    featured: false
+    featured: false,
+    _fromSheet: true
   };
 
   if (row.prioridad !== undefined) pizza._prioridad = parseInt(row.prioridad, 10) || 0;
@@ -2768,14 +2769,15 @@ function _createBebidaFromSheet(row) {
   const specs = (row.specs || row.descripcion || row.presentacion || '').toString().trim();
   const estado = (row.estado || '').toString().trim().toLowerCase();
 
-  return {
+ return {
     nombre,
     categoria: (row.categoria || 'Bebidas').toString().trim(),
     precio: !Number.isNaN(precio) ? precio : 0,
     specs: specs,
     emoji: img ? '' : (row.emoji || '🥤'),
     img: img,
-    disponible: estado ? estado === 'disponible' : true
+    disponible: estado ? estado === 'disponible' : true,
+    _fromSheet: true
   };
 }
 
@@ -2942,11 +2944,16 @@ async function loadInventory() {
     const data = await res.json();
     if (!data || !Array.isArray(data)) return;
 
-    let createdNew = false;
+ let createdNew = false;
+
+    // Nombres que vienen en esta llamada del sheet (fuente de verdad)
+    const sheetKeys = new Set(
+      data.filter(r => r.nombre).map(r => _normMenuKey(r.nombre))
+    );
 
     data.forEach(row => {
       if (!row.nombre) return;
-       _upsertBebidaFromSheetRow(row);
+      _upsertBebidaFromSheetRow(row);
 
       const key = _normMenuKey(row.nombre);
       if (row.estado) inventoryMap[key] = row.estado;
@@ -2955,6 +2962,25 @@ async function loadInventory() {
         createdNew = true;
       }
     });
+
+    // Eliminar de G los productos creados desde sheet que ya no existen en el sheet
+    const removedG = [];
+    for (let i = G.length - 1; i >= 0; i--) {
+      if (G[i]._fromSheet && !sheetKeys.has(_normMenuKey(G[i].t))) {
+        removedG.push(G[i].t);
+        G.splice(i, 1);
+      }
+    }
+
+    // Eliminar de BEBIDAS los productos creados desde sheet que ya no existen
+    for (let i = BEBIDAS.length - 1; i >= 0; i--) {
+      if (BEBIDAS[i]._fromSheet && !sheetKeys.has(_normBebidaKey(BEBIDAS[i].nombre))) {
+        BEBIDAS.splice(i, 1);
+      }
+    }
+
+    // Limpiar inventoryMap de los eliminados
+    removedG.forEach(t => delete inventoryMap[_normMenuKey(t)]);
 
     _processAutoLabels();
 
