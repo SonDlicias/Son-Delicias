@@ -1,4 +1,4 @@
-// horarios.js — Motor centralizado de horarios comerciales "Son Delicias"
+// horarios.js — Motor centralizado de horarios comerciales "Son D'licias"
 // Modificar SOLO aquí para ajustar horarios. No tocar otro archivo.
 
 const HORARIOS = {
