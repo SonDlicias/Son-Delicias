@@ -4,9 +4,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<title>🍕 La Pizzería</title>
-<meta property="og:title" content="🍕 La Pizzería"/>
-<meta property="og:description" content="🍕 Menú digital · Delivery y pedidos en mesa. Pizzas artesanales, bebidas y más. ¡Pedí por WhatsApp!"/>
+<title>🍕 Son D'licias</title>
+<meta property="og:title" content="🍕 Son D'licias"/>
+<meta property="og:description" content="🍕 Son D'licias · Delivery y pedidos en mesa. Pizzas artesanales, bebidas y más. ¡Pide por WhatsApp!"/>
 <meta property="og:image" content="og-image.png"/>
 <meta property="og:type" content="website"/>
 <meta name="theme-color" content="#0f0a08"/>
@@ -526,7 +526,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     <div class="hlogo">
       <img src="logo-app.png" alt="Son D'licias" onerror="this.style.display='none'"/>
       <div class="htxt">
-        <h1 id="hname">La Pizzería</h1>
+        <h1 id="hname">Son D'licias</h1>
       </div>
     </div>
     <!-- STATUS PILL -->
@@ -854,7 +854,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
 // ── CONFIGURACIÓN ─────────────────────────────────────────────
 const WA = '5355207586';         // ← Tu número de WhatsApp (solo dígitos)
-const NOMBRE_LOCAL = 'La Pizzería';
+const NOMBRE_LOCAL = "Son D'licias";
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52j88VN-Z-Pf0HkqWQbSL1j43UvV4BBvBO6bM1fZ0NWi4HMys/exec';          // ← URL del Web App de Google Apps Script (ver apps-script.gs)
 
 // ── CONFIGURACIÓN DE ENVÍO (ajusta aquí cuando quieras) ───────
@@ -1801,9 +1801,9 @@ document.addEventListener('click', () => {
 
 // ── HEADER INFO POR TAB ────────────────────────────────────────
 const _HTAB = {
-  juegos:  { title: 'La Pizzería',  sub: 'Hechas al momento · Pide por WhatsApp' },
+  juegos:  { title: "Son D'licias", sub: 'Hechas al momento · Pide por WhatsApp' },
   mercado: { title: 'El Mercado',   sub: 'Abierto 24h · Productos del barrio'    },
-  bebidas: { title: 'La Pizzería',  sub: 'Bebidas & Refrescos'                   }
+  bebidas: { title: "Son D'licias", sub: 'Bebidas & Refrescos'                   }
 };
 function _updateHeaderTab(t) {
   const info = _HTAB[t] || _HTAB.juegos;
