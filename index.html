@@ -1538,18 +1538,48 @@ async function confirmOrder() {
 }
 
 // ── BEBIDAS ───────────────────────────────────────────────────
-function loadBebidas() {
+async function loadBebidas() {
   const cg = document.getElementById('congrid');
   const cl = document.getElementById('con-loading');
   if (cg.children.length > 0) { cl.style.display = 'none'; return; }
 
-  if (typeof BEBIDAS === 'undefined') {
-    cl.textContent = '⚠️ No se encontró bebidas.js';
-    return;
+  cl.style.display = 'block';
+  cl.textContent   = '⏳ Cargando bebidas...';
+
+  // Intentar cargar desde el Sheet primero
+  let bebidasSource = [];
+  try {
+    const res  = await fetch(SCRIPT_URL + '?action=bebidas&_t=' + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) bebidasSource = data;
+  } catch (_) {}
+
+  // Fallback al archivo estático si el Sheet está vacío
+  if (bebidasSource.length === 0 && typeof BEBIDAS !== 'undefined' && BEBIDAS.length > 0) {
+    bebidasSource = BEBIDAS.map(b => ({
+      nombre     : b.nombre,
+      precio     : b.precio,
+      categoria  : b.categoria  || 'Bebidas',
+      descripcion: b.specs      || '',
+      img        : b.img        || '',
+      emoji      : b.emoji      || '🥤',
+      disponible : b.disponible !== false
+    }));
   }
 
   cl.style.display = 'none';
-  BEBIDAS.forEach(b => {
+
+  // Sin datos en ninguna fuente → mensaje amigable
+  if (bebidasSource.length === 0) {
+    cg.innerHTML = `<div style="text-align:center;padding:48px 20px;color:#555">
+      <div style="font-size:40px;margin-bottom:14px">🥤</div>
+      <div style="font-size:14px;font-weight:700;color:#888;margin-bottom:10px">Bebidas no disponibles en este momento</div>
+      <a href="https://wa.me/${WA}" style="color:#25D366;font-weight:700;font-size:13px">Consultar por WhatsApp</a>
+    </div>`;
+    return;
+  }
+
+  bebidasSource.forEach(b => {
     const d = document.createElement('div');
     d.className = 'con-card';
     const disponible = b.disponible !== false;
@@ -1578,6 +1608,9 @@ function loadBebidas() {
       </div>`;
     cg.appendChild(d);
   });
+
+  refreshRatingsUI();
+  _syncBebidaBtns();
 }
 
 function compartirBebida(nombre, precio, e) {
@@ -2600,34 +2633,47 @@ function _normMenuKey(v) {
 }
 
 function _buildSizesFromSheetRow(row) {
-  const sizes = [];
-
   const pPersonal = parseFloat(row.precio_personal);
   const pMediana  = parseFloat(row.precio_mediana);
   const pGrande   = parseFloat(row.precio_grande);
 
-  if (!Number.isNaN(pPersonal) && pPersonal > 0) {
-    sizes.push({ label: 'Personal', cm: 0, price: pPersonal });
-  }
-  if (!Number.isNaN(pMediana) && pMediana > 0) {
-    sizes.push({ label: 'Mediana', cm: 0, price: pMediana });
-  }
-  if (!Number.isNaN(pGrande) && pGrande > 0) {
-    sizes.push({ label: 'Grande', cm: 0, price: pGrande });
-  }
+  const validP = !Number.isNaN(pPersonal) && pPersonal > 0;
+  const validM = !Number.isNaN(pMediana)  && pMediana  > 0;
+  const validG = !Number.isNaN(pGrande)   && pGrande   > 0;
+  const count  = [validP, validM, validG].filter(Boolean).length;
+
+  // Etiquetas personalizadas desde columna Etiquetas_Sizes del Sheet
+  const custom = (row.etiquetas_sizes || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  // Detectar si es producto italiano → mantener Personal/Mediana/Grande
+  const cat = (row.categoria || '').toLowerCase();
+  const isItaliano =
+    cat.includes('pizza')    || cat.includes('pasta')    ||
+    cat.includes('lasaña')   || cat.includes('lasagna')  ||
+    cat.includes('clasica')  || cat.includes('clásica')  ||
+    cat.includes('especial') || cat.includes('marisco')  ||
+    cat.includes('calzone')  || cat.includes('italiana') ||
+    cat.includes('italiana');
+
+  // Labels automáticos según tipo
+  const autoItaliano = ['Personal', 'Mediana', 'Grande'];
+  const autoGenerico = { 1: ['Porción'], 2: ['Pequeño', 'Grande'], 3: ['Pequeño', 'Mediano', 'Grande'] };
+  const defaults     = isItaliano ? autoItaliano : (autoGenerico[count] || ['Porción']);
+
+  const label = (i) => custom[i] || defaults[i] || 'Porción';
+
+  const sizes = [];
+  if (validP) sizes.push({ label: label(0), cm: isItaliano ? 20 : 0, price: pPersonal });
+  if (validM) sizes.push({ label: label(1), cm: isItaliano ? 28 : 0, price: pMediana  });
+  if (validG) sizes.push({ label: label(2), cm: isItaliano ? 35 : 0, price: pGrande   });
 
   if (!sizes.length) {
-    const pBase =
-      parseFloat(row.precio) ||
-      parseFloat(row.precio_base) ||
-      0;
-
-    sizes.push({ label: 'Porción', cm: 0, price: pBase });
+    const pBase = parseFloat(row.precio) || parseFloat(row.precio_base) || 0;
+    sizes.push({ label: custom[0] || 'Porción', cm: 0, price: pBase });
   }
 
   return sizes;
 }
-
 function _buildSizeTextFromSizes(sizes) {
   if (!Array.isArray(sizes) || !sizes.length) return '';
   return sizes.map(s => s.label).join(' · ');
@@ -2649,35 +2695,12 @@ function _resolveCategory(raw) {
 }
 
 function _createPizzaFromSheet(row) {
-  const nombre = (row.nombre || '').toString().trim();
-const categoria = (row.categoria || '').toString().trim().toLowerCase();
+  const nombre    = (row.nombre    || '').toString().trim();
+  const categoria = (row.categoria || '').toString().trim().toLowerCase();
 
-const categoriasBebidas = new Set([
-  'gaseosas','agua','jugos','cervezas','vinos','cócteles','cocteles','café','cafe'
-]);
+  if (!nombre) return null;
 
-if (categoriasBebidas.has(categoria)) return null;
-if (!nombre) return null;
-
-const sizes = _buildSizesFromSheetRow(row);
-
-const isPizza =
-  categoria.includes('pizza') ||
-  categoria.includes('clasica') ||
-  categoria.includes('clásica') ||
-  categoria.includes('especial') ||
-  categoria.includes('carne') ||
-  categoria.includes('marisco');
-
-if (isPizza) {
-  sizes.length = 0;
-
-  sizes.push(
-    { label: 'Personal', cm: 20, price: parseFloat(row.precio_personal) || 0 },
-    { label: 'Mediana',  cm: 28, price: parseFloat(row.precio_mediana)  || 0 },
-    { label: 'Grande',   cm: 35, price: parseFloat(row.precio_grande)   || 0 }
-  );
-}
+  const sizes     = _buildSizesFromSheetRow(row);
   const basePrice = sizes[0] && typeof sizes[0].price === 'number' ? sizes[0].price : 0;
 
  const pizza = {
@@ -2959,7 +2982,6 @@ async function loadInventory() {
 
     data.forEach(row => {
       if (!row.nombre) return;
-      _upsertBebidaFromSheetRow(row);
 
       const key = _normMenuKey(row.nombre);
       if (row.estado) inventoryMap[key] = row.estado;
@@ -3052,9 +3074,6 @@ async function _pollInventory() {
 
     data.forEach(row => {
       if (!row.nombre) return;
-       if (_upsertBebidaFromSheetRow(row)) {
-  changed = true;
-}
 
       const key = _normMenuKey(row.nombre);
 
