@@ -3066,9 +3066,12 @@ function showToast(msg) {
 async function _pollInventory() {
   if (!SCRIPT_URL) return;
   try {
-    const res  = await fetch(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' });
-    const data = await res.json();
-    if (!data || !Array.isArray(data)) return;
+   const res  = await fetch(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' });
+const data = await res.json();
+if (!data || !Array.isArray(data)) return;
+const _h = _quickHash(data);
+if (_h === _invHash) return; // sin cambios reales → no procesar
+_invHash = _h;
 
     let changed = false;
     let createdNew = false;
@@ -3132,8 +3135,12 @@ async function _pollMercado() {
     _mercadoMemCache = null;
     _mercadoMemTs    = 0;
 
-    const productos = await fetchMercado();
-    _patchMercadoUI(productos);
+   const productos = await fetchMercado();
+if (!productos) return;
+const _hm = _quickHash(productos);
+if (_hm === _mktHash) return; // sin cambios → no procesar
+_mktHash = _hm;
+_patchMercadoUI(productos);
   } catch (_) {}
 }
 
@@ -3176,10 +3183,56 @@ function _patchMercadoUI(productos) {
   if (changed) showToast('🔄 El mercado fue actualizado');
 }
 
+   function _quickHash(data) {
+  const s = JSON.stringify(data);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  }
+  return h;
+}
+let _invHash = null;
+let _mktHash = null;
+
+
 function _startPolling() {
-  const INTERVAL = 90 * 1000; // 90 segundos
-  setInterval(_pollInventory, INTERVAL);
-  setInterval(_pollMercado,   INTERVAL);
+  const INTERVAL_ACTIVE  = 10 * 1000;  // 10s cuando tab visible
+  const INTERVAL_HIDDEN  = 60 * 1000;  // 60s cuando tab en fondo
+
+  let _invTimer = null;
+  let _mktTimer = null;
+
+  function _scheduleInv() {
+    clearTimeout(_invTimer);
+    const delay = document.hidden ? INTERVAL_HIDDEN : INTERVAL_ACTIVE;
+    _invTimer = setTimeout(async () => {
+      await _pollInventory();
+      _scheduleInv();
+    }, delay);
+  }
+
+  function _scheduleMkt() {
+    clearTimeout(_mktTimer);
+    const delay = document.hidden ? INTERVAL_HIDDEN : INTERVAL_ACTIVE;
+    _mktTimer = setTimeout(async () => {
+      await _pollMercado();
+      _scheduleMkt();
+    }, delay);
+  }
+
+  // Cuando el usuario vuelve al tab → poll inmediato + reiniciar ciclo
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      _pollInventory();
+      _pollMercado();
+    }
+    _scheduleInv();
+    _scheduleMkt();
+  });
+
+  // Arrancar ciclo inicial
+  _scheduleInv();
+  _scheduleMkt();
 }
 
 // ══════════════════════════════════════════════════════════════
