@@ -2730,6 +2730,7 @@ function _createPizzaFromSheet(row) {
 }
 
 function _upsertPizzaFromSheetRow(row) {
+  if (_isBebidaRow(row)) return false;   // ← ÚNICA LÍNEA AÑADIDA
   const key = _normMenuKey(row && row.nombre);
   if (!key) return false;
 
