@@ -9,7 +9,8 @@ PWA estática mobile-first para menú digital y pedidos online. HTML/JS/CSS puro
 - `bebidas.js` — catálogo de bebidas (array `BEBIDAS`)
 - `mercado.js` — productos del mercado (fetch dinámico desde Sheets + fallback local)
 - `apps-script.gs` — backend en Google Apps Script (referencia local, se despliega en Google)
-- `sw.js` — Service Worker PWA (versión actual: `pizzeria-v6.0.0`)
+- `sw.js` — Service Worker PWA (versión actual: `pizzeria-v6.1.4`)
+- `robots.txt` · `sitemap.xml` — SEO (raíz)
 - `site.webmanifest` — manifest de la app instalable
 
 ## Configuración importante
@@ -61,3 +62,13 @@ Orden · Producto · Titulo · Subtitulo · Etiqueta · CTA_Texto · Imagen · A
 - Después de cada cambio en `apps-script.gs` → nuevo Deploy en Google (Nueva versión, misma URL)
 - El SW borra cachés anteriores al activarse (solo conserva el CACHE_NAME actual)
 - Push a GitHub: hacerlo desde el panel Git de Replit (token expira)
+
+## Auditoría de seguridad aplicada (mayo 2026)
+- **XSS**: todo `innerHTML` con datos del Sheet pasa por `_escHtml()` (cards mercado/pizza/bebidas, hero, modal pizza, comentarios reseñas, carrito).
+- **CSP** vía `<meta http-equiv>`: `default-src 'self'`, `'unsafe-inline'` para scripts/estilos (necesario por onclick=), `connect-src` permite `script.google.com`, bloquea fuentes externas no autorizadas.
+- **Headers extra**: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`.
+- **Apps Script** (`doPost`): valida tamaño payload (max 8 KB), rate limit anti-DoS 60 req/min global vía `CacheService`, valida `tipo` contra lista blanca, valida productos no vacío, valida `total` numérico [0,1M], trunca cada campo a longitud máxima antes de guardar.
+- **Service Worker**: bypass para `script.google.com` y `script.googleusercontent.com` (no cachea respuestas dinámicas del backend).
+- **SEO**: `meta description`, `keywords`, `robots`, `canonical`, OpenGraph completo (`og:url`, `og:locale`, `og:site_name`), Twitter Cards, `robots.txt` y `sitemap.xml` en raíz.
+- **A11y**: `aria-label` en botones de ícono (carrito, limpiar búsqueda), `alt` agregados a imágenes faltantes (thumbnail carrito, modal pizza, carousel fotos).
+- **Validación form**: input CI ahora con `pattern="\d{11}"` para validación HTML5 nativa.

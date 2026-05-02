@@ -1,5 +1,5 @@
 // sw.js — Service Worker
-const CACHE_NAME = 'pizzeria-v6.1.3';
+const CACHE_NAME = 'pizzeria-v6.1.4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -39,6 +39,13 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+
+  // No interceptar llamadas dinámicas al backend (Apps Script)
+  // Esto evita servir respuestas viejas del Sheet desde caché.
+  const url = event.request.url;
+  if (url.includes('script.google.com') || url.includes('script.googleusercontent.com')) {
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)

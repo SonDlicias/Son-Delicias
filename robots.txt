@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /sw.js
+Disallow: /apps-script.gs
+
+Sitemap: https://sondelicias.github.io/Son-Delicias/sitemap.xml

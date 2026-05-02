@@ -33,12 +33,77 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// ── Validación y rate limit (anti-spam / anti-DoS) ───────────
+const MAX_PAYLOAD_BYTES = 8 * 1024;     // 8 KB por request
+const MAX_FIELD_LEN     = 500;          // límite por campo de texto
+const MAX_PRODUCTOS_LEN = 4000;         // límite del campo productos
+const RATE_WINDOW_SEC   = 60;           // ventana de 1 min
+const RATE_MAX_REQS     = 60;           // máx 60 requests/min globales (anti-DoS)
+
+function _checkRateLimit_() {
+  try {
+    const cache = CacheService.getScriptCache();
+    const key   = 'rate_' + Math.floor(Date.now() / (RATE_WINDOW_SEC * 1000));
+    const cur   = parseInt(cache.get(key)) || 0;
+    if (cur >= RATE_MAX_REQS) return false;
+    cache.put(key, String(cur + 1), RATE_WINDOW_SEC + 5);
+    return true;
+  } catch (err) {
+    return true; // si el cache falla, no bloqueamos
+  }
+}
+
+function _truncStr_(v, max) {
+  if (v == null) return '';
+  const s = String(v);
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+function _validateOrder_(data) {
+  // Tipo de pedido permitido
+  const tiposValidos = ['delivery', 'recoger', 'table', ''];
+  if (data.tipo && tiposValidos.indexOf(String(data.tipo).toLowerCase()) === -1) {
+    return 'Tipo de pedido inválido';
+  }
+  // Productos requeridos
+  if (!data.productos || String(data.productos).trim() === '') {
+    return 'Lista de productos vacía';
+  }
+  // Longitud productos
+  if (String(data.productos).length > MAX_PRODUCTOS_LEN) {
+    return 'Lista de productos demasiado larga';
+  }
+  // Total numérico razonable
+  const tot = parseFloat(data.total);
+  if (data.total !== undefined && (isNaN(tot) || tot < 0 || tot > 1000000)) {
+    return 'Total inválido';
+  }
+  return null;
+}
+
 // ── Enrutador POST ────────────────────────────────────────────
 function doPost(e) {
   try {
+    // Validar tamaño del payload antes de parsear
+    if (!e.postData || !e.postData.contents) {
+      return jsonResponse({ success: false, error: 'Sin datos' });
+    }
+    if (e.postData.contents.length > MAX_PAYLOAD_BYTES) {
+      return jsonResponse({ success: false, error: 'Payload demasiado grande' });
+    }
+
+    // Rate limit anti-DoS
+    if (!_checkRateLimit_()) {
+      return jsonResponse({ success: false, error: 'Demasiadas solicitudes, intenta en un minuto' });
+    }
+
     const data = JSON.parse(e.postData.contents);
 
     if (data.action === 'rating') return saveRating(data);
+
+    // Validar pedido antes de guardar
+    const errMsg = _validateOrder_(data);
+    if (errMsg) return jsonResponse({ success: false, error: errMsg });
 
     // Guardar pedido
     const ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -56,18 +121,18 @@ function doPost(e) {
 
     const orderNum = data.orderNumber || generateOrderNum(sheet);
     sheet.appendRow([
-      orderNum,
-      data.fecha       || new Date().toLocaleDateString('es-CU'),
-      data.hora        || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
-      data.tipo        || '',
-      data.nombre      || '',
-      data.ci          || '',
-      data.mesa        || '',
-      data.direccion   || '',
-      data.referencia  || '',
-      data.productos   || '',
-      data.total       || '0.00',
-      data.estado      || 'Pendiente'
+      _truncStr_(orderNum, 50),
+      _truncStr_(data.fecha || new Date().toLocaleDateString('es-CU'), 30),
+      _truncStr_(data.hora  || new Date().toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }), 30),
+      _truncStr_(data.tipo, 20),
+      _truncStr_(data.nombre, 80),
+      _truncStr_(data.ci, 30),
+      _truncStr_(data.mesa, 10),
+      _truncStr_(data.direccion, MAX_FIELD_LEN),
+      _truncStr_(data.referencia, MAX_FIELD_LEN),
+      _truncStr_(data.productos, MAX_PRODUCTOS_LEN),
+      _truncStr_(data.total || '0.00', 30),
+      _truncStr_(data.estado || 'Pendiente', 30)
     ]);
 
     const lastRow = sheet.getLastRow();
@@ -255,6 +320,15 @@ function getMercado() {
 // ── Valoraciones ──────────────────────────────────────────────
 function saveRating(data) {
   try {
+    // Validar entrada
+    const stars = Number(data.estrellas);
+    if (!data.producto || isNaN(stars) || stars < 1 || stars > 5) {
+      return jsonResponse({ success: false, error: 'Datos de valoración inválidos' });
+    }
+    if (data.comentario && String(data.comentario).length > MAX_FIELD_LEN) {
+      data.comentario = String(data.comentario).slice(0, MAX_FIELD_LEN);
+    }
+
     const ss    = SpreadsheetApp.openById(SHEET_ID);
     const sheet = ss.getSheetByName(VALORACIONES_SHEET) || ss.insertSheet(VALORACIONES_SHEET);
 
@@ -265,11 +339,11 @@ function saveRating(data) {
     }
 
     sheet.appendRow([
-      data.producto   || '',
+      _truncStr_(data.producto, 100),
       Number(data.estrellas) || 0,
       new Date().toISOString(),
-      data.anonId     || '',
-      data.comentario || ''
+      _truncStr_(data.anonId, 50),
+      _truncStr_(data.comentario, MAX_FIELD_LEN)
     ]);
 
     return jsonResponse({ success: true });

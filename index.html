@@ -3,12 +3,27 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.googleusercontent.com; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'"/>
+<meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <title>🍕 Son D'licias</title>
+<meta name="description" content="Son D'licias — Pizzas artesanales, bebidas y mercado. Pide por WhatsApp con delivery, recogida o consumo en mesa."/>
+<meta name="keywords" content="pizzería, son d'licias, delivery, mercado, bebidas, WhatsApp, comida, pedido"/>
+<meta name="robots" content="index,follow"/>
+<meta name="author" content="Son D'licias"/>
+<link rel="canonical" href="https://sondelicias.github.io/Son-Delicias/"/>
 <meta property="og:title" content="🍕 Son D'licias"/>
 <meta property="og:description" content="🍕 Son D'licias · Delivery y pedidos en mesa. Pizzas artesanales, bebidas y más. ¡Pide por WhatsApp!"/>
-<meta property="og:image" content="og-image.png"/>
+<meta property="og:image" content="https://sondelicias.github.io/Son-Delicias/icon-512x512.png"/>
+<meta property="og:url" content="https://sondelicias.github.io/Son-Delicias/"/>
 <meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Son D'licias"/>
+<meta property="og:locale" content="es_CU"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="🍕 Son D'licias"/>
+<meta name="twitter:description" content="Pizzas artesanales, bebidas y mercado. Delivery y pedidos por WhatsApp."/>
+<meta name="twitter:image" content="https://sondelicias.github.io/Son-Delicias/icon-512x512.png"/>
 <meta name="theme-color" content="#0f0a08"/>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -563,7 +578,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
         </div>
       </div>
     </div>
-    <button class="btnall btn-lista empty" id="hcart-btn" onclick="openCart()" style="padding:0;width:44px;height:44px;border-radius:50%;background:transparent;-webkit-tap-highlight-color:transparent">
+    <button class="btnall btn-lista empty" id="hcart-btn" aria-label="Abrir carrito de compras" onclick="openCart()" style="padding:0;width:44px;height:44px;border-radius:50%;background:transparent;-webkit-tap-highlight-color:transparent">
       <div style="position:relative;display:flex;align-items:center;justify-content:center">
         <svg id="hcart-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m15 11-1 9"/>
@@ -581,7 +596,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
   <div class="swrap" id="search-swrap">
     <div style="position:relative;width:100%">
       <input id="si" type="text" placeholder="¿Qué pizza te provoca hoy?" oninput="render();toggleSearchIcon(this.value)"/>
-      <button id="clrbtn" onclick="document.getElementById('si').value='';render();toggleSearchIcon('')" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(214,40,40,.15);border:1px solid rgba(214,40,40,.3);border-radius:50%;width:28px;height:28px;color:#D62828;font-size:14px;cursor:pointer;align-items:center;justify-content:center;line-height:1;transition:all .2s">✕</button>
+      <button id="clrbtn" aria-label="Limpiar búsqueda" onclick="document.getElementById('si').value='';render();toggleSearchIcon('')" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(214,40,40,.15);border:1px solid rgba(214,40,40,.3);border-radius:50%;width:28px;height:28px;color:#D62828;font-size:14px;cursor:pointer;align-items:center;justify-content:center;line-height:1;transition:all .2s">✕</button>
       <span id="searchicon" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;transition:opacity .2s">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(214,40,40,.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -910,7 +925,7 @@ const ORDER_FIELDS = {
     </div>
     <div class="oform-section">
       <label class="oform-label">Carnet de Identidad (CI)</label>
-      <input class="ofield" id="of-ci" type="text" inputmode="numeric" placeholder="Número completo de CI" maxlength="11"/>
+      <input class="ofield" id="of-ci" type="text" inputmode="numeric" pattern="\\d{11}" placeholder="Número completo de CI" maxlength="11"/>
     </div>`,
   recoger: `
     <div class="oform-section">
@@ -919,7 +934,7 @@ const ORDER_FIELDS = {
     </div>
     <div class="oform-section">
       <label class="oform-label">Carnet de Identidad (CI)</label>
-      <input class="ofield" id="of-ci" type="text" inputmode="numeric" placeholder="Número completo de CI" maxlength="11"/>
+      <input class="ofield" id="of-ci" type="text" inputmode="numeric" pattern="\\d{11}" placeholder="Número completo de CI" maxlength="11"/>
     </div>`,
   table: `
     <div class="oform-section">
@@ -1247,7 +1262,7 @@ function openCart() {
       const gameData = (typeof G !== 'undefined') ? G.find(x => x.t === item.t) : null;
       const imgSrc = (gameData && gameData.c) || item.img || '';
       return imgSrc
-        ? `<img src="${imgSrc}" style="width:46px;height:46px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
+        ? `<img src="${_escHtml(imgSrc)}" alt="" style="width:46px;height:46px;border-radius:9px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
         : `<div style="width:46px;height:46px;border-radius:9px;background:${gameData?.col || '#1a1208'};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px">${item.seccion === 'mercado' ? '🛒' : item.type === 'bebida' ? '🥤' : '🍕'}</div>`;
     };
 
@@ -1261,8 +1276,8 @@ function openCart() {
         <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0">
           ${_buildThumb({ item })}
           <div style="min-width:0;flex:1">
-            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.t}</div>
-            ${item.size ? `<div style="font-size:10px;color:#888;margin-top:1px">${item.size}</div>` : ''}
+            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_escHtml(item.t)}</div>
+            ${item.size ? `<div style="font-size:10px;color:#888;margin-top:1px">${_escHtml(item.size)}</div>` : ''}
             <div style="font-size:10px;color:#777;margin-top:1px">${_cup(unitPrice)}/u · <span style="font-weight:800;color:${accentColor}">${_cup(lineTotal)}</span></div>
           </div>
         </div>
@@ -1586,25 +1601,26 @@ async function loadBebidas() {
     const inCart = cart.some(x => x.t === b.nombre);
     const safeName = b.nombre.replace(/'/g, "\\'");
     const safeImg  = (b.img || '').replace(/'/g, "\\'");
+    const safeEmoji = (b.emoji || '🥤').replace(/'/g, "\\'");
     d.innerHTML = `
       <div class="con-img-wrap">
         ${b.img
-          ? `<img class="con-img" src="${b.img}" loading="lazy" decoding="async"
+          ? `<img class="con-img" src="${_escHtml(b.img)}" loading="lazy" decoding="async"
                onload="this.parentElement.style.backgroundImage='url('+this.src+')'"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${b.nombre}"/>
-             <div class="con-img-fall" style="display:none">${b.emoji || '🥤'}</div>`
-          : `<div class="con-img-fall">${b.emoji || '🥤'}</div>`
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${_escHtml(b.nombre)}"/>
+             <div class="con-img-fall" style="display:none">${_escHtml(b.emoji || '🥤')}</div>`
+          : `<div class="con-img-fall">${_escHtml(b.emoji || '🥤')}</div>`
         }
-        <button class="con-bebida-cart-btn${inCart?' in-cart':''}" data-bname="${b.nombre}"
+        <button class="con-bebida-cart-btn${inCart?' in-cart':''}" data-bname="${_escHtml(b.nombre)}"
           ${!disponible ? 'disabled' : ''}
           onclick="event.stopPropagation();_bebidaCartToggle('${safeName}','${b.precio}','${safeImg}',this)">
           ${inCart ? '✓' : CART_SVG}
         </button>
       </div>
-      <div class="con-info" style="cursor:pointer" onclick="openBebidaRating('${safeName}','${b.emoji || '🥤'}')">
-        <div class="con-name">${b.nombre}</div>
+      <div class="con-info" style="cursor:pointer" onclick="openBebidaRating('${safeName}','${safeEmoji}')">
+        <div class="con-name">${_escHtml(b.nombre)}</div>
         <div class="con-price">${_cup(parseFloat(b.precio))}</div>
-        <div style="font-size:10px;color:#FFD700;font-weight:700;margin-top:3px;min-height:14px" data-cardrating="${b.nombre}"></div>
+        <div style="font-size:10px;color:#FFD700;font-weight:700;margin-top:3px;min-height:14px" data-cardrating="${_escHtml(b.nombre)}"></div>
       </div>`;
     cg.appendChild(d);
   });
@@ -1660,7 +1676,7 @@ fetchMercado().then(productos => {
     // Botones de categoría dinámicos
     const cats = ['Todos', ...new Set(productos.map(p => p.categoria).filter(Boolean))];
     catRow.innerHTML = cats.map(c =>
-      `<button class="mcat-btn${c === 'Todos' ? ' active' : ''}" onclick="filterMercado('${c}')">${c}</button>`
+      `<button class="mcat-btn${c === 'Todos' ? ' active' : ''}" onclick="filterMercado('${(c||'').replace(/'/g,"\\'")}')">${_escHtml(c)}</button>`
     ).join('');
 
     // Renderizar tarjetas
@@ -1678,24 +1694,24 @@ fetchMercado().then(productos => {
       d.innerHTML = `
         <div class="con-img-wrap">
           ${p.img
-            ? `<img class="con-img" src="${p.img}" loading="lazy" decoding="async"
+            ? `<img class="con-img" src="${_escHtml(p.img)}" loading="lazy" decoding="async"
                  onload="this.parentElement.style.backgroundImage='url('+this.src+')'"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${p.nombre}"/>
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="${_escHtml(p.nombre)}"/>
                <div class="con-img-fall" style="display:none">${_MFALLBACK_SVG}</div>`
             : `<div class="con-img-fall">${_MFALLBACK_SVG}</div>`
           }
-          <div class="mcat-badge">${p.categoria}</div>
-          <button class="con-bebida-cart-btn${inCart ? ' in-cart' : ''}" data-mname="${p.nombre}"
+          <div class="mcat-badge">${_escHtml(p.categoria)}</div>
+          <button class="con-bebida-cart-btn${inCart ? ' in-cart' : ''}" data-mname="${_escHtml(p.nombre)}"
             ${!disponible ? 'disabled' : ''}
             onclick="event.stopPropagation();_mercadoCartToggle('${safeName}','${p.precio}','${safeImg}',this)">
             ${inCart ? '✓' : CART_SVG}
           </button>
         </div>
         <div class="con-info">
-          <div class="con-name">${p.nombre}</div>
+          <div class="con-name">${_escHtml(p.nombre)}</div>
           <div class="con-price">${_cup(parseFloat(p.precio))}</div>
-          ${specs ? `<div class="con-specs">${specs}</div>` : ''}
-          ${p.descripcion ? `<div class="con-desc">${p.descripcion}</div>` : ''}
+          ${specs ? `<div class="con-specs">${_escHtml(specs)}</div>` : ''}
+          ${p.descripcion ? `<div class="con-desc">${_escHtml(p.descripcion)}</div>` : ''}
         </div>`;
       grid.appendChild(d);
     });
@@ -1937,15 +1953,15 @@ function openGameSheet(game) {
   // Imagen principal
   const imgWrap = document.getElementById('gsImgWrap');
   imgWrap.innerHTML = game.c
-    ? `<img class="game-sheet-img" src="${game.c}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="game-sheet-img-fall" style="display:none;background:${game.col}">🍕</div>`
-    : `<div class="game-sheet-img-fall" style="background:${game.col}">🍕</div>`;
+    ? `<img class="game-sheet-img" src="${_escHtml(game.c)}" alt="${_escHtml(game.t)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="game-sheet-img-fall" style="display:none;background:${_escHtml(game.col)}">🍕</div>`
+    : `<div class="game-sheet-img-fall" style="background:${_escHtml(game.col)}">🍕</div>`;
 
   // Fotos / carousel
   const allPhotos = (game.fotos || []).filter(Boolean);
   const capturas = document.getElementById('gsCapturas');
   if (allPhotos.length > 0) {
     const slides = allPhotos.map(url =>
-      `<div class="gs-carousel-slide"><img src="${url}" onerror="this.style.display='none'" onclick="openImgViewer('${url}')" style="width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in"/></div>`
+      `<div class="gs-carousel-slide"><img src="${_escHtml(url)}" alt="" onerror="this.style.display='none'" onclick="openImgViewer('${(url||'').replace(/'/g,"\\'")}')" style="width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in"/></div>`
     ).join('');
     const dots = allPhotos.length > 1
       ? `<div class="gs-dots">${allPhotos.map((_, i) => `<div class="gs-dot${i === 0 ? ' on' : ''}"></div>`).join('')}</div>` : '';
@@ -2241,34 +2257,34 @@ function render() {
     const agotadaTag = invState === 'Agotada' ? `<div class="agotada-tag">Agotada hoy</div>` : '';
     const gridLabelHtml = _getProductLabelsHtml(game);
     const _gUrgClass = game._urgencia ? (game._urgencia.toLowerCase().includes('hoy') ? 'urg-hoy' : (game._urgencia.toLowerCase().includes('poca') ? 'urg-pocas' : 'urg-hoy')) : '';
-    const gridUrgencyHtml = game._urgencia ? '<div class="cc-urgency"><span class="cc-urgency-tag ' + _gUrgClass + '">' + game._urgencia + '</span></div>' : '';
+    const gridUrgencyHtml = game._urgencia ? '<div class="cc-urgency"><span class="cc-urgency-tag ' + _gUrgClass + '">' + _escHtml(game._urgencia) + '</span></div>' : '';
     const gameJson = JSON.stringify(game).replace(/"/g, '&quot;');
 
     card.innerHTML = `
-      <div class="cimg" style="background:${game.col}">
+      <div class="cimg" style="background:${_escHtml(game.col)}">
         ${agotadaTag}
         ${gridLabelHtml}
-        ${game.c ? `<img src="${game.c}" alt="${game.t}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` : ''}
+        ${game.c ? `<img src="${_escHtml(game.c)}" alt="${_escHtml(game.t)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` : ''}
         ${gridUrgencyHtml}
-        <div class="fall" style="${!game.c ? 'display:flex;' : ''}background:${game.col}">
+        <div class="fall" style="${!game.c ? 'display:flex;' : ''}background:${_escHtml(game.col)}">
           <img src="logo-app.png" alt="" onerror="this.outerHTML='<span style=font-size:38px>🍕</span>'"/>
-          <p>${game.t}</p>
+          <p>${_escHtml(game.t)}</p>
         </div>
-        <div class="bg">${game.g}</div>
+        <div class="bg">${_escHtml(game.g)}</div>
         <div class="bp">${priceDisplay}</div>
         <div class="ov">
-          <div class="ovt">${game.t}</div>
-          <div class="ovd"><span data-cardrating="${game.t}"></span> ${game.g}</div>
-          <div class="ovs"><span data-cardstars="${game.t}"></span></div>
-          <div style="font-size:10px;color:#ccc;margin-top:4px;line-height:1.5">${game.d || ''}</div>
+          <div class="ovt">${_escHtml(game.t)}</div>
+          <div class="ovd"><span data-cardrating="${_escHtml(game.t)}"></span> ${_escHtml(game.g)}</div>
+          <div class="ovs"><span data-cardstars="${_escHtml(game.t)}"></span></div>
+          <div style="font-size:10px;color:#ccc;margin-top:4px;line-height:1.5">${_escHtml(game.d || '')}</div>
         </div>
-        ${invState !== 'Agotada' ? `<button class="card-cart-btn${inCart?' in-cart':''}" data-t="${game.t.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();quickAddToCart(${gameJson},this)">${inCart?'✓':CART_SVG}</button>` : ''}
+        ${invState !== 'Agotada' ? `<button class="card-cart-btn${inCart?' in-cart':''}" data-t="${_escHtml(game.t)}" onclick="event.stopPropagation();quickAddToCart(${gameJson},this)">${inCart?'✓':CART_SVG}</button>` : ''}
       </div>
       <div class="cfoot">
-        <div class="ctit">${game.t}</div>
-        ${game.s ? `<div class="csize">${game.s}</div>` : ''}
+        <div class="ctit">${_escHtml(game.t)}</div>
+        ${game.s ? `<div class="csize">${_escHtml(game.s)}</div>` : ''}
         <div class="ccard-meta">
-          <span class="ccard-rating" data-cardrating="${game.t}"></span>
+          <span class="ccard-rating" data-cardrating="${_escHtml(game.t)}"></span>
         </div>
       </div>`;
 
@@ -2303,8 +2319,8 @@ function _renderHero(slides) {
       + ';transition:opacity .65s ease;pointer-events:' + (i===0?'all':'none');
 
     sl.innerHTML = s.c
-      ? '<img src="' + s.c + '" alt="' + (s.t||'').replace(/"/g,'&quot;') + '" loading="' + (i===0?'eager':'lazy') + '" onerror="this.style.display=\'none\'">'
-      : '<div class="hero-slide-fallback" style="background:' + (s.col||'#1a1a1a') + '">🍕</div>';
+      ? '<img src="' + _escHtml(s.c) + '" alt="' + _escHtml(s.t||'') + '" loading="' + (i===0?'eager':'lazy') + '" onerror="this.style.display=\'none\'">'
+      : '<div class="hero-slide-fallback" style="background:' + _escHtml(s.col||'#1a1a1a') + '">🍕</div>';
     sl.innerHTML += '<div class="hero-overlay"></div>';
 
   // Badge esquina superior derecha: _etiqueta > _urgencia > _etiquetaComercial del producto
@@ -2314,19 +2330,19 @@ function _renderHero(slides) {
       || '';
     const ratingKey = s._product ? s._product.t : (s.t || '');
 
-    if (badgeText) sl.innerHTML += '<div class="hero-badge-tr">⏰ ' + badgeText + '</div>';
+    if (badgeText) sl.innerHTML += '<div class="hero-badge-tr">⏰ ' + _escHtml(badgeText) + '</div>';
     sl.innerHTML += '<div class="hero-content">'
       + '<div class="hero-eyebrow">'
       + '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
-      + '<span data-herorating="' + ratingKey + '">' + (s.g||'') + '</span>'
+      + '<span data-herorating="' + _escHtml(ratingKey) + '">' + _escHtml(s.g||'') + '</span>'
       + '</div>'
-      + '<div class="hero-title">' + (s.t||'') + '</div>'
-      + '<div class="hero-sub">' + (s.d||'').slice(0,72) + (s.d&&s.d.length>72?'…':'') + '</div>'
+      + '<div class="hero-title">' + _escHtml(s.t||'') + '</div>'
+      + '<div class="hero-sub">' + _escHtml((s.d||'').slice(0,72) + (s.d&&s.d.length>72?'…':'')) + '</div>'
       + '<div class="hero-actions">'
       + '<button class="hero-btn" onclick="event.stopPropagation();'
       + (s._product ? 'openGameSheet(window.__heroSlides[' + i + '])' : '') + '">'
       + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>'
-      + (s._cta||'Ordenar ahora')
+      + _escHtml(s._cta||'Ordenar ahora')
       + '</button></div></div>';
 
     sl.onclick = () => { if (slides[cur]._product) openGameSheet(slides[cur]._product); };
@@ -2893,7 +2909,7 @@ function _mapBadgeClass(text) {
   return 'cb-default';
 }
 
-function _escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function _escHtml(s) { if (s == null) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 function _getProductLabelsHtml(g) {
   var html = '';
@@ -3518,8 +3534,8 @@ async function _loadRevComments(producto, offset, clear) {
         const ds = d && !isNaN(d) ? d.toLocaleDateString('es-CU', { day:'numeric', month:'short', year:'numeric' }) : '';
         div.innerHTML = `
           <div class="rev-comment-stars">${'★'.repeat(Math.round(c.stars))}${'☆'.repeat(5 - Math.round(c.stars))}</div>
-          <div class="rev-comment-text">${c.text.replace(/</g,'&lt;')}</div>
-          ${ds ? `<div class="rev-comment-date">${ds}</div>` : ''}`;
+          <div class="rev-comment-text">${_escHtml(c.text)}</div>
+          ${ds ? `<div class="rev-comment-date">${_escHtml(ds)}</div>` : ''}`;
         body.appendChild(div);
       });
       _revOffset  = offset + data.comments.length;
