@@ -467,7 +467,13 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 /* ── SISTEMA DE PEDIDOS — FORM ── */
 .oform-section{margin-bottom:14px}
 .oform-label{display:block;font-size:10px;font-weight:800;color:#888;letter-spacing:.6px;margin-bottom:5px;text-transform:uppercase}
-.ofield{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px;font-weight:600;outline:none;margin-bottom:0;-webkit-appearance:none;transition:border-color .2s,background .2s;display:block}
+.ofield{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px;font-weight:600;outline:none;margin-bottom:0;-webkit-appearance:none;transition:border-color .2s,background .2s,box-shadow .2s;display:block}
+.ofield.ofield-invalid{border-color:#ef4444;background:rgba(239,68,68,.08);box-shadow:0 0 0 3px rgba(239,68,68,.18)}
+.field-msg{color:#fca5a5;font-size:12px;font-weight:600;margin:6px 2px 0;display:flex;align-items:center;gap:6px;animation:fieldMsgIn .25s ease}
+.field-msg::before{content:"⚠";font-size:13px}
+@keyframes fieldMsgIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.cart-banner{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.45);color:#fecaca;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;animation:fieldMsgIn .25s ease;line-height:1.4}
+.cart-banner.info{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.45);color:#fed7aa}
 .ofield:focus{border-color:rgba(214,40,40,.6);background:rgba(255,255,255,.09)}
 .ofield::placeholder{color:rgba(255,255,255,.28);font-weight:400}
 .ofield-opt::placeholder{font-style:italic}
@@ -685,6 +691,9 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
       <div id="otype-alert"></div>
     </div>
 
+    <!-- Banner inline para mensajes generales (horario, modalidad, etc.) -->
+    <div id="cart-form-banner"></div>
+
     <!-- Campos dinámicos por tipo -->
     <div id="order-fields"></div>
 
@@ -874,6 +883,56 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52
 
 // ── Modo desarrollo: solo logueamos a consola en local/Replit, no en GitHub Pages.
 const _isDev = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('.replit.dev'));
+
+// ── Fetch con timeout: cancela la petición si tarda más de `ms` (10s por defecto).
+//    Evita que el menú/pedido se quede colgado si la red del cliente es lenta.
+function _fetchWithTimeout(url, opts = {}, ms = 10000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+
+// ── Mostrar error inline en un campo del formulario (sustituye alert()).
+function _showFieldError(fieldId, msg) {
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  el.classList.add('ofield-invalid');
+  // Quitar mensaje previo si existe
+  const prev = el.parentNode?.querySelector('.field-msg[data-for="' + fieldId + '"]');
+  if (prev) prev.remove();
+  // Insertar nuevo mensaje
+  const m = document.createElement('div');
+  m.className = 'field-msg';
+  m.setAttribute('data-for', fieldId);
+  m.textContent = msg;
+  el.parentNode?.insertBefore(m, el.nextSibling);
+  // Scroll suave al primer error
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+  el.focus({ preventScroll: true });
+  // Quitar el error cuando el usuario empiece a escribir
+  const clear = () => {
+    el.classList.remove('ofield-invalid');
+    m.remove();
+    el.removeEventListener('input', clear);
+  };
+  el.addEventListener('input', clear);
+}
+
+// ── Limpiar todos los errores inline del formulario.
+function _clearFieldErrors() {
+  document.querySelectorAll('.ofield-invalid').forEach(el => el.classList.remove('ofield-invalid'));
+  document.querySelectorAll('.field-msg').forEach(el => el.remove());
+  const banner = document.getElementById('cart-form-banner');
+  if (banner) banner.innerHTML = '';
+}
+
+// ── Mostrar mensaje en el banner del carrito (sustituye alert() generales).
+function _showCartBanner(msg, kind = 'error') {
+  const banner = document.getElementById('cart-form-banner');
+  if (!banner) return;
+  banner.innerHTML = '<div class="cart-banner ' + (kind === 'info' ? 'info' : '') + '">' + _escHtml(msg) + '</div>';
+  try { banner.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+}
 
 // ── CONFIGURACIÓN DE ENVÍO (ajusta aquí cuando quieras) ───────
 const CFG_ENVIO = {
@@ -1371,18 +1430,20 @@ function genOrderNum() {
 
 // ── CONFIRMAR PEDIDO ──────────────────────────────────────────
 async function confirmOrder() {
+  _clearFieldErrors();
+
   // ── Validación de horario ──────────────────────────────────
   if (typeof getEstadoHorario === 'function') {
     const e = getEstadoHorario();
     const mapActivo = { delivery: e.deliveryActivo, recoger: e.recogerActivo, table: e.mesaActiva };
     const hayAlguno = e.deliveryActivo || e.recogerActivo || e.mesaActiva;
     if (!hayAlguno) {
-      alert('⏰ Los pedidos están disponibles de 9:00 AM a 12:00 AM.\nPuedes explorar el catálogo mientras tanto.');
+      _showCartBanner('⏰ Los pedidos están disponibles de 9:00 AM a 12:00 AM. Puedes explorar el catálogo mientras tanto.', 'info');
       return;
     }
     if (!mapActivo[orderType]) {
       const hint = typeof getMensajeModalidad === 'function' ? getMensajeModalidad(orderType) : '';
-      alert(`Esta modalidad no está disponible ahora.\n${hint ? 'Horario: ' + hint : ''}\nSelecciona otra opción.`);
+      _showCartBanner('Esta modalidad no está disponible ahora.' + (hint ? ' Horario: ' + hint + '.' : '') + ' Selecciona otra opción.', 'info');
       applyHorarios();
       return;
     }
@@ -1395,13 +1456,13 @@ async function confirmOrder() {
   const mesa = document.getElementById('of-mesa')?.value?.trim();
 
   if (orderType === 'delivery') {
-    if (!nombre) return alert('Introduce tu nombre para el delivery.');
-    if (!dir) return alert('Introduce la dirección de entrega.');
+    if (!nombre) { _showFieldError('of-nombre', 'Por favor escribe tu nombre.'); return; }
+    if (!dir)    { _showFieldError('of-dir',    'Escribe la dirección de entrega.'); return; }
   } else if (orderType === 'recoger') {
-    if (!nombre) return alert('Introduce tu nombre para recoger.');
-    if (!ci) return alert('Introduce tu número de Carnet de Identidad completo.');
+    if (!nombre) { _showFieldError('of-nombre', 'Escribe tu nombre para recoger.'); return; }
+    if (!ci)     { _showFieldError('of-ci',     'Escribe tu Carnet de Identidad (11 dígitos).'); return; }
   } else if (orderType === 'table') {
-    if (!mesa) return alert('Introduce el número de mesa.');
+    if (!mesa)   { _showFieldError('of-mesa',   'Escribe el número de mesa.'); return; }
   }
 
   const btn = document.getElementById('cartWapp');
@@ -1454,7 +1515,7 @@ async function confirmOrder() {
   // Número de pedido desde el backend — única fuente de verdad
   let orderNum;
   try {
-    const _nr = await fetch(SCRIPT_URL + '?_t=' + Date.now(), { cache: 'no-store' });
+    const _nr = await _fetchWithTimeout(SCRIPT_URL + '?_t=' + Date.now(), { cache: 'no-store' }, 8000);
     const _nd = await _nr.json();
     if (_nd && _nd.nextNum) orderNum = _nd.nextNum;
   } catch (_e) { /* sin red, se usa fallback */ }
@@ -1479,11 +1540,11 @@ async function confirmOrder() {
       hora: now.toLocaleTimeString('es-CU', { hour: '2-digit', minute: '2-digit' }),
       estado: 'Pendiente'
     };
-  fetch(SCRIPT_URL, {
+  _fetchWithTimeout(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(payload)
-    }).catch(e => { if (_isDev) console.warn('Sheets no disponible:', e); });
+    }, 12000).catch(e => { if (_isDev) console.warn('Sheets no disponible:', e); });
   }
 
   // Construir mensaje WhatsApp
@@ -1567,7 +1628,7 @@ async function loadBebidas() {
   // Intentar cargar desde el Sheet primero
   let bebidasSource = [];
   try {
-    const res  = await fetch(SCRIPT_URL + '?action=bebidas&_t=' + Date.now(), { cache: 'no-store' });
+    const res  = await _fetchWithTimeout(SCRIPT_URL + '?action=bebidas&_t=' + Date.now(), { cache: 'no-store' }, 10000);
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) bebidasSource = data;
   } catch (_) {}
@@ -2933,7 +2994,7 @@ function _getProductLabelsHtml(g) {
 async function loadHero() {
   if (!SCRIPT_URL) return;
   try {
-    const res = await fetch(SCRIPT_URL + '?action=hero&_t=' + Date.now(), { cache: 'no-store' });
+    const res = await _fetchWithTimeout(SCRIPT_URL + '?action=hero&_t=' + Date.now(), { cache: 'no-store' }, 10000);
     const heroData = await res.json();
     // Si Sheets no tiene datos → el hero de initHero() permanece intacto
     if (!heroData || !Array.isArray(heroData) || heroData.length === 0) return;
@@ -2989,7 +3050,7 @@ async function loadHero() {
 async function loadInventory() {
   if (!SCRIPT_URL) return;
   try {
-    const res = await fetch(SCRIPT_URL + '?action=inventory', { method: 'GET' });
+    const res = await _fetchWithTimeout(SCRIPT_URL + '?action=inventory', { method: 'GET' }, 10000);
     const data = await res.json();
     if (!data || !Array.isArray(data)) return;
 
@@ -3085,7 +3146,7 @@ function showToast(msg) {
 async function _pollInventory() {
   if (!SCRIPT_URL) return;
   try {
-   const res  = await fetch(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' });
+   const res  = await _fetchWithTimeout(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' }, 10000);
 const data = await res.json();
 if (!data || !Array.isArray(data)) return;
 const _h = _quickHash(data);
@@ -3275,7 +3336,7 @@ let ratingsCache = {};
 async function loadRatings() {
   if (!SCRIPT_URL) return;
   try {
-    const res = await fetch(SCRIPT_URL + '?action=ratings');
+    const res = await _fetchWithTimeout(SCRIPT_URL + '?action=ratings', {}, 10000);
     const data = await res.json();
     if (data && typeof data === 'object') ratingsCache = data;
   } catch (e) {}
@@ -3303,10 +3364,10 @@ async function doSubmitRating(producto, estrellas, comentario) {
 
   if (!SCRIPT_URL) return;
   try {
-    await fetch(SCRIPT_URL, {
+    await _fetchWithTimeout(SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'rating', producto, estrellas, comentario: comentario || '', anonId: getAnonId() })
-    });
+    }, 10000);
   } catch (e) {}
 }
 

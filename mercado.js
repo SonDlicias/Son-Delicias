@@ -61,7 +61,10 @@ async function fetchMercado() {
 
   // 2. Fetch fresco desde Google Sheets
   try {
-    const res  = await fetch(`${SCRIPT_URL_MERCADO}?action=mercado&_t=${now}`, { cache: 'no-store' });
+    // Fetch con timeout 10s — evita que el catálogo se cuelgue en redes lentas
+    const _ctrl = new AbortController();
+    const _to = setTimeout(() => _ctrl.abort(), 10000);
+    const res  = await fetch(`${SCRIPT_URL_MERCADO}?action=mercado&_t=${now}`, { cache: 'no-store', signal: _ctrl.signal }).finally(() => clearTimeout(_to));
     const data = await res.json();
     if (Array.isArray(data) && data.length > 0) {
       // Solo datos del sheet, normalizados. Sin mezcla con local.

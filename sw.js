@@ -1,5 +1,5 @@
 // sw.js — Service Worker
-const CACHE_NAME = 'pizzeria-v6.1.5';
+const CACHE_NAME = 'pizzeria-v6.1.6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

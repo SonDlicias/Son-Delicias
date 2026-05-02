@@ -72,3 +72,10 @@ Orden · Producto · Titulo · Subtitulo · Etiqueta · CTA_Texto · Imagen · A
 - **SEO**: `meta description`, `keywords`, `robots`, `canonical`, OpenGraph completo (`og:url`, `og:locale`, `og:site_name`), Twitter Cards, `robots.txt` y `sitemap.xml` en raíz.
 - **A11y**: `aria-label` en botones de ícono (carrito, limpiar búsqueda), `alt` agregados a imágenes faltantes (thumbnail carrito, modal pizza, carousel fotos).
 - **Validación form**: input CI ahora con `pattern="\d{11}"` para validación HTML5 nativa.
+
+## Mejoras post-auditoría (mayo 2026, v6.1.6)
+- **Semántica + accesibilidad** (B3): `<div class="navtabs">` → `<nav aria-label="Navegación principal">`; `<div class="body">` → `<main id="main-content">`. CSS sin tocar (apunta a clases, no tags).
+- **Logs solo en dev** (B1): helper `_isDev` (true en localhost/127.0.0.1/*.replit.dev). Todos los `console.warn/log` envueltos con guardia → silencio total en GitHub Pages.
+- **Mensajes inline** (sustituye `alert()` en formulario): helpers `_showFieldError(id,msg)`, `_clearFieldErrors()`, `_showCartBanner(msg,kind)`. CSS: `.ofield-invalid`, `.field-msg`, `.cart-banner`. Banner `<div id="cart-form-banner">` antes de `order-fields`. Auto-limpia al escribir, scroll suave al primer error.
+- **Timeouts en fetch**: helper `_fetchWithTimeout(url, opts, ms=10000)` con `AbortController`. Aplicado a todas las llamadas a Apps Script (8 en index.html: nextNum 8s, sendOrder 12s, bebidas/hero/inventory/poll/ratings/rating 10s) + mercado.js inline 10s. Evita que el menú se quede colgado en redes lentas.
+- **SW v6.1.6**: bump de cache para forzar actualización en clientes existentes.
