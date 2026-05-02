@@ -610,7 +610,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 <!-- ═══════════════════════════════════════════════════════════
      NAV TABS
 ════════════════════════════════════════════════════════════ -->
-<div class="navtabs">
+<nav class="navtabs" aria-label="Navegación principal">
 
   <!-- TAB: MENÚ (pizza icon) -->
   <button class="navtab on" id="tab-juegos" onclick="setTab('juegos')">
@@ -647,12 +647,12 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     <span>Bebidas</span>
   </button>
 
-</div>
+</nav>
 
 <!-- ═══════════════════════════════════════════════════════════
      MAIN BODY
 ════════════════════════════════════════════════════════════ -->
-<div class="body">
+<main class="body" id="main-content">
 
   <!-- FAB carrito flotante -->
   <div id="cart-fab" onclick="openCart()">
@@ -858,7 +858,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
   <footer>
     <img src="logo-app.png" alt="La Pizzería" style="height:48px;border-radius:12px;opacity:0.85" onerror="this.style.display='none'"/>
   </footer>
-</div>
+</main>
 
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
@@ -871,6 +871,9 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 const WA = '5355207586';         // ← Tu número de WhatsApp (solo dígitos)
 const NOMBRE_LOCAL = "Son D'licias";
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52j88VN-Z-Pf0HkqWQbSL1j43UvV4BBvBO6bM1fZ0NWi4HMys/exec';          // ← URL del Web App de Google Apps Script (ver apps-script.gs)
+
+// ── Modo desarrollo: solo logueamos a consola en local/Replit, no en GitHub Pages.
+const _isDev = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('.replit.dev'));
 
 // ── CONFIGURACIÓN DE ENVÍO (ajusta aquí cuando quieras) ───────
 const CFG_ENVIO = {
@@ -1480,7 +1483,7 @@ async function confirmOrder() {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(payload)
-    }).catch(e => console.warn('Sheets no disponible:', e));
+    }).catch(e => { if (_isDev) console.warn('Sheets no disponible:', e); });
   }
 
   // Construir mensaje WhatsApp
@@ -2979,7 +2982,7 @@ async function loadHero() {
     // Si hay slides válidos → reemplaza el hero estático con el del dueño
     if (slides.length) _renderHero(slides);
   } catch (e) {
-    console.warn('Hero dinámico no disponible, se mantiene el estático:', e);
+    if (_isDev) console.warn('Hero dinámico no disponible, se mantiene el estático:', e);
   }
 }
 
@@ -3059,7 +3062,7 @@ async function loadInventory() {
 
     render();
   } catch (e) {
-    console.warn('Inventario no disponible:', e);
+    if (_isDev) console.warn('Inventario no disponible:', e);
   }
 }
 
@@ -3699,7 +3702,7 @@ if ('serviceWorker' in navigator) {
           }
         });
       });
-    }).catch(err => console.log(err));
+    }).catch(err => { if (typeof _isDev !== 'undefined' && _isDev) console.log(err); });
     navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
   });
 }
