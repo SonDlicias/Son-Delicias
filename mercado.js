@@ -1,5 +1,6 @@
 // mercado.js — Catálogo del Mercado (dinámico desde Google Sheets)
-
+// Modo demo: activo con ?demo=1 en la URL. En producción no se usa catálogo local como respaldo.
+const MERCADO_MODO_DEMO = new URLSearchParams(window.location.search).has('demo');
 const SCRIPT_URL_MERCADO = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52j88VN-Z-Pf0HkqWQbSL1j43UvV4BBvBO6bM1fZ0NWi4HMys/exec';
 
 // Caché en memoria — 2 min para tab switching rápido.
@@ -75,6 +76,7 @@ async function fetchMercado() {
     }
   } catch (_) {}
 
-  // 3. Respaldo local — solo si el sheet no respondió o está vacío
-  return MERCADO_LOCAL;
+// 3. Respaldo — solo en modo demo (?demo=1). En producción se señala indisponibilidad.
+  if (MERCADO_MODO_DEMO) return MERCADO_LOCAL;
+  return null;
 }

@@ -1,11 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<title>🍕 La Pizzería</title>
-<meta property="og:title" content="🍕 La Pizzería"/>
-<meta property="og:description" content="🍕 Menú digital · Delivery y pedidos en mesa. Pizzas artesanales, bebidas y más. ¡Pedí por WhatsApp!"/>
+<title>🍕 Son D'licias</title>
+<meta property="og:title" content="🍕 Son D'licias"/>
+<meta property="og:description" content="🍕 Son D'licias · Delivery y pedidos en mesa. Pizzas artesanales, bebidas y más. ¡Pide por WhatsApp!"/>
 <meta property="og:image" content="og-image.png"/>
 <meta property="og:type" content="website"/>
 <meta name="theme-color" content="#0f0a08"/>
@@ -443,6 +444,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 .hero-commercial-badge.cb-mas-pedida{background:#FBC02D;color:#333}
 .hero-commercial-badge.cb-de-la-casa{background:#424242}
 .hero-urgency{display:inline-flex;align-items:center;gap:4px;background:rgba(214,40,40,.92);color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:16px;animation:urgencyPulse 2s ease-in-out infinite;margin-bottom:8px}
+.hero-badge-tr{position:absolute;top:20px;right:20px;z-index:10;display:inline-flex;align-items:center;gap:6px;background:#D62828;color:#fff;font-size:11px;font-weight:900;padding:7px 16px;border-radius:20px;letter-spacing:.4px;box-shadow:0 3px 14px rgba(0,0,0,.45),0 0 0 1.5px rgba(255,255,255,.12);pointer-events:none}
 .cc.anchor{width:220px !important}
 .cc.anchor .cc-img{height:240px !important}
 .cc.anchor .cc-name{font-size:15px !important}
@@ -524,7 +526,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
     <div class="hlogo">
       <img src="logo-app.png" alt="Son D'licias" onerror="this.style.display='none'"/>
       <div class="htxt">
-        <h1 id="hname">La Pizzería</h1>
+        <h1 id="hname">Son D'licias</h1>
       </div>
     </div>
     <!-- STATUS PILL -->
@@ -852,7 +854,7 @@ footer{text-align:center;padding:20px;color:#1e1e2e;font-size:11px;margin-top:8p
 
 // ── CONFIGURACIÓN ─────────────────────────────────────────────
 const WA = '5355207586';         // ← Tu número de WhatsApp (solo dígitos)
-const NOMBRE_LOCAL = 'La Pizzería';
+const NOMBRE_LOCAL = "Son D'licias";
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa5zphMRuekSJyOfs52j88VN-Z-Pf0HkqWQbSL1j43UvV4BBvBO6bM1fZ0NWi4HMys/exec';          // ← URL del Web App de Google Apps Script (ver apps-script.gs)
 
 // ── CONFIGURACIÓN DE ENVÍO (ajusta aquí cuando quieras) ───────
@@ -1536,18 +1538,48 @@ async function confirmOrder() {
 }
 
 // ── BEBIDAS ───────────────────────────────────────────────────
-function loadBebidas() {
+async function loadBebidas() {
   const cg = document.getElementById('congrid');
   const cl = document.getElementById('con-loading');
   if (cg.children.length > 0) { cl.style.display = 'none'; return; }
 
-  if (typeof BEBIDAS === 'undefined') {
-    cl.textContent = '⚠️ No se encontró bebidas.js';
-    return;
+  cl.style.display = 'block';
+  cl.textContent   = '⏳ Cargando bebidas...';
+
+  // Intentar cargar desde el Sheet primero
+  let bebidasSource = [];
+  try {
+    const res  = await fetch(SCRIPT_URL + '?action=bebidas&_t=' + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) bebidasSource = data;
+  } catch (_) {}
+
+  // Fallback al archivo estático si el Sheet está vacío
+  if (bebidasSource.length === 0 && typeof BEBIDAS !== 'undefined' && BEBIDAS.length > 0) {
+    bebidasSource = BEBIDAS.map(b => ({
+      nombre     : b.nombre,
+      precio     : b.precio,
+      categoria  : b.categoria  || 'Bebidas',
+      descripcion: b.specs      || '',
+      img        : b.img        || '',
+      emoji      : b.emoji      || '🥤',
+      disponible : b.disponible !== false
+    }));
   }
 
   cl.style.display = 'none';
-  BEBIDAS.forEach(b => {
+
+  // Sin datos en ninguna fuente → mensaje amigable
+  if (bebidasSource.length === 0) {
+    cg.innerHTML = `<div style="text-align:center;padding:48px 20px;color:#555">
+      <div style="font-size:40px;margin-bottom:14px">🥤</div>
+      <div style="font-size:14px;font-weight:700;color:#888;margin-bottom:10px">Bebidas no disponibles en este momento</div>
+      <a href="https://wa.me/${WA}" style="color:#25D366;font-weight:700;font-size:13px">Consultar por WhatsApp</a>
+    </div>`;
+    return;
+  }
+
+  bebidasSource.forEach(b => {
     const d = document.createElement('div');
     d.className = 'con-card';
     const disponible = b.disponible !== false;
@@ -1576,6 +1608,9 @@ function loadBebidas() {
       </div>`;
     cg.appendChild(d);
   });
+
+  refreshRatingsUI();
+  _syncBebidaBtns();
 }
 
 function compartirBebida(nombre, precio, e) {
@@ -1607,9 +1642,15 @@ function loadMercado() {
   grid.innerHTML = '';
   catRow.innerHTML = '';
 
-  fetchMercado().then(productos => {
-    _mercadoLoaded = true;
+fetchMercado().then(productos => {
     loading.style.display = 'none';
+
+    if (productos === null) {
+      grid.innerHTML = '<div style="text-align:center;padding:40px 20px"><div style="font-size:36px;margin-bottom:12px">🔌</div><div style="font-size:14px;font-weight:700;color:#666;margin-bottom:6px">Mercado temporalmente no disponible</div><div style="font-size:12px;color:#555">Estamos restableciendo el servicio. Intenta en unos minutos.</div></div>';
+      return;
+    }
+
+    _mercadoLoaded = true;
 
     if (!productos || productos.length === 0) {
       grid.innerHTML = '<p style="color:#aaa;text-align:center;padding:30px">El mercado está vacío por ahora.</p>';
@@ -1799,9 +1840,9 @@ document.addEventListener('click', () => {
 
 // ── HEADER INFO POR TAB ────────────────────────────────────────
 const _HTAB = {
-  juegos:  { title: 'La Pizzería',  sub: 'Hechas al momento · Pide por WhatsApp' },
+  juegos:  { title: "Son D'licias", sub: 'Hechas al momento · Pide por WhatsApp' },
   mercado: { title: 'El Mercado',   sub: 'Abierto 24h · Productos del barrio'    },
-  bebidas: { title: 'La Pizzería',  sub: 'Bebidas & Refrescos'                   }
+  bebidas: { title: "Son D'licias", sub: 'Bebidas & Refrescos'                   }
 };
 function _updateHeaderTab(t) {
   const info = _HTAB[t] || _HTAB.juegos;
@@ -2240,49 +2281,60 @@ function render() {
 }
 
 // ── HERO PRINCIPAL ────────────────────────────────────────────
-function initHero() {
+// ── HERO PRINCIPAL ────────────────────────────────────────────
+// Función compartida: construye el DOM del hero a partir de cualquier fuente de slides.
+// Llamada tanto por initHero() (datos estáticos) como por loadHero() (Google Sheets).
+function _renderHero(slides) {
   const hero = document.getElementById('hero-section');
-  if (!hero || typeof G === 'undefined') return;
+  if (!hero || !slides.length) return;
 
-  const slides = G.filter(g => g.featured).slice(0, 6);
-  if (!slides.length) { hero.style.display = 'none'; return; }
-
-  let cur = 0, paused = false, autoTimer = null;
+  hero.innerHTML = '';
+  window.__heroSlides = slides.map(s => s._product || s);
 
   const track = document.createElement('div');
   track.className = 'hero-track';
 
-  slides.forEach((g, i) => {
+  let cur = 0, paused = false;
+
+  slides.forEach((s, i) => {
     const sl = document.createElement('div');
     sl.className = 'hero-slide' + (i === 0 ? ' active' : '');
-    sl.style.cssText = `position:absolute;inset:0;opacity:${i===0?1:0};transition:opacity .65s ease;pointer-events:${i===0?'all':'none'}`;
-    sl.innerHTML = g.c
-      ? `<img src="${g.c}" alt="${g.t}" loading="${i===0?'eager':'lazy'}" onerror="this.style.display='none'">`
-      : `<div class="hero-slide-fallback" style="background:${g.col}">🍕</div>`;
-    sl.innerHTML += `<div class="hero-overlay"></div>`;
-    sl.innerHTML += `
-      <div class="hero-content">
-        <div class="hero-eyebrow">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>
-          <span data-herorating="${g.t}">${g.g}</span>
-        </div>
-        <div class="hero-title">${g.t}</div>
-        <div class="hero-sub">${g.d ? g.d.slice(0,72)+'…' : (g.s || '')}</div>
-        <div class="hero-actions">
-          <button class="hero-btn" onclick="event.stopPropagation();openGameSheet(window.__heroSlides[${i}])">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>
-            Ordenar ahora
-          </button>
-        </div>
-      </div>`;
-    sl.onclick = () => openGameSheet(slides[cur]);
+    sl.style.cssText = 'position:absolute;inset:0;opacity:' + (i===0?1:0)
+      + ';transition:opacity .65s ease;pointer-events:' + (i===0?'all':'none');
+
+    sl.innerHTML = s.c
+      ? '<img src="' + s.c + '" alt="' + (s.t||'').replace(/"/g,'&quot;') + '" loading="' + (i===0?'eager':'lazy') + '" onerror="this.style.display=\'none\'">'
+      : '<div class="hero-slide-fallback" style="background:' + (s.col||'#1a1a1a') + '">🍕</div>';
+    sl.innerHTML += '<div class="hero-overlay"></div>';
+
+  // Badge esquina superior derecha: _etiqueta > _urgencia > _etiquetaComercial del producto
+    const badgeText = s._etiqueta
+      || (s._product ? (s._product._urgencia || s._product._etiquetaComercial || '') : '')
+      || s._urgencia
+      || '';
+    const ratingKey = s._product ? s._product.t : (s.t || '');
+
+    if (badgeText) sl.innerHTML += '<div class="hero-badge-tr">⏰ ' + badgeText + '</div>';
+    sl.innerHTML += '<div class="hero-content">'
+      + '<div class="hero-eyebrow">'
+      + '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
+      + '<span data-herorating="' + ratingKey + '">' + (s.g||'') + '</span>'
+      + '</div>'
+      + '<div class="hero-title">' + (s.t||'') + '</div>'
+      + '<div class="hero-sub">' + (s.d||'').slice(0,72) + (s.d&&s.d.length>72?'…':'') + '</div>'
+      + '<div class="hero-actions">'
+      + '<button class="hero-btn" onclick="event.stopPropagation();'
+      + (s._product ? 'openGameSheet(window.__heroSlides[' + i + '])' : '') + '">'
+      + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>'
+      + (s._cta||'Ordenar ahora')
+      + '</button></div></div>';
+
+    sl.onclick = () => { if (slides[cur]._product) openGameSheet(slides[cur]._product); };
     track.appendChild(sl);
   });
 
   hero.appendChild(track);
-  window.__heroSlides = slides;
 
-  // Dots — single container appended directly to hero
   const dotsWrap = document.createElement('div');
   dotsWrap.style.cssText = 'position:absolute;bottom:16px;right:20px;display:flex;gap:5px;align-items:center;z-index:10';
   slides.forEach((_, i) => {
@@ -2298,18 +2350,17 @@ function initHero() {
     sEls[cur].style.pointerEvents = 'none';
     sEls[cur].classList.remove('active');
     cur = (n + slides.length) % slides.length;
+    // Reinicia Ken Burns en la imagen entrante
+    const img = sEls[cur].querySelector('img');
+    if (img) { img.style.animation = 'none'; void img.offsetWidth; img.style.animation = ''; }
     sEls[cur].style.opacity = '1';
     sEls[cur].style.pointerEvents = 'all';
     sEls[cur].classList.add('active');
     hero.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('on', i === cur));
   }
 
-  function startAuto() {
-    autoTimer = setInterval(() => { if (!paused) goTo(cur + 1); }, 5000);
-  }
-  startAuto();
+  setInterval(() => { if (!paused) goTo(cur + 1); }, 5000);
 
-  // Touch swipe
   let tsx = 0;
   hero.addEventListener('touchstart', e => { tsx = e.touches[0].clientX; paused = true; }, { passive: true });
   hero.addEventListener('touchend', e => {
@@ -2318,10 +2369,25 @@ function initHero() {
     setTimeout(() => { paused = false; }, 3000);
   }, { passive: true });
 
-  // Stop auto on btn tap, resume after
   hero.querySelectorAll('.hero-btn').forEach(b => {
     b.addEventListener('click', e => { e.stopPropagation(); paused = true; setTimeout(() => { paused = false; }, 4000); });
   });
+
+  refreshRatingsUI();
+}
+
+function initHero() {
+  if (typeof G === 'undefined') return;
+  const raw = G.filter(g => g.featured).slice(0, 6);
+  if (!raw.length) return;
+  const slides = raw.map(g => ({
+    t: g.t, d: g.d||'', c: g.c||'', col: g.col||'#1a1a1a', g: g.g||'',
+    _etiqueta: g._etiquetaComercial||g.badge||'',
+    _cta: 'Ordenar ahora',
+    _product: g,
+    _urgencia: g._urgencia||null
+  }));
+  _renderHero(slides);
 }
 
 // ── RENDER CAROUSELES POR CATEGORÍA ──────────────────────────
@@ -2329,11 +2395,23 @@ function renderCarousels() {
   const container = document.getElementById('carousel-view');
   container.innerHTML = '';
 
-  const CAT_ORDER = ['Promos', 'Especiales', 'Clásicas', 'Carnes', 'Mariscos', 'Vegetarianas'];
+ const CAT_ORDER = ['Promos', 'Especiales', 'Clásicas', 'Carnes', 'Mariscos', 'Vegetarianas'];
+  const _normCat = s => (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  // Agrupar normalizando la clave para que "Clasicas" y "Clásicas" caigan en el mismo grupo
   const grouped = {};
-  G.forEach(g => { if (!grouped[g.g]) grouped[g.g] = []; grouped[g.g].push(g); });
+  const catNameMap = {}; // normKey → nombre canónico (primera vez que aparece)
+  G.forEach(g => {
+    const norm = _normCat(g.g);
+    if (!catNameMap[norm]) catNameMap[norm] = g.g; // conserva el nombre con tildes
+    const canon = catNameMap[norm];
+    if (!grouped[canon]) grouped[canon] = [];
+    grouped[canon].push(g);
+  });
 
-  const orderedCats = [...CAT_ORDER.filter(c => grouped[c]), ...Object.keys(grouped).filter(c => !CAT_ORDER.includes(c))];
+  const orderedCats = [
+    ...CAT_ORDER.filter(c => grouped[c]),
+    ...Object.keys(grouped).filter(c => !CAT_ORDER.some(o => _normCat(o) === _normCat(c)))
+  ];
 
   orderedCats.forEach(cat => {
     const items = grouped[cat];
@@ -2550,13 +2628,213 @@ window.addEventListener('popstate', e => {
   if (e.state && e.state.tab) setTab(e.state.tab, false);
 });
 history.replaceState({ tab: 'juegos' }, '');
+function _normMenuKey(v) {
+  return (v || '').toString().trim().toLowerCase();
+}
 
+function _buildSizesFromSheetRow(row) {
+  const pPersonal = parseFloat(row.precio_personal);
+  const pMediana  = parseFloat(row.precio_mediana);
+  const pGrande   = parseFloat(row.precio_grande);
+
+  const validP = !Number.isNaN(pPersonal) && pPersonal > 0;
+  const validM = !Number.isNaN(pMediana)  && pMediana  > 0;
+  const validG = !Number.isNaN(pGrande)   && pGrande   > 0;
+  const count  = [validP, validM, validG].filter(Boolean).length;
+
+  // Etiquetas personalizadas desde columna Etiquetas_Sizes del Sheet
+  const custom = (row.etiquetas_sizes || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  // Detectar si es producto italiano → mantener Personal/Mediana/Grande
+  const cat = (row.categoria || '').toLowerCase();
+  const isItaliano =
+    cat.includes('pizza')    || cat.includes('pasta')    ||
+    cat.includes('lasaña')   || cat.includes('lasagna')  ||
+    cat.includes('clasica')  || cat.includes('clásica')  ||
+    cat.includes('especial') || cat.includes('marisco')  ||
+    cat.includes('calzone')  || cat.includes('italiana') ||
+    cat.includes('italiana');
+
+  // Labels automáticos según tipo
+  const autoItaliano = ['Personal', 'Mediana', 'Grande'];
+  const autoGenerico = { 1: ['Porción'], 2: ['Pequeño', 'Grande'], 3: ['Pequeño', 'Mediano', 'Grande'] };
+  const defaults     = isItaliano ? autoItaliano : (autoGenerico[count] || ['Porción']);
+
+  const label = (i) => custom[i] || defaults[i] || 'Porción';
+
+  const sizes = [];
+  if (validP) sizes.push({ label: label(0), cm: isItaliano ? 20 : 0, price: pPersonal });
+  if (validM) sizes.push({ label: label(1), cm: isItaliano ? 28 : 0, price: pMediana  });
+  if (validG) sizes.push({ label: label(2), cm: isItaliano ? 35 : 0, price: pGrande   });
+
+  if (!sizes.length) {
+    const pBase = parseFloat(row.precio) || parseFloat(row.precio_base) || 0;
+    sizes.push({ label: custom[0] || 'Porción', cm: 0, price: pBase });
+  }
+
+  return sizes;
+}
+function _buildSizeTextFromSizes(sizes) {
+  if (!Array.isArray(sizes) || !sizes.length) return '';
+  return sizes.map(s => s.label).join(' · ');
+}
+
+// Resuelve la categoría del sheet contra las existentes en G.
+// Normaliza: sin tildes, sin mayúsculas, sin espacios extra, sin plural/singular.
+// Si encuentra coincidencia → devuelve el nombre canónico (con tildes correctas).
+// Si no → devuelve la categoría tal cual (nueva categoría válida).
+function _resolveCategory(raw) {
+  if (!raw) return 'General';
+  const _n = s => (s||'').trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/s$/,''); // ignora plural/singular al final
+  const rawNorm = _n(raw);
+  const existing = [...new Set(G.map(g => g.g).filter(Boolean))];
+  const match = existing.find(c => _n(c) === rawNorm);
+  return match || raw.trim();
+}
+
+function _createPizzaFromSheet(row) {
+  const nombre    = (row.nombre    || '').toString().trim();
+  const categoria = (row.categoria || '').toString().trim().toLowerCase();
+
+  if (!nombre) return null;
+
+  const sizes     = _buildSizesFromSheetRow(row);
+  const basePrice = sizes[0] && typeof sizes[0].price === 'number' ? sizes[0].price : 0;
+
+ const pizza = {
+    t: nombre,
+    g: _resolveCategory(row.categoria),
+    r: 0,
+    d: (row.descripcion || 'Disponible en nuestro menú.').toString().trim(),
+    c: (row.foto || '').toString().trim(),
+    col: '#1a1208',
+    s: _buildSizeTextFromSizes(sizes),
+    price: basePrice,
+    badge: row.badge !== undefined && row.badge !== null ? (row.badge || null) : null,
+    fotos: [],
+    sizes: sizes,
+    featured: false,
+    _fromSheet: true
+  };
+
+  if (row.prioridad !== undefined) pizza._prioridad = parseInt(row.prioridad, 10) || 0;
+  if (row.etiqueta_comercial) pizza._etiquetaComercial = row.etiqueta_comercial;
+  if (row.urgencia) pizza._urgencia = row.urgencia;
+  if (row.destacado !== undefined) pizza._destacado = row.destacado;
+
+  if (row.estado) inventoryMap[_normMenuKey(nombre)] = row.estado;
+
+  return pizza;
+}
+
+function _upsertPizzaFromSheetRow(row) {
+  if (_isBebidaRow(row)) return false;   // ← ÚNICA LÍNEA AÑADIDA
+  const key = _normMenuKey(row && row.nombre);
+  if (!key) return false;
+
+  const existing = G.find(p => _normMenuKey(p.t) === key);
+
+  if (existing) {
+    _patchPizzaFromSheet(existing, row);
+    return false;
+  }
+
+  const created = _createPizzaFromSheet(row);
+  if (!created) return false;
+
+  G.push(created);
+  return true;
+}
+   function _normBebidaKey(v) {
+  return (v || '').toString().trim().toLowerCase();
+}
+
+function _patchBebidaFromSheet(b, row) {
+  const precio = parseFloat(row.precio ?? row.precio_personal ?? 0);
+  if (!Number.isNaN(precio) && precio > 0) b.precio = precio;
+
+  const specs = (row.specs || row.descripcion || row.presentacion || '').toString().trim();
+  if (specs) b.specs = specs;
+
+  const img = (row.img || row.foto || '').toString().trim();
+  if (img) b.img = img;
+
+  if (row.categoria) b.categoria = row.categoria.toString().trim();
+
+  if (row.estado !== undefined) {
+    const estado = row.estado.toString().trim().toLowerCase();
+    b.disponible = estado === 'disponible';
+  }
+
+  if (!b.img && !b.emoji) b.emoji = '🥤';
+}
+   function _isBebidaRow(row) {
+  const categoria = (row.categoria || '').toString().trim().toLowerCase();
+
+  const categoriasBebidas = new Set([
+    'gaseosas',
+    'agua',
+    'jugos',
+    'cervezas',
+    'vinos',
+    'cócteles',
+    'cocteles',
+    'café',
+    'cafe'
+  ]);
+
+  return categoriasBebidas.has(categoria);
+}
+
+function _createBebidaFromSheet(row) {
+  if (!_isBebidaRow(row)) return null;
+
+  const nombre = (row.nombre || '').toString().trim();
+  if (!nombre) return null;
+
+  const precio = parseFloat(row.precio ?? row.precio_personal ?? 0);
+  const img = (row.img || row.foto || '').toString().trim();
+  const specs = (row.specs || row.descripcion || row.presentacion || '').toString().trim();
+  const estado = (row.estado || '').toString().trim().toLowerCase();
+
+ return {
+    nombre,
+    categoria: (row.categoria || 'Bebidas').toString().trim(),
+    precio: !Number.isNaN(precio) ? precio : 0,
+    specs: specs,
+    emoji: img ? '' : (row.emoji || '🥤'),
+    img: img,
+    disponible: estado ? estado === 'disponible' : true,
+    _fromSheet: true
+  };
+}
+
+function _upsertBebidaFromSheetRow(row) {
+ if (!_isBebidaRow(row)) return false;
+  const key = _normBebidaKey(row && row.nombre);
+  if (!key) return false;
+
+  const existing = BEBIDAS.find(b => _normBebidaKey(b.nombre) === key);
+
+  if (existing) {
+    _patchBebidaFromSheet(existing, row);
+    return false;
+  }
+
+  const created = _createBebidaFromSheet(row);
+  if (!created) return false;
+
+  BEBIDAS.push(created);
+  return true;
+}
 // ── INVENTARIO DINÁMICO (Google Sheets) ───────────────────────
 // Aplica datos del Inventario Sheet a un item del array G
 function _patchPizzaFromSheet(pizza, row) {
   if (row.estado)       inventoryMap[pizza.t.toLowerCase().trim()] = row.estado;
   if (row.descripcion)  pizza.d = row.descripcion;
-  if (row.categoria)    pizza.g = row.categoria;
+ if (row.categoria) pizza.g = _resolveCategory(row.categoria);
   if (row.badge !== undefined && row.badge !== null) pizza.badge = row.badge || null;
   // Foto: URL de ImgBB o cualquier host externo — sobreescribe la imagen local
   if (row.foto)         pizza.c = row.foto;
@@ -2638,110 +2916,54 @@ async function loadHero() {
   try {
     const res = await fetch(SCRIPT_URL + '?action=hero&_t=' + Date.now(), { cache: 'no-store' });
     const heroData = await res.json();
+    // Si Sheets no tiene datos → el hero de initHero() permanece intacto
     if (!heroData || !Array.isArray(heroData) || heroData.length === 0) return;
 
-    const hero = document.getElementById('hero-section');
-    if (!hero) return;
-
-    var slides = [];
-    var seenOrden = {};
-    heroData.forEach(function(h, rowIdx) {
+    const slides = [];
+    const seenOrden = {};
+    heroData.forEach((h, rowIdx) => {
       if (!h || typeof h !== 'object') return;
-      var producto = (h.producto || '').trim();
-      var product = producto ? G.find(function(g) { return g.t.toLowerCase().trim() === producto.toLowerCase(); }) : null;
-      var img = (h.imagen || '').trim() || (product ? product.c : '');
-      var titulo = (h.titulo || '').trim() || (product ? product.t : producto);
+      const producto = (h.producto || '').trim();
+      const product  = producto ? G.find(g => g.t.toLowerCase().trim() === producto.toLowerCase()) : null;
+      const img      = (h.imagen || '').trim() || (product ? product.c : '');
+      const titulo   = (h.titulo  || '').trim() || (product ? product.t : producto);
       if (!titulo && !img) return;
-      var orden = (h.orden != null && h.orden !== '') ? h.orden : ('_row' + rowIdx);
+      const orden = (h.orden != null && h.orden !== '') ? h.orden : ('_row' + rowIdx);
       if (seenOrden[orden]) return;
       seenOrden[orden] = true;
-      var _esc = function(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-      slides.push({
-        t: _esc(titulo || 'Sin título'),
-        d: _esc((h.subtitulo || (product ? (product.d || '') : '')).slice(0, 120)),
-        c: img,
-        col: product ? product.col : '#1a1a1a',
-        g: product ? product.g : '',
-        _etiqueta: _esc((h.etiqueta || '').trim()),
-        _cta: _esc((h.cta || '').trim() || 'Ordenar ahora'),
-        _product: product
+   slides.push({
+        t:         titulo,
+        d:         (h.subtitulo || (product ? product.d||'' : '')).slice(0, 120),
+        c:         img,
+        col:       product ? product.col : '#1a1a1a',
+        g:         product ? product.g   : '',
+        _etiqueta: (h.etiqueta || '').trim()
+                   || (product ? (product._urgencia || product._etiquetaComercial || '') : ''),
+        _cta:      (h.cta || '').trim() || 'Ordenar ahora',
+        _product:  product || null,
+        _urgencia: null  // cubierto por _etiqueta — evita duplicado en hero-content
       });
     });
-
-    if (!slides.length) return;
-
-    hero.innerHTML = '';
-    window.__heroSlides = slides.map(function(s) { return s._product || s; });
-
-    var cur = 0, paused = false, autoTimer = null;
-
-    slides.forEach(function(s, i) {
-      var sl = document.createElement('div');
-      sl.className = 'hero-slide' + (i === 0 ? ' active' : '');
-      sl.style.cssText = 'position:absolute;inset:0;opacity:' + (i === 0 ? 1 : 0) + ';transition:opacity .65s ease;pointer-events:' + (i === 0 ? 'all' : 'none');
-
-      sl.innerHTML = s.c
-        ? '<img src="' + s.c + '" alt="' + s.t + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" onerror="this.style.display=\'none\'">'
-        : '<div class="hero-slide-fallback" style="background:' + s.col + '">\uD83C\uDF55</div>';
-      sl.innerHTML += '<div class="hero-overlay"></div>';
-
-      var badgeHtml = s._etiqueta ? '<div class="hero-commercial-badge ' + _mapBadgeClass(s._etiqueta) + '">' + s._etiqueta + '</div>' : '';
-      var productUrgency = s._product && s._product._urgencia
-        ? '<div class="hero-urgency">\u23F0 ' + s._product._urgencia + '</div>' : '';
-
-      sl.innerHTML += '<div class="hero-content">'
-        + badgeHtml
-        + '<div class="hero-eyebrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.47 7.6H22l-6.47 4.7 2.47 7.6L12 17.2l-6 4.7 2.47-7.6L2 9.24l7.53-.64z"/></svg>'
-        + '<span data-herorating="' + (s._product ? s._product.t : s.t) + '">' + s.g + '</span></div>'
-        + productUrgency
-        + '<div class="hero-title">' + s.t + '</div>'
-        + '<div class="hero-sub">' + (s.d || '').slice(0, 72) + (s.d && s.d.length > 72 ? '\u2026' : '') + '</div>'
-        + '<div class="hero-actions"><button class="hero-btn" onclick="event.stopPropagation();' + (s._product ? 'openGameSheet(window.__heroSlides[' + i + '])' : '') + '">'
-        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56L23 6H6"/></svg>'
-        + s._cta + '</button></div></div>';
-
-      sl.onclick = function() { if (slides[cur]._product) openGameSheet(slides[cur]._product); };
-      hero.appendChild(sl);
-    });
-
-    var dotsWrap = document.createElement('div');
-    dotsWrap.style.cssText = 'position:absolute;bottom:16px;right:20px;display:flex;gap:5px;align-items:center;z-index:10';
-    slides.forEach(function(_, i) {
-      var d = document.createElement('div');
-      d.className = 'hero-dot' + (i === 0 ? ' on' : '');
-      dotsWrap.appendChild(d);
-    });
-    hero.appendChild(dotsWrap);
-
-    function goTo(n) {
-      var sEls = hero.querySelectorAll('.hero-slide');
-      sEls[cur].style.opacity = '0';
-      sEls[cur].style.pointerEvents = 'none';
-      sEls[cur].classList.remove('active');
-      cur = (n + slides.length) % slides.length;
-      sEls[cur].style.opacity = '1';
-      sEls[cur].style.pointerEvents = 'all';
-      sEls[cur].classList.add('active');
-      hero.querySelectorAll('.hero-dot').forEach(function(d, i) { d.classList.toggle('on', i === cur); });
+    // Rellenar hasta 3 slides con pizzas featured si Sheets tiene menos de 3
+    if (slides.length > 0 && slides.length < 3) {
+      // Deduplicar por referencia de producto (no por título, que puede ser personalizado)
+      const usedProducts = new Set(slides.map(s => s._product ? _normMenuKey(s._product.t) : null).filter(Boolean));
+      const extras = G
+        .filter(g => g.featured && !usedProducts.has(_normMenuKey(g.t)))
+        .slice(0, 3 - slides.length)
+        .map(g => ({
+          t: g.t, d: g.d||'', c: g.c||'', col: g.col||'#1a1a1a', g: g.g||'',
+          _etiqueta: g._etiquetaComercial||g.badge||'',
+          _cta: 'Ordenar ahora',
+          _product: g,
+          _urgencia: g._urgencia||null
+        }));
+      slides.push(...extras);
     }
-
-    autoTimer = setInterval(function() { if (!paused) goTo(cur + 1); }, 5000);
-
-    var tsx = 0;
-    hero.addEventListener('touchstart', function(e) { tsx = e.touches[0].clientX; paused = true; }, { passive: true });
-    hero.addEventListener('touchend', function(e) {
-      var dx = e.changedTouches[0].clientX - tsx;
-      if (Math.abs(dx) > 45) goTo(cur + (dx < 0 ? 1 : -1));
-      setTimeout(function() { paused = false; }, 3000);
-    }, { passive: true });
-
-    hero.querySelectorAll('.hero-btn').forEach(function(b) {
-      b.addEventListener('click', function(e) { e.stopPropagation(); paused = true; setTimeout(function() { paused = false; }, 4000); });
-    });
-
-    refreshRatingsUI();
+    // Si hay slides válidos → reemplaza el hero estático con el del dueño
+    if (slides.length) _renderHero(slides);
   } catch (e) {
-    console.warn('Hero dinamico no disponible:', e);
+    console.warn('Hero dinámico no disponible, se mantiene el estático:', e);
   }
 }
 
@@ -2751,14 +2973,74 @@ async function loadInventory() {
     const res = await fetch(SCRIPT_URL + '?action=inventory', { method: 'GET' });
     const data = await res.json();
     if (!data || !Array.isArray(data)) return;
+
+ let createdNew = false;
+
+    // Nombres que vienen en esta llamada del sheet (fuente de verdad)
+    const sheetKeys = new Set(
+      data.filter(r => r.nombre).map(r => _normMenuKey(r.nombre))
+    );
+
     data.forEach(row => {
       if (!row.nombre) return;
-      const key = row.nombre.toLowerCase().trim();
+
+      const key = _normMenuKey(row.nombre);
       if (row.estado) inventoryMap[key] = row.estado;
-      const pizza = G.find(p => p.t.toLowerCase().trim() === key);
-      if (pizza) _patchPizzaFromSheet(pizza, row);
+
+      if (_upsertPizzaFromSheetRow(row)) {
+        createdNew = true;
+      }
     });
+
+    // Eliminar de G los productos creados desde sheet que ya no existen en el sheet
+    const removedG = [];
+    for (let i = G.length - 1; i >= 0; i--) {
+      if (G[i]._fromSheet && !sheetKeys.has(_normMenuKey(G[i].t))) {
+        removedG.push(G[i].t);
+        G.splice(i, 1);
+      }
+    }
+
+    // Eliminar de BEBIDAS los productos creados desde sheet que ya no existen
+    for (let i = BEBIDAS.length - 1; i >= 0; i--) {
+      if (BEBIDAS[i]._fromSheet && !sheetKeys.has(_normBebidaKey(BEBIDAS[i].nombre))) {
+        BEBIDAS.splice(i, 1);
+      }
+    }
+
+    // Limpiar inventoryMap de los eliminados
+    removedG.forEach(t => delete inventoryMap[_normMenuKey(t)]);
+
     _processAutoLabels();
+
+    if (createdNew) {
+     const _normCat = s => (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const currentGenres = new Set(
+        [...document.querySelectorAll('#gbar .gb')]
+          .map(btn => _normCat(btn.textContent))
+          .filter(Boolean)
+      );
+
+      G.map(x => x.g)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(cat => {
+          if (cat === 'Todos' || currentGenres.has(_normCat(cat))) return;
+
+          const b = document.createElement('button');
+          b.className = 'gb';
+          b.textContent = cat;
+          b.onclick = () => {
+            aG = cat;
+            document.querySelectorAll('.gb').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            render();
+          };
+          document.getElementById('gbar').appendChild(b);
+          currentGenres.add(cat);
+        });
+    }
+
     render();
   } catch (e) {
     console.warn('Inventario no disponible:', e);
@@ -2784,32 +3066,68 @@ function showToast(msg) {
 async function _pollInventory() {
   if (!SCRIPT_URL) return;
   try {
-    const res  = await fetch(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' });
-    const data = await res.json();
-    if (!data || !Array.isArray(data)) return;
+   const res  = await fetch(SCRIPT_URL + '?action=inventory&_t=' + Date.now(), { cache: 'no-store' });
+const data = await res.json();
+if (!data || !Array.isArray(data)) return;
+const _h = _quickHash(data);
+if (_h === _invHash) return; // sin cambios reales → no procesar
+_invHash = _h;
 
     let changed = false;
+    let createdNew = false;
+
     data.forEach(row => {
       if (!row.nombre) return;
-      const key = row.nombre.toLowerCase().trim();
-      // Estado
+
+      const key = _normMenuKey(row.nombre);
+
       if (row.estado && inventoryMap[key] !== row.estado) {
         inventoryMap[key] = row.estado;
         changed = true;
       }
-      // Datos del catálogo (descripcion, precios, badge, categoría)
-      const pizza = G.find(p => p.t.toLowerCase().trim() === key);
-      if (pizza) _patchPizzaFromSheet(pizza, row);
+
+      if (_upsertPizzaFromSheetRow(row)) {
+        createdNew = true;
+        changed = true;
+      }
     });
 
     _processAutoLabels();
+
+    if (createdNew) {
+     const _normCat = s => (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const currentGenres = new Set(
+        [...document.querySelectorAll('#gbar .gb')]
+          .map(btn => _normCat(btn.textContent))
+          .filter(Boolean)
+      );
+
+      G.map(x => x.g)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(cat => {
+          if (cat === 'Todos' || currentGenres.has(_normCat(cat))) return;
+
+          const b = document.createElement('button');
+          b.className = 'gb';
+          b.textContent = cat;
+          b.onclick = () => {
+            aG = cat;
+            document.querySelectorAll('.gb').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            render();
+          };
+          document.getElementById('gbar').appendChild(b);
+          currentGenres.add(cat);
+        });
+    }
+
     if (changed) {
       render();
-      showToast('\uD83D\uDD04 El menú fue actualizado');
+      showToast('🔄 El menú fue actualizado');
     }
   } catch (_) {}
 }
-
 async function _pollMercado() {
   if (!_mercadoLoaded) return;
   try {
@@ -2817,12 +3135,17 @@ async function _pollMercado() {
     _mercadoMemCache = null;
     _mercadoMemTs    = 0;
 
-    const productos = await fetchMercado();
-    _patchMercadoUI(productos);
+   const productos = await fetchMercado();
+if (!productos) return;
+const _hm = _quickHash(productos);
+if (_hm === _mktHash) return; // sin cambios → no procesar
+_mktHash = _hm;
+_patchMercadoUI(productos);
   } catch (_) {}
 }
 
 function _patchMercadoUI(productos) {
+  if (!productos) return;
   const prodMap = new Map(productos.map(p => [p.nombre.toLowerCase().trim(), p]));
   let changed = false;
 
@@ -2860,10 +3183,56 @@ function _patchMercadoUI(productos) {
   if (changed) showToast('🔄 El mercado fue actualizado');
 }
 
+   function _quickHash(data) {
+  const s = JSON.stringify(data);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  }
+  return h;
+}
+let _invHash = null;
+let _mktHash = null;
+
+
 function _startPolling() {
-  const INTERVAL = 90 * 1000; // 90 segundos
-  setInterval(_pollInventory, INTERVAL);
-  setInterval(_pollMercado,   INTERVAL);
+  const INTERVAL_ACTIVE  = 10 * 1000;  // 10s cuando tab visible
+  const INTERVAL_HIDDEN  = 60 * 1000;  // 60s cuando tab en fondo
+
+  let _invTimer = null;
+  let _mktTimer = null;
+
+  function _scheduleInv() {
+    clearTimeout(_invTimer);
+    const delay = document.hidden ? INTERVAL_HIDDEN : INTERVAL_ACTIVE;
+    _invTimer = setTimeout(async () => {
+      await _pollInventory();
+      _scheduleInv();
+    }, delay);
+  }
+
+  function _scheduleMkt() {
+    clearTimeout(_mktTimer);
+    const delay = document.hidden ? INTERVAL_HIDDEN : INTERVAL_ACTIVE;
+    _mktTimer = setTimeout(async () => {
+      await _pollMercado();
+      _scheduleMkt();
+    }, delay);
+  }
+
+  // Cuando el usuario vuelve al tab → poll inmediato + reiniciar ciclo
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      _pollInventory();
+      _pollMercado();
+    }
+    _scheduleInv();
+    _scheduleMkt();
+  });
+
+  // Arrancar ciclo inicial
+  _scheduleInv();
+  _scheduleMkt();
 }
 
 // ══════════════════════════════════════════════════════════════

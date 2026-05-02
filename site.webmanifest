@@ -1,7 +1,7 @@
 {
-  "name": "La Pizzería",
-  "short_name": "La Pizzería",
-  "description": "Menú digital y pedidos online",
+  "name": "Son D'licias",
+"short_name": "Son D'licias",
+"description": "Menú digital · Delivery y pedidos en mesa",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
