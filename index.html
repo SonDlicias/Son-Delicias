@@ -3583,7 +3583,7 @@ async function _loadRevComments(producto, offset, clear) {
 
   try {
     const url  = `${SCRIPT_URL}?action=comments&producto=${encodeURIComponent(producto)}&offset=${offset}&limit=${REV_PAGE}`;
-    const resp = await fetch(url);
+    const resp = await _fetchWithTimeout(url, {}, 10000);
     const data = await resp.json();
 
     if (clear) body.innerHTML = '';
